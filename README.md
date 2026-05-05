@@ -1,4 +1,4 @@
-![Gate402](apps/dashboard/public/foto-git.png)
+![Gate402](foto-git.png)
 
 [![npm](https://img.shields.io/npm/v/gate402?color=00ff88&label=npm)](https://www.npmjs.com/package/gate402)
 [![license](https://img.shields.io/badge/license-MIT-00ff88)](#license)
