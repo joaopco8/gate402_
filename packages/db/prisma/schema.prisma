@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Endpoint {
+  id          String    @id @default(cuid())
+  path        String    @unique
+  priceUsdc   Float
+  description String?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  calls       ApiCall[]
+}
+
+model ApiCall {
+  id          String   @id @default(cuid())
+  endpointId  String
+  endpoint    Endpoint @relation(fields: [endpointId], references: [id])
+  txHash      String   @unique
+  amountUsdc  Float
+  payerWallet String
+  status      String   @default("success")
+  createdAt   DateTime @default(now())
+}

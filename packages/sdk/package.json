@@ -1,0 +1,26 @@
+{
+  "name": "gate402",
+  "version": "0.1.0",
+  "description": "Billing infrastructure for AI agents — x402 + Solana in 5 minutes",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["x402", "solana", "billing", "mcp", "ai-agents", "usdc"],
+  "author": "gate402",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0",
+    "@types/express": "^5.0.0"
+  },
+  "peerDependencies": {
+    "express": ">=4.0.0"
+  }
+}

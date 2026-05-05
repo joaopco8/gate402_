@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "gate402-demo": {
+      "command": "node",
+      "args": ["C:\\Users\\Pichau\\Desktop\\gate402\\apps\\mcp-demo\\dist\\index.js"],
+      "env": {
+        "SERVER_URL": "http://localhost:3001"
+      }
+    }
+  }
+}
