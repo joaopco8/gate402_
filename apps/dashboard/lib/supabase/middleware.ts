@@ -28,7 +28,8 @@ export async function updateSession(request: NextRequest) {
   const isPublicRoute =
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/auth') ||
-    request.nextUrl.pathname.startsWith('/landing')
+    request.nextUrl.pathname.startsWith('/landing') ||
+    request.nextUrl.pathname === '/'
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
@@ -36,9 +37,15 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && request.nextUrl.pathname === '/login') {
+  if (!user && request.nextUrl.pathname === '/') {
     const url = request.nextUrl.clone()
-    url.pathname = '/'
+    url.pathname = '/landing'
+    return NextResponse.redirect(url)
+  }
+
+  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/landing')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 
