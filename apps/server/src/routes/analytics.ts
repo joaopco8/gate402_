@@ -159,13 +159,14 @@ router.get('/endpoints/revenue', async (req, res) => {
       },
     });
 
-    const revenue = endpoints
-      .map(ep => ({
+    type EndpointWithCalls = { path: string; calls: { amountUsdc: number }[] };
+    const revenue = (endpoints as EndpointWithCalls[])
+      .map((ep: EndpointWithCalls) => ({
         name: ep.path,
         value: ep.calls.reduce((sum: number, c: { amountUsdc: number }) => sum + c.amountUsdc, 0),
         calls: ep.calls.length,
       }))
-      .filter(ep => ep.value > 0);
+      .filter((ep: { name: string; value: number; calls: number }) => ep.value > 0);
 
     res.json(revenue);
   } catch (err) {
