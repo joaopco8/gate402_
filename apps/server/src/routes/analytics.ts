@@ -129,7 +129,8 @@ router.post('/endpoints', async (req, res) => {
       res.status(400).json({ error: parsed.error.errors[0].message });
       return;
     }
-    const endpoint = await prisma.endpoint.create({ data: { ...parsed.data, userId } });
+    const { path, priceUsdc, description } = parsed.data;
+    const endpoint = await prisma.endpoint.create({ data: { path, priceUsdc, description, userId } });
     res.status(201).json(endpoint);
   } catch (err: unknown) {
     const pe = err as { code?: string };
