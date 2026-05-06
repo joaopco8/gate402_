@@ -8,9 +8,12 @@
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "declaration": true,
     "resolveJsonModule": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "../../apps/dashboard"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/test-sdk.ts"
+  ]
 }
