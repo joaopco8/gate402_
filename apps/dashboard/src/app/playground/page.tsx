@@ -112,10 +112,17 @@ export default function PlaygroundPage() {
   async function callEndpoint(withPayment: boolean) {
     setLoading(true)
     const start = Date.now()
+    const { createClient } = await import('../../../lib/supabase/client')
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const userId = user?.id ?? null
     try {
       const headers: Record<string, string> = {}
       if (withPayment) {
         headers['X-Payment-Payload'] = `demo_playground_${Date.now()}`
+      }
+      if (userId) {
+        headers['x-user-id'] = userId
       }
       const res = await fetch(`${SERVER}${endpoint}`, { headers })
       const data = await res.json()
