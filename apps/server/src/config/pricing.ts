@@ -18,6 +18,6 @@ export async function getPricing(path: string): Promise<{ priceUsdc: number; end
     }
   } catch (error) {
     console.error('Database error in getPricing:', error)
-    return null
+    throw error
   }
 }

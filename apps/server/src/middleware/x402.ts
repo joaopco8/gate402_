@@ -95,6 +95,6 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
     });
   } catch (error) {
     console.error('x402Middleware error:', error);
-    next();
+    res.status(503).json({ error: 'Service temporarily unavailable' });
   }
 }
