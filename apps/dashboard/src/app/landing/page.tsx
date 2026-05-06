@@ -174,11 +174,25 @@ const CSS = `
   }
   .nav-link:hover { color: #fff; }
 
+  html { overflow-x: hidden; }
+  body { overflow-x: hidden; }
+
   @media (max-width: 768px) {
     .nav-links { display: none !important; }
-    .hero-headline { font-size: 56px !important; }
+    .hero-headline { font-size: 44px !important; }
+    .hero-ctas { flex-direction: column !important; width: 100% !important; }
+    .hero-ctas a { width: 100% !important; box-sizing: border-box !important; }
     .how-grid { grid-template-columns: 1fr !important; }
     .how-connector { display: none !important; }
+    .features-grid { grid-template-columns: 1fr !important; }
+    .code-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+    .pricing-grid { grid-template-columns: 1fr !important; max-width: 100% !important; }
+    .feed-wallet { display: none !important; }
+    .feed-arrow { display: none !important; }
+    .footer-inner { flex-direction: column !important; gap: 20px !important; }
+    .footer-links { flex-wrap: wrap !important; gap: 16px !important; }
+    .final-cta-headline { font-size: 36px !important; }
+    .npm-snippet { flex-direction: column !important; gap: 12px !important; width: 100% !important; box-sizing: border-box !important; }
   }
 `
 
@@ -197,7 +211,7 @@ function Nav() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 250px',
+      padding: '0 clamp(20px, 10vw, 250px)',
       background: 'rgba(0,0,0,0.85)',
       backdropFilter: 'blur(12px)',
       borderBottom: '1px solid #1a1a1a',
@@ -374,7 +388,7 @@ function Hero() {
       </p>
 
       {/* CTAs */}
-      <div className="fade-in-up" style={{ display: 'flex', gap: 12, marginBottom: 28, animationDelay: '1.0s', position: 'relative', zIndex: 1 }}>
+      <div className="fade-in-up hero-ctas" style={{ display: 'flex', gap: 12, marginBottom: 28, animationDelay: '1.0s', position: 'relative', zIndex: 1 }}>
         <a href="/login" className="btn-primary" style={{ fontSize: 15, padding: '13px 28px' }}>Start free →</a>
         <a href="#how" className="btn-ghost" style={{ fontSize: 15, padding: '13px 28px' }}>View live demo</a>
       </div>
@@ -493,8 +507,8 @@ function LiveFeed() {
               }}
             >
               <span className="mono" style={{ fontSize: 12, color: '#00ff88', minWidth: 140 }}>{item.endpoint}</span>
-              <span className="mono" style={{ fontSize: 12, color: '#333' }}>{item.wallet}</span>
-              <span style={{ fontSize: 12, color: '#333', margin: '0 8px' }}>→</span>
+              <span className="mono feed-wallet" style={{ fontSize: 12, color: '#333' }}>{item.wallet}</span>
+              <span className="feed-arrow" style={{ fontSize: 12, color: '#333', margin: '0 8px' }}>→</span>
               <span className="mono" style={{ fontSize: 12, color: '#fff', flex: 1, textAlign: 'center' }}>{item.amount} USDC</span>
               <span className="badge" style={{
                 fontSize: 10,
@@ -712,7 +726,7 @@ function Features() {
           Everything you need. Nothing you don&apos;t.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+        <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           {FEATURE_CARDS.map((card, idx) => (
             <div
               key={card.title}
@@ -800,7 +814,7 @@ function CodeSection() {
 
   return (
     <section style={{ background: '#000', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
+      <div className="code-grid" style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
 
         {/* Left */}
         <div>
@@ -908,7 +922,7 @@ function Pricing() {
           Free until you&apos;re making money.
         </h2>
 
-        <div ref={ref} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, maxWidth: 900, margin: '0 auto' }}>
+        <div ref={ref} className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, maxWidth: 900, margin: '0 auto' }}>
           {PLANS.map((plan, idx) => (
             <div key={plan.price} style={{
               background: '#0d0d0d',
@@ -1004,7 +1018,7 @@ function FinalCTA() {
       }} />
 
       <div ref={ctaRef} style={{ maxWidth: 640, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <h2 style={{
+        <h2 className="final-cta-headline" style={{
           fontFamily: 'var(--font-space, sans-serif)',
           fontWeight: 300,
           fontSize: 64,
@@ -1022,7 +1036,7 @@ function FinalCTA() {
         </p>
 
         {/* copiable snippet */}
-        <div style={{
+        <div className="npm-snippet" style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: 16,
@@ -1071,7 +1085,7 @@ function Footer() {
   return (
     <footer style={{ borderTop: '1px solid #1a1a1a', background: '#000', padding: '40px 32px 0' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: 32, borderBottom: '1px solid #1a1a1a' }}>
+        <div className="footer-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: 32, borderBottom: '1px solid #1a1a1a' }}>
           {/* Left */}
           <div>
             <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 500, fontSize: 16, color: '#fff', marginBottom: 8 }}>Gate402</div>
@@ -1079,7 +1093,7 @@ function Footer() {
           </div>
 
           {/* Right links */}
-          <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
+          <div className="footer-links" style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
             {[['GitHub', '#'], ['npm', '#'], ['Docs', '/docs'], ['Dashboard', '/']].map(([label, href]) => (
               <a key={label} href={href} style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', transition: 'color 0.15s' }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
@@ -1106,7 +1120,7 @@ export default function LandingPage() {
   return (
     <div
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
-      style={{ background: '#000', minHeight: '100vh', fontFamily: 'var(--font-space), sans-serif' }}
+      style={{ background: '#000', minHeight: '100vh', fontFamily: 'var(--font-space), sans-serif', overflowX: 'hidden' }}
     >
       <style>{CSS}</style>
       <Nav />
