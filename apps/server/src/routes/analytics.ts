@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
-import { Prisma } from '@prisma/client';
 
 const router = Router();
 
@@ -9,16 +8,16 @@ const router = Router();
 router.get('/metrics', async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string | undefined;
-    const userFilter = userId ? { userId } : {};
+    const where = userId ? { userId: userId } : {};
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
     const [totalCalls, totalUsdcResult, todayCalls, todayUsdcResult, topEndpoint] = await Promise.all([
-      prisma.apiCall.count({ where: { ...userFilter } }),
-      prisma.apiCall.aggregate({ _sum: { amountUsdc: true }, where: { ...userFilter } }),
-      prisma.apiCall.count({ where: { ...userFilter, createdAt: { gte: startOfDay } } }),
-      prisma.apiCall.aggregate({ _sum: { amountUsdc: true }, where: { ...userFilter, createdAt: { gte: startOfDay } } }),
-      prisma.endpoint.findFirst({ where: { ...userFilter }, orderBy: { calls: { _count: 'desc' } } }),
+      prisma.apiCall.count({ where }),
+      prisma.apiCall.aggregate({ _sum: { amountUsdc: true }, where }),
+      prisma.apiCall.count({ where: { ...where, createdAt: { gte: startOfDay } } }),
+      prisma.apiCall.aggregate({ _sum: { amountUsdc: true }, where: { ...where, createdAt: { gte: startOfDay } } }),
+      prisma.endpoint.findFirst({ where, orderBy: { calls: { _count: 'desc' } } }),
     ]);
 
     res.json({
@@ -40,32 +39,27 @@ router.get('/calls/per-day', async (req, res) => {
     const userId = req.headers['x-user-id'] as string | undefined;
     const days = Math.max(1, Math.min(90, parseInt(req.query.days as string) || 7));
     const endpointPath = req.query.endpoint as string | undefined;
-    const userCondition = userId ? Prisma.sql`AND "ApiCall"."userId" = ${userId}` : Prisma.sql``;
-    const endpointCondition = endpointPath
-      ? Prisma.sql`AND "ApiCall"."endpointId" IN (SELECT "id" FROM "Endpoint" WHERE "path" = ${endpointPath})`
-      : Prisma.sql``;
 
-    const rows = await prisma.$queryRaw<Array<{ date: Date; calls: bigint; usdc: number }>>(
-      Prisma.sql`
-        SELECT
-          DATE("ApiCall"."createdAt") AS date,
-          COUNT(*)::int AS calls,
-          COALESCE(SUM("ApiCall"."amountUsdc"), 0) AS usdc
-        FROM "ApiCall"
-        WHERE "ApiCall"."createdAt" >= NOW() - (${days} * INTERVAL '1 day')
-        ${userCondition}
-        ${endpointCondition}
-        GROUP BY DATE("ApiCall"."createdAt")
-        ORDER BY date ASC
-      `
-    );
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    startDate.setHours(0, 0, 0, 0);
 
-    // Build a map from existing DB results
+    const apiCalls = await prisma.apiCall.findMany({
+      where: {
+        createdAt: { gte: startDate },
+        ...(userId ? { userId } : {}),
+        ...(endpointPath ? { endpoint: { path: endpointPath } } : {}),
+      },
+      select: { createdAt: true, amountUsdc: true },
+    });
+
+    // Group by date in JS
     const dbMap = new Map<string, { calls: number; usdc: number }>();
-    for (const row of rows) {
-      const d = new Date(row.date);
+    for (const call of apiCalls) {
+      const d = call.createdAt;
       const key = `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-      dbMap.set(key, { calls: Number(row.calls), usdc: Number(row.usdc) });
+      const existing = dbMap.get(key) ?? { calls: 0, usdc: 0 };
+      dbMap.set(key, { calls: existing.calls + 1, usdc: existing.usdc + call.amountUsdc });
     }
 
     // Fill all days in range
@@ -88,10 +82,10 @@ router.get('/calls/per-day', async (req, res) => {
 router.get('/calls/recent', async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string | undefined;
-    const userFilter = userId ? { userId } : {};
+    const where = userId ? { userId: userId } : {};
     const limit = Math.max(1, Math.min(100, parseInt(req.query.limit as string) || 10));
     const calls = await prisma.apiCall.findMany({
-      where: { ...userFilter },
+      where,
       take: limit,
       orderBy: { createdAt: 'desc' },
       include: { endpoint: { select: { path: true } } },
@@ -107,9 +101,9 @@ router.get('/calls/recent', async (req, res) => {
 router.get('/endpoints', async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string | undefined;
-    const userFilter = userId ? { userId } : {};
+    const where = userId ? { userId: userId } : {};
     const endpoints = await prisma.endpoint.findMany({
-      where: { ...userFilter },
+      where,
       orderBy: { createdAt: 'desc' },
       include: { _count: { select: { calls: true } } },
     });
@@ -152,13 +146,13 @@ router.post('/endpoints', async (req, res) => {
 router.get('/endpoints/revenue', async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string | undefined;
-    const userFilter = userId ? { userId } : {};
+    const where = userId ? { userId: userId } : {};
 
     const endpoints = await prisma.endpoint.findMany({
-      where: userFilter,
+      where,
       include: {
         calls: {
-          where: userFilter,
+          where,
           select: { amountUsdc: true },
         },
       },
@@ -167,7 +161,7 @@ router.get('/endpoints/revenue', async (req, res) => {
     const revenue = endpoints
       .map(ep => ({
         name: ep.path,
-        value: ep.calls.reduce((sum, c) => sum + c.amountUsdc, 0),
+        value: ep.calls.reduce((sum: number, c: { amountUsdc: number }) => sum + c.amountUsdc, 0),
         calls: ep.calls.length,
       }))
       .filter(ep => ep.value > 0);
