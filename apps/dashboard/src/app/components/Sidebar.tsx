@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
 
 const NAV_ITEMS = [
-  { label: 'Overview',   href: '/',           icon: '▣' },
+  { label: 'Overview',   href: '/dashboard',  icon: '▣' },
   { label: 'Wallet',     href: '/wallet',     icon: '◐' },
   { label: 'Endpoints',  href: '/endpoints',  icon: '◈' },
   { label: 'Playground', href: '/playground', icon: '◉' },
@@ -64,7 +64,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
             ✕
           </button>
         )}
-        <a href="/">
+        <a href="/dashboard">
           <img src="/logo-gate.png" alt="Gate402" style={{ height: 24, width: 'auto', display: 'block' }} />
         </a>
         <span style={{
