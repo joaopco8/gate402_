@@ -6,7 +6,7 @@ import PageContainer from '../components/PageContainer'
 import PageHeader from '../components/PageHeader'
 import Card from '../components/Card'
 
-const SERVER = 'http://localhost:3001'
+const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3001'
 const CHIPS = ['/api/weather', '/api/news']
 
 type CallResult = {
