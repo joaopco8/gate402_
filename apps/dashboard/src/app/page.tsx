@@ -739,22 +739,15 @@ function AgentFlow() {
   useEffect(() => {
     if (!observed) return
     let current = 0
-    function tick() {
-      current += 1
-      setVisibleLines(current)
-      if (current < FLOW_LINES.length) {
-        setTimeout(tick, 400)
-      } else {
-        // loop: reset after 4s
-        setTimeout(() => {
-          setVisibleLines(0)
-          current = 0
-          setTimeout(tick, 400)
-        }, 4000)
-      }
+    const timers: ReturnType<typeof setTimeout>[] = []
+    for (let i = 0; i < FLOW_LINES.length; i++) {
+      const t = setTimeout(() => {
+        current += 1
+        setVisibleLines(current)
+      }, 400 * (i + 1))
+      timers.push(t)
     }
-    const initial = setTimeout(tick, 400)
-    return () => clearTimeout(initial)
+    return () => timers.forEach(clearTimeout)
   }, [observed])
 
   // Build code lines for display (group inline tokens into rows)
