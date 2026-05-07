@@ -182,7 +182,6 @@ const CSS = `
     .hero-headline { font-size: 44px !important; }
     .hero-ctas { flex-direction: column !important; width: 100% !important; }
     .hero-ctas a { width: 100% !important; box-sizing: border-box !important; }
-    .how-grid { grid-template-columns: 1fr !important; }
     .how-connector { display: none !important; }
     .features-grid { grid-template-columns: 1fr !important; }
     .code-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
@@ -194,6 +193,9 @@ const CSS = `
     .final-cta-headline { font-size: 36px !important; }
     .npm-snippet { flex-direction: column !important; gap: 12px !important; width: 100% !important; box-sizing: border-box !important; }
     .agent-flow-grid { grid-template-columns: 1fr !important; }
+    .how-cards { grid-template-columns: 1fr !important; }
+    .how-cards > div { border-right: none !important; border-bottom: 1px solid #1a1a1a !important; }
+    .how-cards > div:last-child { border-bottom: none !important; }
   }
 `
 
@@ -594,7 +596,7 @@ function HowItWorks() {
         </h2>
 
         {/* Card grid container */}
-        <div style={{
+        <div className="how-cards" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 0,
@@ -612,6 +614,7 @@ function HowItWorks() {
                 background: hovered === idx ? '#0a0a0a' : '#000',
                 padding: '40px 32px',
                 borderRight: idx < HOW_STEPS.length - 1 ? '1px solid #1a1a1a' : 'none',
+                borderBottom: 'none',
                 transition: 'background 200ms ease',
               }}
             >
@@ -870,22 +873,6 @@ function AgentFlow() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 48 }}>
-          {[
-            { value: '< 1s',   label: 'End-to-end payment' },
-            { value: '$0.001', label: 'Per transaction fee' },
-            { value: '0',      label: 'Humans in the loop' },
-          ].map(({ value, label }, i) => (
-            <div key={i} style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 8, padding: '28px 24px', textAlign: 'center' }}>
-              <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 36, color: '#00ff88', letterSpacing: '-0.02em', marginBottom: 8 }}>
-                {value}
-              </div>
-              <div className="mono" style={{ fontSize: 11, color: '#555', letterSpacing: '0.06em' }}>{label}</div>
-            </div>
-          ))}
-        </div>
-
         {/* Footer badge */}
         <div className="mono" style={{ fontSize: 11, color: '#333', textAlign: 'center', letterSpacing: '0.06em' }}>
           Compatible with Claude · GPT-4 · Gemini · Any HTTP client
@@ -1104,17 +1091,6 @@ function CodeSection() {
 /* ─── PRICING ────────────────────────────────────────────────────────────── */
 
 /* SECTION: Pricing */
-const COMPARE_ROWS = [
-  { feature: 'x402 middleware',     free: '✓',               pro: '✓',                  ent: '✓' },
-  { feature: 'Solana verification', free: 'Self-hosted',      pro: 'Gate402 cloud',      ent: 'Gate402 cloud' },
-  { feature: 'Dashboard',           free: 'Local only',       pro: 'gate402.dev',        ent: 'Custom domain' },
-  { feature: 'Analytics',           free: '—',                pro: 'Real-time',          ent: 'Real-time' },
-  { feature: 'Email alerts',        free: '—',                pro: '✓',                  ent: '✓' },
-  { feature: 'Webhooks',            free: '—',                pro: '✓',                  ent: '✓' },
-  { feature: 'SLA',                 free: '—',                pro: '—',                  ent: '✓' },
-  { feature: 'White-label',         free: '—',                pro: '—',                  ent: '✓' },
-  { feature: 'Support',             free: 'Community',        pro: 'Priority',           ent: 'Dedicated' },
-]
 
 function PricingFeature({ label }: { label: string }) {
   return (
@@ -1300,49 +1276,6 @@ function Pricing() {
               Talk to us →
             </a>
           </div>
-        </div>
-
-        {/* Comparison table */}
-        <div style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
-          {/* Table header */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', borderBottom: '1px solid #1a1a1a' }}>
-            {['Feature', 'Free', 'Pro', 'Enterprise'].map((h, i) => (
-              <div key={h} style={{
-                padding: '14px 20px',
-                fontFamily: i === 0 ? 'var(--font-mono, monospace)' : 'var(--font-space, sans-serif)',
-                fontSize: 11,
-                color: i === 0 ? '#333' : i === 2 ? '#00ff88' : '#555',
-                letterSpacing: i === 0 ? '0.08em' : 0,
-                fontWeight: i === 2 ? 500 : 400,
-                textAlign: i === 0 ? 'left' : 'center',
-                borderLeft: i > 0 ? '1px solid #1a1a1a' : 'none',
-              }}>
-                {h.toUpperCase()}
-              </div>
-            ))}
-          </div>
-          {/* Table rows */}
-          {COMPARE_ROWS.map((row, i) => (
-            <div key={row.feature} style={{
-              display: 'grid',
-              gridTemplateColumns: '2fr 1fr 1fr 1fr',
-              borderBottom: i < COMPARE_ROWS.length - 1 ? '1px solid #111' : 'none',
-            }}>
-              <div style={{ padding: '12px 20px', fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666' }}>{row.feature}</div>
-              {[row.free, row.pro, row.ent].map((val, j) => (
-                <div key={j} style={{
-                  padding: '12px 20px',
-                  textAlign: 'center',
-                  borderLeft: '1px solid #1a1a1a',
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontSize: 12,
-                  color: val === '✓' ? '#00ff88' : val === '—' ? '#2a2a2a' : j === 1 ? '#00ff88' : '#555',
-                }}>
-                  {val}
-                </div>
-              ))}
-            </div>
-          ))}
         </div>
 
       </div>
