@@ -193,6 +193,7 @@ const CSS = `
     .footer-links { flex-wrap: wrap !important; gap: 16px !important; }
     .final-cta-headline { font-size: 36px !important; }
     .npm-snippet { flex-direction: column !important; gap: 12px !important; width: 100% !important; box-sizing: border-box !important; }
+    .agent-flow-grid { grid-template-columns: 1fr !important; }
   }
 `
 
@@ -655,6 +656,250 @@ function HowItWorks() {
             ))}
           </div>
         </div>
+      </div>
+    </section>
+  )
+}
+
+/* ─── AGENT FLOW ─────────────────────────────────────────────────────────── */
+
+/* SECTION: AgentFlow */
+const FLOW_LINES = [
+  { from: 'Agent', to: 'Gate402', dir: 'right', color: '#9945FF', msg: 'GET /api/weather' },
+  { from: 'Gate402', to: 'Agent', dir: 'left',  color: '#EF4444', msg: 'HTTP 402 · 0.001 USDC · 7UQc...939D' },
+  { from: 'Agent', to: 'Solana', dir: 'right',  color: '#9945FF', msg: 'send 0.001 USDC' },
+  { from: 'Solana', to: 'Agent', dir: 'left',   color: '#14F195', msg: 'confirmed · tx_5kWq...9mLP · 412ms' },
+  { from: 'Agent', to: 'Gate402', dir: 'right', color: '#9945FF', msg: 'GET /api/weather · X-Payment: tx_5kWq...' },
+  { from: 'Gate402', to: 'Agent', dir: 'left',  color: '#00ff88', msg: '200 OK · { city: São Paulo, temp: 28°C }' },
+]
+
+const AGENT_CODE_TOKENS = [
+  { text: '// Install x402-fetch',                           color: '#333' },
+  { text: 'npm install x402-fetch @solana/web3.js',          color: '#ccc' },
+  { text: '',                                                 color: '' },
+  { text: '// Agent setup',                                  color: '#333' },
+  { text: 'import',                                          color: '#9945FF', inline: true },
+  { text: ' { ',                                             color: '#ccc',    inline: true },
+  { text: 'wrapFetch',                                       color: '#3b82f6', inline: true },
+  { text: ' } ',                                             color: '#ccc',    inline: true },
+  { text: 'from',                                            color: '#9945FF', inline: true },
+  { text: " 'x402-fetch'",                                   color: '#00ff88', inline: true, newline: true },
+  { text: 'import',                                          color: '#9945FF', inline: true },
+  { text: ' { ',                                             color: '#ccc',    inline: true },
+  { text: 'Keypair',                                         color: '#3b82f6', inline: true },
+  { text: ' } ',                                             color: '#ccc',    inline: true },
+  { text: 'from',                                            color: '#9945FF', inline: true },
+  { text: " '@solana/web3.js'",                              color: '#00ff88', inline: true, newline: true },
+  { text: '',                                                 color: '' },
+  { text: 'const',                                           color: '#9945FF', inline: true },
+  { text: ' agentWallet = ',                                 color: '#ccc',    inline: true },
+  { text: 'Keypair',                                         color: '#3b82f6', inline: true },
+  { text: '.',                                               color: '#ccc',    inline: true },
+  { text: 'generate',                                        color: '#3b82f6', inline: true },
+  { text: '()',                                              color: '#ccc',    inline: true, newline: true },
+  { text: '',                                                 color: '' },
+  { text: 'const',                                           color: '#9945FF', inline: true },
+  { text: ' fetch = ',                                       color: '#ccc',    inline: true },
+  { text: 'wrapFetch',                                       color: '#3b82f6', inline: true },
+  { text: '({',                                              color: '#ccc',    inline: true, newline: true },
+  { text: '  wallet: agentWallet,',                          color: '#ccc',    inline: true, newline: true },
+  { text: "  network: ",                                     color: '#ccc',    inline: true },
+  { text: "'mainnet'",                                       color: '#00ff88', inline: true, newline: true },
+  { text: '})',                                              color: '#ccc',    inline: true, newline: true },
+  { text: '',                                                 color: '' },
+  { text: '// This pays automatically',                      color: '#333' },
+  { text: '// No human required',                            color: '#333' },
+  { text: 'const',                                           color: '#9945FF', inline: true },
+  { text: ' data = ',                                        color: '#ccc',    inline: true },
+  { text: 'await',                                           color: '#9945FF', inline: true },
+  { text: ' ',                                               color: '#ccc',    inline: true },
+  { text: 'fetch',                                           color: '#3b82f6', inline: true },
+  { text: '(',                                               color: '#ccc',    inline: true, newline: true },
+  { text: "  'https://api.gate402.dev/weather'",             color: '#00ff88', inline: true, newline: true },
+  { text: ')',                                               color: '#ccc',    inline: true, newline: true },
+  { text: '',                                                 color: '' },
+  { text: "// data = { city: 'São Paulo', temp: '28°C' }",   color: '#333' },
+  { text: '// Wallet balance: -0.001 USDC',                  color: '#333' },
+]
+
+function AgentFlow() {
+  const [visibleLines, setVisibleLines] = useState(0)
+  const [observed, setObserved] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setObserved(true) },
+      { threshold: 0.2 }
+    )
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!observed) return
+    let current = 0
+    function tick() {
+      current += 1
+      setVisibleLines(current)
+      if (current < FLOW_LINES.length) {
+        setTimeout(tick, 400)
+      } else {
+        // loop: reset after 4s
+        setTimeout(() => {
+          setVisibleLines(0)
+          current = 0
+          setTimeout(tick, 400)
+        }, 4000)
+      }
+    }
+    const initial = setTimeout(tick, 400)
+    return () => clearTimeout(initial)
+  }, [observed])
+
+  // Build code lines for display (group inline tokens into rows)
+  const codeRows: { segments: { text: string; color: string }[] }[] = []
+  let currentRow: { text: string; color: string }[] = []
+  for (const token of AGENT_CODE_TOKENS) {
+    if (!token.inline) {
+      if (currentRow.length) { codeRows.push({ segments: currentRow }); currentRow = [] }
+      codeRows.push({ segments: [{ text: token.text, color: token.color || '#ccc' }] })
+    } else {
+      currentRow.push({ text: token.text, color: token.color })
+      if (token.newline) { codeRows.push({ segments: currentRow }); currentRow = [] }
+    }
+  }
+  if (currentRow.length) codeRows.push({ segments: currentRow })
+
+  return (
+    <section style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
+
+        {/* Eyebrow */}
+        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>
+          AGENT PAYMENT FLOW
+        </div>
+
+        {/* Title */}
+        <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 48, letterSpacing: '-0.03em', color: '#fff', marginBottom: 16 }}>
+          Agents pay themselves.
+        </h2>
+
+        {/* Subtitle */}
+        <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#666', maxWidth: 520, lineHeight: 1.7, marginBottom: 56 }}>
+          No human in the loop. No credit card. No approval.<br />
+          The agent receives HTTP 402, pays in USDC, and gets access.<br />
+          All in under a second.
+        </p>
+
+        {/* Two panels */}
+        <div ref={ref} style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 24, marginBottom: 48 }} className="agent-flow-grid">
+
+          {/* LEFT — Sequence diagram */}
+          <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 8, padding: 32, fontFamily: 'var(--font-mono, monospace)' }}>
+
+            {/* Actors */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', marginBottom: 0 }}>
+              {[
+                { icon: '◈', label: 'AI Agent',  color: '#9945FF' },
+                { icon: '⬡', label: 'Gate402',   color: '#00ff88' },
+                { icon: '◎', label: 'Solana',    color: '#14F195' },
+              ].map(({ icon, label, color }) => (
+                <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, paddingBottom: 16 }}>
+                  <span style={{ fontSize: 18, color }}>{icon}</span>
+                  <span style={{ fontSize: 11, color: '#666', letterSpacing: '0.06em' }}>{label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Horizontal divider connecting actors */}
+            <div style={{ borderTop: '1px solid #1a1a1a', marginBottom: 24 }} />
+
+            {/* Flow lines */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {FLOW_LINES.map((line, idx) => {
+                if (idx >= visibleLines) return null
+                const isRight = line.dir === 'right'
+                // Column positions: Agent=col0, Gate402=col1, Solana=col2
+                // right: Agent→Gate402, Agent→Solana
+                // left:  Gate402→Agent, Solana→Agent
+                const fromLabel = line.from
+                const toLabel   = line.to
+                return (
+                  <div
+                    key={idx}
+                    style={{
+                      animation: 'fadeInUp 0.3s ease-out both',
+                      marginBottom: 20,
+                    }}
+                  >
+                    {/* Arrow row */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', marginBottom: 4 }}>
+                      <span style={{ fontSize: 11, color: '#555', textAlign: 'center' }}>{isRight ? fromLabel : toLabel}</span>
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ position: 'absolute', left: 0, right: 0, borderTop: '1px dashed #1a1a1a' }} />
+                        <span style={{ position: 'relative', fontSize: 14, color: line.color, background: '#0a0a0a', padding: '0 4px' }}>
+                          {isRight ? '→' : '←'}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: 11, color: '#555', textAlign: 'center' }}>{isRight ? toLabel : fromLabel}</span>
+                    </div>
+                    {/* Message */}
+                    <div style={{ textAlign: 'center', fontSize: 11, color: line.color, letterSpacing: '0.02em', opacity: 0.9 }}>
+                      {line.msg}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* RIGHT — Code snippet */}
+          <div style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 8, padding: 24 }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+              <div style={{ display: 'flex', gap: 5 }}>
+                {['#ff5f57','#febc2e','#28c840'].map(c => (
+                  <div key={c} style={{ width: 9, height: 9, borderRadius: '50%', background: c }} />
+                ))}
+              </div>
+              <span className="mono" style={{ fontSize: 11, color: '#333', marginLeft: 4 }}>agent.ts</span>
+            </div>
+
+            {/* Code */}
+            <pre style={{ margin: 0, fontFamily: 'var(--font-mono, monospace)', fontSize: 11, lineHeight: 1.85, overflowX: 'auto' }}>
+              {codeRows.map((row, i) => (
+                <div key={i} style={{ minHeight: '1.85em' }}>
+                  {row.segments.map((seg, j) => (
+                    <span key={j} style={{ color: seg.color }}>{seg.text}</span>
+                  ))}
+                </div>
+              ))}
+            </pre>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 48 }}>
+          {[
+            { value: '< 1s',   label: 'End-to-end payment' },
+            { value: '$0.001', label: 'Per transaction fee' },
+            { value: '0',      label: 'Humans in the loop' },
+          ].map(({ value, label }, i) => (
+            <div key={i} style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 8, padding: '28px 24px', textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 36, color: '#00ff88', letterSpacing: '-0.02em', marginBottom: 8 }}>
+                {value}
+              </div>
+              <div className="mono" style={{ fontSize: 11, color: '#555', letterSpacing: '0.06em' }}>{label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer badge */}
+        <div className="mono" style={{ fontSize: 11, color: '#333', textAlign: 'center', letterSpacing: '0.06em' }}>
+          Compatible with Claude · GPT-4 · Gemini · Any HTTP client
+        </div>
+
       </div>
     </section>
   )
@@ -1127,6 +1372,7 @@ export default function LandingPage() {
       <Hero />
       <LiveFeed />
       <HowItWorks />
+      <AgentFlow />
       <Features />
       <CodeSection />
       <Pricing />
