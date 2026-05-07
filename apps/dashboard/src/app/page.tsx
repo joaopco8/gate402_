@@ -1106,36 +1106,26 @@ function CodeSection() {
 /* ─── PRICING ────────────────────────────────────────────────────────────── */
 
 /* SECTION: Pricing */
-const PLANS = [
-  {
-    badge: 'Free forever',
-    price: '$0',
-    sub: 'Self-hosted',
-    features: ['Open source MIT', 'Unlimited API calls', 'x402 middleware', 'Solana integration', 'Community support'],
-    cta: 'Get started →',
-    primary: false,
-    featured: false,
-  },
-  {
-    badge: 'Most popular',
-    price: '$99',
-    priceSuffix: '/mo',
-    sub: 'Hosted dashboard',
-    features: ['Everything in Free', 'Hosted dashboard', 'Advanced analytics', 'Email alerts', 'Webhooks', 'Priority support'],
-    cta: 'Start Pro →',
-    primary: true,
-    featured: true,
-  },
-  {
-    badge: 'Enterprise',
-    price: '0.5%',
-    sub: 'On processed volume',
-    features: ['Everything in Pro', 'Custom domain', 'SLA guarantee', 'Dedicated support', 'Custom integrations'],
-    cta: 'Talk to us →',
-    primary: false,
-    featured: false,
-  },
+const COMPARE_ROWS = [
+  { feature: 'x402 middleware',     free: '✓',               pro: '✓',                  ent: '✓' },
+  { feature: 'Solana verification', free: 'Self-hosted',      pro: 'Gate402 cloud',      ent: 'Gate402 cloud' },
+  { feature: 'Dashboard',           free: 'Local only',       pro: 'gate402.dev',        ent: 'Custom domain' },
+  { feature: 'Analytics',           free: '—',                pro: 'Real-time',          ent: 'Real-time' },
+  { feature: 'Email alerts',        free: '—',                pro: '✓',                  ent: '✓' },
+  { feature: 'Webhooks',            free: '—',                pro: '✓',                  ent: '✓' },
+  { feature: 'SLA',                 free: '—',                pro: '—',                  ent: '✓' },
+  { feature: 'White-label',         free: '—',                pro: '—',                  ent: '✓' },
+  { feature: 'Support',             free: 'Community',        pro: 'Priority',           ent: 'Dedicated' },
 ]
+
+function PricingFeature({ label }: { label: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+      <span style={{ color: '#00ff88', fontSize: 12, flexShrink: 0, marginTop: 1 }}>✓</span>
+      <span style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#888', lineHeight: 1.5 }}>{label}</span>
+    </div>
+  )
+}
 
 function Pricing() {
   const [visible, setVisible] = useState(false)
@@ -1144,74 +1134,219 @@ function Pricing() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) setVisible(true) },
-      { threshold: 0.2 }
+      { threshold: 0.1 }
     )
     if (ref.current) observer.observe(ref.current)
     return () => observer.disconnect()
   }, [])
 
-  const cardDelays = ['0s', '0.15s', '0.3s']
+  const delays = ['0s', '0.15s', '0.3s']
 
   return (
     <section id="pricing" style={{ background: '#000', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+
+        {/* Header */}
         <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20, textAlign: 'center' }}>PRICING</div>
-        <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 48, letterSpacing: '-0.03em', color: '#fff', marginBottom: 72, textAlign: 'center' }}>
+        <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 48, letterSpacing: '-0.03em', color: '#fff', marginBottom: 12, textAlign: 'center' }}>
           Free until you&apos;re making money.
         </h2>
+        <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 64 }}>
+          Start self-hosted for free. Upgrade when you need scale.
+        </p>
 
-        <div ref={ref} className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, maxWidth: 900, margin: '0 auto' }}>
-          {PLANS.map((plan, idx) => (
-            <div key={plan.price} style={{
-              background: '#0d0d0d',
-              border: `1px solid ${plan.featured ? 'rgba(0,255,136,0.25)' : '#1a1a1a'}`,
-              borderRadius: 8,
-              padding: 28,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 0,
-              opacity: visible ? undefined : 0,
-              animation: visible
-                ? `cardReveal 0.5s ease-out ${cardDelays[idx]} both${plan.featured ? ', borderPulse 3s ease-in-out 0.5s infinite' : ''}`
-                : undefined,
-            }}>
-              <span className="badge" style={{
-                alignSelf: 'flex-start',
-                marginBottom: 20,
-                color: plan.featured ? '#00ff88' : '#666',
-                borderColor: plan.featured ? '#00ff8830' : '#1a1a1a',
-                background: plan.featured ? '#00ff8808' : 'transparent',
+        {/* Cards */}
+        <div ref={ref} className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 40 }}>
+
+          {/* ── CARD 1: Free ── */}
+          <div style={{
+            background: '#0d0d0d',
+            border: '1px solid #1a1a1a',
+            borderRadius: 8,
+            padding: 28,
+            display: 'flex',
+            flexDirection: 'column',
+            opacity: visible ? undefined : 0,
+            animation: visible ? `cardReveal 0.5s ease-out ${delays[0]} both` : undefined,
+          }}>
+            <span className="badge" style={{ alignSelf: 'flex-start', marginBottom: 20, color: '#666', borderColor: '#1a1a1a' }}>
+              Self-hosted
+            </span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 2 }}>
+              <span style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 56, color: '#fff', letterSpacing: '-0.03em' }}>$0</span>
+            </div>
+            <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#555', marginBottom: 24 }}>Forever</div>
+            <div style={{ height: 1, background: '#1a1a1a', marginBottom: 20 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, marginBottom: 20 }}>
+              {[
+                'npm install gate402',
+                'Full x402 middleware',
+                'Solana devnet + mainnet',
+                'Local dashboard',
+                'Unlimited API calls',
+                'Open source MIT',
+                'Community support',
+              ].map(f => <PricingFeature key={f} label={f} />)}
+            </div>
+            <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 12, color: '#444', marginBottom: 20, lineHeight: 1.5 }}>
+              Run on your own infra. Full control.
+            </p>
+            <a href="https://github.com/joaopco8/gate402_" target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ textAlign: 'center' }}>
+              Get started →
+            </a>
+          </div>
+
+          {/* ── CARD 2: Pro ── */}
+          <div style={{
+            background: '#0d0d0d',
+            border: '1px solid rgba(0,255,136,0.25)',
+            borderRadius: 8,
+            padding: 28,
+            display: 'flex',
+            flexDirection: 'column',
+            opacity: visible ? undefined : 0,
+            animation: visible ? `cardReveal 0.5s ease-out ${delays[1]} both, borderPulse 3s ease-in-out 0.5s infinite` : undefined,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <span className="badge" style={{ color: '#00ff88', borderColor: '#00ff8830', background: '#00ff8808' }}>Hosted</span>
+              <span className="badge" style={{ color: '#00ff88', borderColor: '#00ff8830', background: '#00ff8808', fontSize: 10 }}>Most popular</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 2 }}>
+              <span style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 56, color: '#fff', letterSpacing: '-0.03em' }}>$99</span>
+              <span style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#555' }}>/ month</span>
+            </div>
+            <div style={{ height: 1, background: '#1a1a1a', margin: '20px 0' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, marginBottom: 20 }}>
+              {[
+                'Everything in Free',
+                'npm install gate402 — one line setup',
+                'Gate402 verifies payments for you',
+                'Hosted dashboard at gate402.dev',
+                'Real-time analytics',
+                'Email alerts on payment received',
+                'Webhook on every confirmed payment',
+                'Priority support',
+              ].map(f => <PricingFeature key={f} label={f} />)}
+            </div>
+
+            {/* Setup snippet */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ height: 1, background: '#1a1a1a', marginBottom: 16 }} />
+              <div className="mono" style={{ fontSize: 10, color: '#333', letterSpacing: '0.08em', marginBottom: 8 }}>SETUP</div>
+              <div style={{
+                background: '#0a0a0a',
+                border: '1px solid #222',
+                borderRadius: 6,
+                padding: 10,
+                fontFamily: 'var(--font-mono, monospace)',
+                fontSize: 11,
+                lineHeight: 1.85,
+                overflowX: 'auto',
               }}>
-                {plan.badge}
-              </span>
-
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
-                <span style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 56, color: '#fff', letterSpacing: '-0.03em' }}>
-                  {plan.price}
-                </span>
-                {plan.priceSuffix && (
-                  <span style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#666' }}>{plan.priceSuffix}</span>
-                )}
-              </div>
-              <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', marginBottom: 24 }}>{plan.sub}</div>
-
-              <div style={{ height: 1, background: '#1a1a1a', marginBottom: 24 }} />
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, marginBottom: 28 }}>
-                {plan.features.map(f => (
-                  <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ color: '#00ff88', fontSize: 12, flexShrink: 0 }}>✓</span>
-                    <span style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#888' }}>{f}</span>
+                {[
+                  [{ t: 'app.use(gate402({', c: '#666' }],
+                  [{ t: '  apiKey: ', c: '#666' }, { t: "'your-key'", c: '#00ff88' }, { t: ',', c: '#666' }],
+                  [{ t: '  serverUrl: ', c: '#666' }, { t: "'https://api.gate402.dev'", c: '#00ff88' }, { t: ',', c: '#666' }],
+                  [{ t: '  endpoints: ', c: '#666' }, { t: '{', c: '#ccc' }, { t: " '/api/data'", c: '#00ff88' }, { t: ': 0.001 }', c: '#ccc' }],
+                  [{ t: '}))', c: '#666' }],
+                ].map((line, li) => (
+                  <div key={li}>
+                    {line.map((seg, si) => <span key={si} style={{ color: seg.c }}>{seg.t}</span>)}
                   </div>
                 ))}
               </div>
+            </div>
 
-              <a href="/login" className={plan.primary ? 'btn-primary' : 'btn-ghost'} style={{ textAlign: 'center', borderRadius: 6 }}>
-                {plan.cta}
-              </a>
+            <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 12, color: '#444', marginBottom: 20, lineHeight: 1.5 }}>
+              We handle the infrastructure. You collect USDC.
+            </p>
+            <a href="https://gate402.dev/login" target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ textAlign: 'center' }}>
+              Start Pro →
+            </a>
+          </div>
+
+          {/* ── CARD 3: Enterprise ── */}
+          <div style={{
+            background: '#0d0d0d',
+            border: '1px solid #1a1a1a',
+            borderRadius: 8,
+            padding: 28,
+            display: 'flex',
+            flexDirection: 'column',
+            opacity: visible ? undefined : 0,
+            animation: visible ? `cardReveal 0.5s ease-out ${delays[2]} both` : undefined,
+          }}>
+            <span className="badge" style={{ alignSelf: 'flex-start', marginBottom: 20, color: '#666', borderColor: '#1a1a1a' }}>
+              Volume
+            </span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 2 }}>
+              <span style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 56, color: '#fff', letterSpacing: '-0.03em' }}>0.5%</span>
+            </div>
+            <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#555', marginBottom: 24 }}>of processed volume</div>
+            <div style={{ height: 1, background: '#1a1a1a', marginBottom: 20 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, marginBottom: 20 }}>
+              {[
+                'Everything in Pro',
+                'Custom domain',
+                'SLA guarantee',
+                'Dedicated support',
+                'Custom integrations',
+                'White-label dashboard',
+                'Volume discounts',
+              ].map(f => <PricingFeature key={f} label={f} />)}
+            </div>
+            <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 12, color: '#444', marginBottom: 20, lineHeight: 1.5 }}>
+              For teams processing serious scale.
+            </p>
+            <a href="mailto:joaocamargo@gate402.dev" className="btn-ghost" style={{ textAlign: 'center' }}>
+              Talk to us →
+            </a>
+          </div>
+        </div>
+
+        {/* Comparison table */}
+        <div style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+          {/* Table header */}
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', borderBottom: '1px solid #1a1a1a' }}>
+            {['Feature', 'Free', 'Pro', 'Enterprise'].map((h, i) => (
+              <div key={h} style={{
+                padding: '14px 20px',
+                fontFamily: i === 0 ? 'var(--font-mono, monospace)' : 'var(--font-space, sans-serif)',
+                fontSize: 11,
+                color: i === 0 ? '#333' : i === 2 ? '#00ff88' : '#555',
+                letterSpacing: i === 0 ? '0.08em' : 0,
+                fontWeight: i === 2 ? 500 : 400,
+                textAlign: i === 0 ? 'left' : 'center',
+                borderLeft: i > 0 ? '1px solid #1a1a1a' : 'none',
+              }}>
+                {h.toUpperCase()}
+              </div>
+            ))}
+          </div>
+          {/* Table rows */}
+          {COMPARE_ROWS.map((row, i) => (
+            <div key={row.feature} style={{
+              display: 'grid',
+              gridTemplateColumns: '2fr 1fr 1fr 1fr',
+              borderBottom: i < COMPARE_ROWS.length - 1 ? '1px solid #111' : 'none',
+            }}>
+              <div style={{ padding: '12px 20px', fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666' }}>{row.feature}</div>
+              {[row.free, row.pro, row.ent].map((val, j) => (
+                <div key={j} style={{
+                  padding: '12px 20px',
+                  textAlign: 'center',
+                  borderLeft: '1px solid #1a1a1a',
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: 12,
+                  color: val === '✓' ? '#00ff88' : val === '—' ? '#2a2a2a' : j === 1 ? '#00ff88' : '#555',
+                }}>
+                  {val}
+                </div>
+              ))}
             </div>
           ))}
         </div>
+
       </div>
     </section>
   )
