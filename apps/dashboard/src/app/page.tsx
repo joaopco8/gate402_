@@ -551,111 +551,109 @@ const HOW_STEPS = [
   {
     n: '01',
     title: 'Install',
-    desc: 'npm install gate402. Wrap your Express app with one middleware. 3 lines of code.',
-    snippet: "app.use(gate402({ ... }))",
+    desc: 'npm install gate402. Wrap your Express app. 3 lines of code. Done.',
+    snippet: 'app.use(gate402({ ... }))',
+    snippetColor: '#00ff88',
   },
   {
     n: '02',
     title: 'Price',
     desc: 'Set USDC price per endpoint. Any amount. Change anytime. No approval needed.',
     snippet: "'/api/data': 0.005",
+    snippetColor: '#f59e0b',
   },
   {
     n: '03',
     title: 'Collect',
     desc: 'Agents pay in USDC on Solana. 400ms confirmation. Funds go directly to your wallet.',
-    snippet: "✓ 0.001 USDC confirmed",
+    snippet: '✓ 0.001 USDC · 412ms',
+    snippetColor: '#00ff88',
   },
 ]
 
 function HowItWorks() {
-  const [visible, setVisible] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true) },
-      { threshold: 0.2 }
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [])
-
-  const delays = ['0.1s', '0.3s', '0.5s']
+  const [hovered, setHovered] = useState<number | null>(null)
 
   return (
     <section id="how" style={{ background: '#000', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        {/* eyebrow */}
-        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>
+
+        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 16 }}>
           HOW IT WORKS
         </div>
 
-        {/* title */}
         <h2 style={{
           fontFamily: 'var(--font-space, sans-serif)',
           fontWeight: 300,
-          fontSize: 48,
+          fontSize: 40,
           letterSpacing: '-0.03em',
           color: '#fff',
-          marginBottom: 72,
+          marginBottom: 48,
         }}>
           Drop in. Price it. Get paid.
         </h2>
 
-        {/* connector line + steps */}
-        <div ref={ref} style={{ position: 'relative' }}>
-          {/* animated gradient connector */}
-          <div className="how-connector" style={{
-            position: 'absolute',
-            top: 18,
-            left: 24,
-            right: 24,
-            height: 1,
-            background: 'linear-gradient(90deg, #00ff88, #9945FF)',
-            zIndex: 0,
-            width: visible ? undefined : 0,
-            animation: visible ? 'lineGrow 1s ease-out forwards' : undefined,
-          }} />
-
-          <div className="how-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 40, position: 'relative', zIndex: 1 }}>
-            {HOW_STEPS.map(({ n, title, desc, snippet }, idx) => (
-              <div
-                key={n}
-                style={{
-                  opacity: visible ? undefined : 0,
-                  animation: visible ? `cardReveal 0.6s ease-out ${delays[idx]} both` : undefined,
-                }}
-              >
-                {/* step number with dot on connector */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00ff88', border: '1px solid #00ff88', flexShrink: 0, opacity: visible ? 1 : 0, transition: `opacity 0.4s ${delays[idx]}` }} />
-                  <span className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.06em' }}>{n}</span>
-                </div>
-
-                <h3 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 400, fontSize: 20, color: '#fff', marginBottom: 12 }}>
-                  {title}
-                </h3>
-
-                <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 14, color: '#666', lineHeight: 1.7, marginBottom: 20 }}>
-                  {desc}
-                </p>
-
-                {/* inline snippet */}
-                <div className="mono" style={{
-                  background: '#0d0d0d',
-                  border: '1px solid #1a1a1a',
-                  borderRadius: 6,
-                  padding: '10px 14px',
-                  fontSize: 12,
-                  color: '#00ff88',
-                }}>
-                  {snippet}
-                </div>
+        {/* Card grid container */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 0,
+          background: '#1a1a1a',
+          border: '1px solid #1a1a1a',
+          borderRadius: 8,
+          overflow: 'hidden',
+        }}>
+          {HOW_STEPS.map(({ n, title, desc, snippet, snippetColor }, idx) => (
+            <div
+              key={n}
+              onMouseEnter={() => setHovered(idx)}
+              onMouseLeave={() => setHovered(null)}
+              style={{
+                background: hovered === idx ? '#0a0a0a' : '#000',
+                padding: '40px 32px',
+                borderRight: idx < HOW_STEPS.length - 1 ? '1px solid #1a1a1a' : 'none',
+                transition: 'background 200ms ease',
+              }}
+            >
+              <div className="mono" style={{ fontSize: 11, color: '#222', letterSpacing: '0.1em', marginBottom: 24 }}>
+                {n}
               </div>
-            ))}
-          </div>
+
+              <h3 style={{
+                fontFamily: 'var(--font-space, sans-serif)',
+                fontWeight: 400,
+                fontSize: 22,
+                color: '#fff',
+                marginBottom: 12,
+              }}>
+                {title}
+              </h3>
+
+              <p style={{
+                fontFamily: 'var(--font-space, sans-serif)',
+                fontSize: 14,
+                color: '#666',
+                lineHeight: 1.6,
+                marginBottom: 0,
+              }}>
+                {desc}
+              </p>
+
+              <div className="mono" style={{
+                background: '#0a0a0a',
+                border: '1px solid #1a1a1a',
+                borderRadius: 4,
+                padding: '14px 16px',
+                marginTop: 24,
+                fontSize: 13,
+                color: snippetColor,
+              }}>
+                {snippet}
+              </div>
+            </div>
+          ))}
         </div>
+
       </div>
     </section>
   )
