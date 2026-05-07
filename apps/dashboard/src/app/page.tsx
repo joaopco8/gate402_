@@ -233,16 +233,24 @@ function Nav() {
         gap: 32,
         alignItems: 'center',
       }}>
-        {['How it works', 'Docs', 'Pricing', 'GitHub'].map(link => (
-          <a key={link} href="#" style={{
-            fontSize: 14,
-            color: '#666',
-            fontFamily: 'var(--font-space)',
-            transition: 'color 150ms',
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-          onMouseLeave={e => e.currentTarget.style.color = '#666'}
-          >{link}</a>
+        {[
+          { label: 'How it works', onClick: () => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' }) },
+          { label: 'Docs',         href: '/docs' },
+          { label: 'Pricing',      onClick: () => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' }) },
+          { label: 'GitHub',       href: 'https://github.com/joaopco8/gate402_', target: '_blank' },
+        ].map(({ label, href, target, onClick }) => (
+          <a
+            key={label}
+            href={href ?? '#'}
+            target={target}
+            rel={target === '_blank' ? 'noopener noreferrer' : undefined}
+            onClick={onClick ? (e) => { e.preventDefault(); onClick() } : undefined}
+            style={{ fontSize: 14, color: '#666', fontFamily: 'var(--font-space)', transition: 'color 150ms', cursor: 'pointer' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+            onMouseLeave={e => e.currentTarget.style.color = '#666'}
+          >
+            {label}
+          </a>
         ))}
       </div>
 
@@ -577,7 +585,7 @@ function HowItWorks() {
   const [hovered, setHovered] = useState<number | null>(null)
 
   return (
-    <section id="how" style={{ background: '#000', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
+    <section id="how-it-works" style={{ background: '#000', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 16 }}>
@@ -937,7 +945,7 @@ function Features() {
   ]
 
   return (
-    <section style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+    <section id="features" style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
       <div ref={ref} style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
         <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>
           INFRASTRUCTURE
@@ -1398,8 +1406,18 @@ function Footer() {
 
           {/* Right links */}
           <div className="footer-links" style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
-            {[['GitHub', '#'], ['npm', '#'], ['Docs', '/docs'], ['Dashboard', '/']].map(([label, href]) => (
-              <a key={label} href={href} style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', transition: 'color 0.15s' }}
+            {[
+              ['GitHub',    'https://github.com/joaopco8/gate402_',  '_blank'],
+              ['npm',       'https://npmjs.com/package/gate402',     '_blank'],
+              ['Docs',      '/docs',                                  undefined],
+              ['Dashboard', '/dashboard',                             undefined],
+            ].map(([label, href, target]) => (
+              <a
+                key={label}
+                href={href}
+                target={target}
+                rel={target === '_blank' ? 'noopener noreferrer' : undefined}
+                style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', transition: 'color 0.15s' }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
                 onMouseLeave={e => (e.currentTarget.style.color = '#666')}
               >
