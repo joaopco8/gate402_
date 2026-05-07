@@ -138,7 +138,7 @@ export default function PlaygroundPage() {
     } catch {
       const result: CallResult = {
         status: 0,
-        data: { error: 'Could not connect to server. Is it running on localhost:3001?' },
+        data: { error: `Could not connect to ${SERVER}. Check server status.` },
         timeMs: Date.now() - start,
         endpoint,
         paid: false,
