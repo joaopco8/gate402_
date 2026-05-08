@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { prisma } from '../lib/prisma'
 import { verifyPayment } from '../solana/verify'
 
 const router = Router()
@@ -22,12 +23,14 @@ router.post('/verify-payment', async (req, res) => {
       })
     }
 
-    // No User model yet — accept any apiKey with length > 10
-    // TODO: validate against real user table when auth is wired up
-    if (apiKey.length <= 10) {
+    const user = await prisma.user.findUnique({
+      where: { apiKey },
+    }).catch(() => null)
+
+    if (!user) {
       return res.status(401).json({
         valid: false,
-        reason: 'Invalid API key',
+        reason: 'Invalid API key. Get yours at gate402.dev/settings',
       })
     }
 

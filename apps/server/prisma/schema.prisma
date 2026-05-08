@@ -8,27 +8,44 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model User {
+  id            String     @id @default(uuid())
+  supabaseId    String     @unique
+  email         String?
+  apiKey        String     @unique @default(uuid())
+  walletAddress String?
+  plan          String     @default("free")
+  network       String     @default("devnet")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  endpoints     Endpoint[]
+  apiCalls      ApiCall[]
+}
+
 model Endpoint {
-  id          String    @id @default(cuid())
+  id          String    @id @default(uuid())
   path        String
   priceUsdc   Float
-  description String?
   active      Boolean   @default(true)
+  description String?
   userId      String?
-  createdAt   DateTime  @default(now())
+  user        User?     @relation(fields: [userId], references: [id])
   calls       ApiCall[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
 
   @@unique([path, userId])
 }
 
 model ApiCall {
-  id          String   @id @default(cuid())
+  id          String    @id @default(uuid())
   endpointId  String
-  endpoint    Endpoint @relation(fields: [endpointId], references: [id])
-  txHash      String   @unique
-  amountUsdc  Float
-  payerWallet String
+  endpoint    Endpoint  @relation(fields: [endpointId], references: [id])
   userId      String?
-  status      String   @default("success")
-  createdAt   DateTime @default(now())
+  user        User?     @relation(fields: [userId], references: [id])
+  txHash      String    @unique
+  amountUsdc  Float
+  payerWallet String?
+  status      String    @default("confirmed")
+  createdAt   DateTime  @default(now())
 }

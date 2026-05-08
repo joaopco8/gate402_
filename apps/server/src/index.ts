@@ -7,6 +7,7 @@ import { x402Middleware } from './middleware/x402';
 import demoRoutes from './routes/demo';
 import analyticsRoutes from './routes/analytics';
 import verifyRouter from './routes/verify';
+import usersRouter from './routes/users';
 import { walletAddress } from './solana/wallet';
 
 const app = express();
@@ -32,6 +33,9 @@ app.get('/health', (_req, res) => {
 
 // Analytics routes (no paywall)
 app.use('/api', analyticsRoutes);
+
+// User management routes (no paywall)
+app.use('/api', usersRouter);
 
 // External SDK verification endpoint (no paywall — authenticated via x-api-key)
 app.use('/api', verifyRouter);
