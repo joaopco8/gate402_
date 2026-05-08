@@ -1,9 +1,9 @@
 export interface Gate402Config {
   apiKey: string
-  endpoints: Record<string, number>  // { "/rota": 0.001 }
-  serverUrl?: string                  // default: https://api.gate402.dev
-  network?: 'devnet' | 'mainnet'     // default: devnet
-  walletAddress?: string             // override wallet para receber pagamentos
+  walletAddress: string
+  endpoints: Record<string, number>
+  network?: 'devnet' | 'mainnet'
+  serverUrl?: string
 }
 
 export interface PaymentRequiredResponse {

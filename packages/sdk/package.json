@@ -1,6 +1,6 @@
 {
   "name": "gate402",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Billing infrastructure for AI agents — x402 + Solana in 5 minutes",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

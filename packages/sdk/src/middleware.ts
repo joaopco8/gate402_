@@ -1,14 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
 import { Gate402Config } from './types'
 
+const DEFAULT_SERVER_URL = 'https://api.gate402.dev'
+
 export function gate402(config: Gate402Config) {
-  const {
-    apiKey,
-    endpoints,
-    serverUrl = 'http://localhost:3001',
-    network = 'devnet',
-    walletAddress
-  } = config
+  const serverUrl = config.serverUrl || DEFAULT_SERVER_URL
 
   return async function gate402Middleware(
     req: Request,
@@ -16,67 +12,70 @@ export function gate402(config: Gate402Config) {
     next: NextFunction
   ) {
     const path = req.path
-    const price = endpoints[path]
+    const price = config.endpoints[path]
 
-    // Endpoint não está configurado para cobrança — deixa passar
     if (price === undefined) {
       return next()
     }
 
     const paymentHeader = req.headers['x-payment-payload'] as string | undefined
 
-    // Sem pagamento — retorna 402
     if (!paymentHeader) {
       return res.status(402).json({
         error: 'Payment Required',
         price: {
           amount: price.toString(),
           currency: 'USDC',
-          network: `solana-${network}`
+          network: config.network || 'devnet'
         },
-        payTo: walletAddress || 'configure walletAddress in gate402()',
+        payTo: config.walletAddress,
         endpoint: path,
-        instructions: 'Send USDC on Solana and include tx hash in X-Payment-Payload header',
-        apiKey
+        instructions: 'Send USDC on Solana and include tx hash in X-Payment-Payload header'
       })
     }
 
-    // Demo mode — hashes começando com "demo_" passam direto
+    // Demo mode — bypasses blockchain verification
     if (paymentHeader.startsWith('demo_')) {
+      req.headers['x-payment-verified'] = 'true'
+      req.headers['x-payment-amount'] = price.toString()
       return next()
     }
 
-    // Verifica pagamento real no servidor Gate402
+    // Real payment — verify via Gate402 server
     try {
-      const verifyRes = await fetch(`${serverUrl}/api/verify`, {
+      const verifyRes = await fetch(`${serverUrl}/verify-payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': apiKey
+          'x-api-key': config.apiKey
         },
         body: JSON.stringify({
           txHash: paymentHeader,
-          endpoint: path,
           expectedAmount: price,
-          network
+          expectedWallet: config.walletAddress,
+          network: config.network || 'devnet'
         })
       })
 
-      const verification = await verifyRes.json() as { valid: boolean; reason?: string }
+      const result = await verifyRes.json() as { valid: boolean; reason?: string }
 
-      if (verification.valid) {
-        return next()
+      if (!result.valid) {
+        return res.status(402).json({
+          error: 'Payment invalid or not confirmed',
+          details: result.reason
+        })
       }
 
-      return res.status(402).json({
-        error: 'Invalid payment',
-        reason: verification.reason,
-        txHash: paymentHeader
-      })
-    } catch {
-      // Se servidor Gate402 não responder, usa modo offline
-      console.warn('[gate402] Could not reach verification server, using offline mode')
+      req.headers['x-payment-verified'] = 'true'
+      req.headers['x-payment-amount'] = price.toString()
+      req.headers['x-payment-tx'] = paymentHeader
       return next()
+
+    } catch (error) {
+      console.error('[gate402] Verification error:', error)
+      return res.status(503).json({
+        error: 'Payment verification temporarily unavailable'
+      })
     }
   }
 }
