@@ -1,230 +1,1026 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { createClient } from '../../../lib/supabase/client'
-import DashboardLayout from '../components/DashboardLayout'
-import PageContainer from '../components/PageContainer'
-import PageHeader from '../components/PageHeader'
-import Card from '../components/Card'
+import { useState, useEffect } from 'react'
 
-const SNIPPETS = [
+// ─── Nav Data ─────────────────────────────────────────────────────────────────
+
+const NAV_GROUPS = [
   {
-    label: 'Express',
-    code: `npm install gate402
-
-import { gate402 } from 'gate402'
-import express from 'express'
-
-const app = express()
-
-app.use(gate402({
-  apiKey: 'SEU_API_KEY',
-  walletAddress: 'SUA_CARTEIRA_SOLANA',
-  endpoints: {
-    '/api/weather': 0.001,  // 0.001 USDC per call
-    '/api/data': 0.005,
-  }
-}))
-
-app.get('/api/weather', (req, res) => {
-  res.json({ city: 'São Paulo', temp: '28°C' })
-})`,
+    group: 'Getting Started',
+    items: [
+      { label: 'Introduction', id: 'introduction' },
+      { label: 'Quick Start', id: 'quick-start' },
+      { label: 'Installation', id: 'quick-start' },
+      { label: 'Configuration', id: 'configuration' },
+    ],
   },
   {
-    label: 'Next.js',
-    code: `npm install gate402
-
-// app/api/weather/route.ts
-import { gate402 } from 'gate402'
-import { NextRequest } from 'next/server'
-
-const billing = gate402({
-  apiKey: 'SEU_API_KEY',
-  walletAddress: 'SUA_CARTEIRA_SOLANA',
-  endpoints: { '/api/weather': 0.001 }
-})
-
-export async function GET(req: NextRequest) {
-  // Check payment
-  const paymentHeader = req.headers.get('x-payment-payload')
-  if (!paymentHeader) {
-    return Response.json({
-      error: 'Payment Required',
-      price: { amount: '0.001', currency: 'USDC' }
-    }, { status: 402 })
-  }
-  return Response.json({ city: 'São Paulo', temp: '28°C' })
-}`,
+    group: 'Core Concepts',
+    items: [
+      { label: 'How It Works', id: 'how-it-works' },
+      { label: 'Payment Flow', id: 'payment-flow' },
+      { label: 'x402 Protocol', id: 'x402-protocol' },
+      { label: 'Solana & USDC', id: 'payment-flow' },
+    ],
   },
   {
-    label: 'MCP Server',
-    code: `npm install gate402 @modelcontextprotocol/sdk
-
-import { gate402 } from 'gate402'
-import { Server } from '@modelcontextprotocol/sdk/server/index.js'
-
-// Wrap your MCP tool with gate402
-const billing = gate402({
-  apiKey: 'SEU_API_KEY',
-  walletAddress: 'SUA_CARTEIRA_SOLANA',
-  endpoints: { '/tools/weather': 0.001 }
-})
-
-// Agent pays before tool executes
-server.setRequestHandler(CallToolRequestSchema, async (req) => {
-  // gate402 handles payment verification automatically
-  return { content: [{ type: 'text', text: 'Weather data here' }] }
-})`,
+    group: 'Integrations',
+    items: [
+      { label: 'Express', id: 'quick-start' },
+      { label: 'MCP Server', id: 'mcp-server' },
+      { label: 'Claude Desktop', id: 'mcp-server' },
+      { label: 'Agent Setup', id: 'mcp-server' },
+    ],
+  },
+  {
+    group: 'Dashboard',
+    items: [
+      { label: 'Overview', id: 'introduction' },
+      { label: 'Wallet', id: 'payment-flow' },
+      { label: 'Endpoints', id: 'configuration' },
+      { label: 'Analytics', id: 'api-reference' },
+    ],
+  },
+  {
+    group: 'API Reference',
+    items: [
+      { label: 'Metrics', id: 'api-reference' },
+      { label: 'Calls', id: 'api-reference' },
+      { label: 'Endpoints API', id: 'api-reference' },
+    ],
+  },
+  {
+    group: 'Support',
+    items: [
+      { label: 'FAQ', id: 'faq' },
+      { label: 'Troubleshooting', id: 'troubleshooting' },
+      { label: 'Changelog', id: 'changelog' },
+    ],
   },
 ]
 
-function CodeCard({ label, code }: { label: string; code: string }) {
+const TOC_ITEMS = [
+  { label: 'Introduction', id: 'introduction', level: 2 },
+  { label: 'Quick Start', id: 'quick-start', level: 2 },
+  { label: 'How It Works', id: 'how-it-works', level: 2 },
+  { label: 'Payment Flow', id: 'payment-flow', level: 2 },
+  { label: 'HTTP 402 Response', id: 'http-402', level: 3 },
+  { label: 'x402-fetch', id: 'x402-fetch', level: 3 },
+  { label: 'Demo Mode', id: 'demo-mode', level: 3 },
+  { label: 'x402 Protocol', id: 'x402-protocol', level: 2 },
+  { label: 'Configuration', id: 'configuration', level: 2 },
+  { label: 'MCP Server', id: 'mcp-server', level: 2 },
+  { label: 'API Reference', id: 'api-reference', level: 2 },
+  { label: 'FAQ', id: 'faq', level: 2 },
+  { label: 'Troubleshooting', id: 'troubleshooting', level: 2 },
+  { label: 'Changelog', id: 'changelog', level: 2 },
+]
+
+const ALL_SECTION_IDS = [
+  'introduction', 'quick-start', 'how-it-works', 'payment-flow',
+  'http-402', 'x402-fetch', 'demo-mode', 'x402-protocol',
+  'configuration', 'mcp-server', 'api-reference', 'faq',
+  'troubleshooting', 'changelog',
+]
+
+const FAQ_ITEMS = [
+  { q: 'Does Gate402 hold my funds?', a: 'No. Payments go directly from agent wallet to your Solana wallet. We only verify.' },
+  { q: "What happens if the agent doesn't pay?", a: 'Gate402 returns HTTP 402. Your handler never executes. Zero unauthorized access.' },
+  { q: 'Can I use Gate402 with frameworks other than Express?', a: 'Currently Express only. Next.js API routes and Fastify coming Q3 2026.' },
+  { q: 'What is the x402 protocol?', a: 'HTTP 402 is a 30-year-old standard finally activated for payments. Backed by Google, Microsoft, Stripe.' },
+  { q: 'Do agents need special software?', a: 'Any HTTP client works. For automatic payment, use x402-fetch.' },
+  { q: 'What is USDC?', a: 'Stablecoin pegged 1:1 to USD. 0.001 USDC = $0.001. Settles on Solana in ~400ms.' },
+  { q: "Devnet vs Mainnet — what's the difference?", a: 'Devnet uses fake USDC for testing. Mainnet uses real USDC.' },
+  { q: 'How do I get my API key?', a: 'Sign in at gate402.dev with GitHub. Settings page shows your key.' },
+  { q: 'Is Gate402 open source?', a: 'Core middleware is MIT licensed on GitHub. Dashboard is commercial.' },
+  { q: 'What is the fee for using Gate402?', a: 'Free tier: self-hosted, no fee. Pro: $99/month. Enterprise: 0.5% of volume.' },
+]
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function CodeBlock({ lang, code }: { lang: string; code: string }) {
   const [copied, setCopied] = useState(false)
 
-  async function handleCopy() {
+  async function copy() {
     await navigator.clipboard.writeText(code)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
   return (
-    <div style={{ marginBottom: 32 }}>
+    <div style={{
+      background: '#0d0d0d',
+      border: '1px solid #1a1a1a',
+      borderRadius: 6,
+      overflow: 'hidden',
+      marginTop: 12,
+      marginBottom: 20,
+    }}>
       <div style={{
-        background: '#0f0f0f',
-        border: '1px solid #222',
-        borderRadius: 8,
-        overflow: 'hidden',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '10px 24px 0',
+        fontFamily: 'var(--font-code)',
+        fontSize: 11,
+        color: '#333',
       }}>
-        {/* toolbar */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '8px 16px',
-          borderBottom: '1px solid #222',
-        }}>
-          <span style={{ color: '#00ff88', fontSize: 11, fontFamily: 'monospace', letterSpacing: '0.08em' }}>
-            {label}
-          </span>
-          <button
-            onClick={handleCopy}
-            style={{
-              background: copied ? '#00ff8820' : 'transparent',
-              border: `1px solid ${copied ? '#00ff8840' : '#333'}`,
-              color: copied ? '#00ff88' : '#666',
-              borderRadius: 4,
-              padding: '3px 10px',
-              fontFamily: 'monospace',
-              fontSize: 11,
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-            }}
-          >
-            {copied ? 'Copied ✓' : 'Copy'}
-          </button>
-        </div>
-        {/* code */}
-        <pre style={{
-          margin: 0,
-          padding: 16,
-          fontFamily: 'monospace',
-          fontSize: 12,
-          color: '#ccc',
-          overflowX: 'auto',
-          lineHeight: 1.7,
-          whiteSpace: 'pre',
-        }}>
-          {code}
-        </pre>
+        <span>{lang}</span>
+        <button
+          onClick={copy}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            fontFamily: 'var(--font-code)',
+            fontSize: 11,
+            color: copied ? '#00ff88' : '#333',
+            cursor: 'pointer',
+            paddingBottom: 10,
+            transition: 'color 0.15s',
+          }}
+        >
+          {copied ? 'Copied ✓' : 'Copy'}
+        </button>
       </div>
+      <pre style={{
+        margin: 0,
+        padding: '12px 24px 20px',
+        fontFamily: 'var(--font-code)',
+        fontSize: 13,
+        lineHeight: 1.7,
+        color: '#ccc',
+        overflowX: 'auto',
+        whiteSpace: 'pre',
+      }}>
+        {code}
+      </pre>
     </div>
   )
 }
 
+function Callout({ color, children }: { color: 'green' | 'yellow'; children: React.ReactNode }) {
+  const styles = {
+    green: { bg: 'rgba(0,255,136,0.05)', border: 'rgba(0,255,136,0.2)' },
+    yellow: { bg: 'rgba(245,158,11,0.05)', border: 'rgba(245,158,11,0.2)' },
+  }
+  return (
+    <div style={{
+      background: styles[color].bg,
+      border: `1px solid ${styles[color].border}`,
+      borderRadius: 6,
+      padding: 16,
+      fontSize: 14,
+      lineHeight: 1.6,
+      color: '#999',
+      marginTop: 12,
+      marginBottom: 16,
+    }}>
+      {children}
+    </div>
+  )
+}
+
+function Step({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginTop: 28 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+        <span style={{
+          fontFamily: 'var(--font-code)',
+          fontSize: 11,
+          color: '#333',
+          background: '#0d0d0d',
+          border: '1px solid #1a1a1a',
+          borderRadius: 4,
+          padding: '2px 8px',
+        }}>{n}</span>
+        <span style={{
+          fontFamily: 'var(--font-space)',
+          fontSize: 15,
+          color: '#fff',
+          fontWeight: 500,
+        }}>{title}</span>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function DocsPage() {
-  const [userId, setUserId] = useState<string | null>(null)
-  const [copiedKey, setCopiedKey] = useState(false)
+  const [activeId, setActiveId] = useState('introduction')
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   useEffect(() => {
-    async function load() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) setUserId(user.id)
-    }
-    load()
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id)
+          }
+        }
+      },
+      { rootMargin: '-56px 0px -70% 0px', threshold: 0 },
+    )
+
+    ALL_SECTION_IDS.forEach((id) => {
+      const el = document.getElementById(id)
+      if (el) observer.observe(el)
+    })
+
+    return () => observer.disconnect()
   }, [])
 
-  async function handleCopyKey() {
-    if (!userId) return
-    await navigator.clipboard.writeText(userId)
-    setCopiedKey(true)
-    setTimeout(() => setCopiedKey(false), 2000)
+  function scrollTo(id: string) {
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const h2Style: React.CSSProperties = {
+    fontFamily: 'var(--font-space)',
+    fontWeight: 300,
+    fontSize: 28,
+    color: '#fff',
+    borderBottom: '1px solid #1a1a1a',
+    paddingBottom: 16,
+    marginTop: 64,
+    marginBottom: 24,
+    scrollMarginTop: 80,
+  }
+
+  const h3Style: React.CSSProperties = {
+    fontFamily: 'var(--font-space)',
+    fontWeight: 400,
+    fontSize: 18,
+    color: '#fff',
+    marginTop: 32,
+    marginBottom: 12,
+    scrollMarginTop: 80,
+  }
+
+  const pStyle: React.CSSProperties = {
+    color: '#666',
+    fontSize: 15,
+    lineHeight: 1.8,
+    marginBottom: 12,
   }
 
   return (
-    <DashboardLayout>
-      <PageContainer>
-        <PageHeader eyebrow="DOCS" title="Documentation" subtitle="Add pay-per-call billing to any API in minutes." />
+    <div style={{ background: '#000', minHeight: '100vh', color: '#fff' }}>
 
-        {SNIPPETS.map((s) => (
-          <CodeCard key={s.label} label={s.label} code={s.code} />
-        ))}
+      {/* ── Header ── */}
+      <header style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 56,
+        zIndex: 50,
+        background: 'rgba(0,0,0,0.9)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderBottom: '1px solid #1a1a1a',
+        padding: '0 24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <a href="/" style={{
+            fontFamily: 'var(--font-space)',
+            fontWeight: 500,
+            fontSize: 16,
+            color: '#fff',
+            textDecoration: 'none',
+          }}>
+            gate402
+          </a>
+          <span style={{
+            fontFamily: 'var(--font-code)',
+            fontSize: 11,
+            color: '#333',
+            background: '#0d0d0d',
+            border: '1px solid #1a1a1a',
+            padding: '2px 8px',
+            borderRadius: 4,
+            marginLeft: 8,
+          }}>
+            docs
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          <a
+            href="https://github.com/joaopco8/gate402_"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#666', textDecoration: 'none', transition: 'color 0.15s' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#666')}
+          >
+            GitHub ↗
+          </a>
+          <a
+            href="/dashboard"
+            style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#666', textDecoration: 'none', transition: 'color 0.15s' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#666')}
+          >
+            Dashboard →
+          </a>
+        </div>
+      </header>
 
-        {/* Credentials card */}
-        <Card style={{ marginTop: 16 }}>
-          <p style={{ color: '#00ff88', fontSize: 11, letterSpacing: '0.1em', margin: '0 0 16px' }}>
-            YOUR CREDENTIALS
-          </p>
-
-          {/* API Key */}
-          <div style={{ marginBottom: 16 }}>
-            <p style={{ color: '#555', fontSize: 11, margin: '0 0 6px' }}>API KEY</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#ccc', wordBreak: 'break-all', flex: 1 }}>
-                {userId ?? '— login to see your key —'}
-              </span>
-              {userId && (
+      {/* ── Left Sidebar ── */}
+      <nav style={{
+        position: 'fixed',
+        left: 0,
+        top: 56,
+        width: 240,
+        height: 'calc(100vh - 56px)',
+        overflowY: 'auto',
+        background: '#000',
+        borderRight: '1px solid #1a1a1a',
+        padding: '24px 0',
+        zIndex: 40,
+      }}>
+        {NAV_GROUPS.map((group) => (
+          <div key={group.group} style={{ marginBottom: 8 }}>
+            <div style={{
+              fontFamily: 'var(--font-code)',
+              fontSize: 10,
+              color: '#333',
+              letterSpacing: '0.1em',
+              padding: '8px 20px',
+              textTransform: 'uppercase',
+            }}>
+              {group.group}
+            </div>
+            {group.items.map((item) => {
+              const isActive = activeId === item.id
+              return (
                 <button
-                  onClick={handleCopyKey}
+                  key={item.label}
+                  onClick={() => scrollTo(item.id)}
                   style={{
-                    background: copiedKey ? '#00ff8820' : '#1a1a1a',
-                    border: `1px solid ${copiedKey ? '#00ff8840' : '#333'}`,
-                    color: copiedKey ? '#00ff88' : '#666',
-                    borderRadius: 4,
-                    padding: '4px 10px',
-                    fontFamily: 'monospace',
-                    fontSize: 11,
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '6px 20px',
+                    fontFamily: 'var(--font-code)',
+                    fontSize: 13,
+                    color: isActive ? '#fff' : '#666',
+                    background: isActive ? 'rgba(255,255,255,0.04)' : 'transparent',
+                    border: 'none',
+                    borderLeft: `2px solid ${isActive ? '#00ff88' : 'transparent'}`,
                     cursor: 'pointer',
-                    whiteSpace: 'nowrap',
                     transition: 'all 0.15s',
                   }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.color = '#fff'
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.color = '#666'
+                      e.currentTarget.style.background = 'transparent'
+                    }
+                  }}
                 >
-                  {copiedKey ? 'Copied ✓' : 'Copy'}
+                  {item.label}
                 </button>
-              )}
-            </div>
+              )
+            })}
           </div>
+        ))}
+      </nav>
 
-          {/* Wallet */}
-          <div style={{ marginBottom: 16 }}>
-            <p style={{ color: '#555', fontSize: 11, margin: '0 0 6px' }}>WALLET</p>
+      {/* ── Right TOC ── */}
+      <aside style={{
+        position: 'fixed',
+        right: 0,
+        top: 56,
+        width: 200,
+        height: 'calc(100vh - 56px)',
+        overflowY: 'auto',
+        background: '#000',
+        borderLeft: '1px solid #1a1a1a',
+        padding: '24px 16px',
+        zIndex: 40,
+      }}>
+        <div style={{
+          fontFamily: 'var(--font-code)',
+          fontSize: 11,
+          color: '#333',
+          letterSpacing: '0.1em',
+          marginBottom: 12,
+          textTransform: 'uppercase',
+        }}>
+          On This Page
+        </div>
+        {TOC_ITEMS.map((item) => {
+          const isActive = activeId === item.id
+          return (
+            <button
+              key={item.id + item.label}
+              onClick={() => scrollTo(item.id)}
+              style={{
+                display: 'block',
+                width: '100%',
+                textAlign: 'left',
+                fontFamily: 'var(--font-code)',
+                fontSize: 11,
+                color: isActive ? '#00ff88' : '#333',
+                background: 'transparent',
+                border: 'none',
+                padding: `4px 0 4px ${item.level === 3 ? 12 : 0}px`,
+                cursor: 'pointer',
+                transition: 'color 0.15s',
+                lineHeight: 1.5,
+              }}
+              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = '#333' }}
+            >
+              {item.label}
+            </button>
+          )
+        })}
+      </aside>
+
+      {/* ── Main Content ── */}
+      <main style={{
+        marginLeft: 240,
+        marginRight: 200,
+        marginTop: 56,
+        padding: '48px 40px',
+      }}>
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
+
+          {/* ══ Introduction ══ */}
+          <section id="introduction">
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+              {[
+                { label: 'v0.1.0', bg: '#0d0d0d', border: '#1a1a1a', color: '#666' },
+                { label: 'MIT', bg: '#0d0d0d', border: '#1a1a1a', color: '#666' },
+                { label: 'Solana', bg: 'rgba(153,69,255,0.1)', border: 'rgba(153,69,255,0.3)', color: '#9945FF' },
+                { label: 'x402', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.3)', color: '#3b82f6' },
+              ].map((b) => (
+                <span key={b.label} style={{
+                  fontFamily: 'var(--font-code)',
+                  fontSize: 11,
+                  background: b.bg,
+                  border: `1px solid ${b.border}`,
+                  color: b.color,
+                  borderRadius: 4,
+                  padding: '3px 10px',
+                }}>
+                  {b.label}
+                </span>
+              ))}
+            </div>
+
+            <h1 style={{
+              fontFamily: 'var(--font-space)',
+              fontWeight: 300,
+              fontSize: 40,
+              color: '#fff',
+              marginBottom: 8,
+            }}>
+              Gate402
+            </h1>
+            <p style={{ color: '#999', fontSize: 16, marginBottom: 0 }}>Last updated May 2026</p>
+            <hr style={{ border: 'none', borderTop: '1px solid #1a1a1a', margin: '24px 0' }} />
+
+            <p style={pStyle}>
+              Gate402 is billing infrastructure for AI agents. Drop-in middleware that puts a paywall on any API using the x402 protocol. Agents pay in USDC on Solana. Settlement in 400ms. Real-time analytics dashboard included.
+            </p>
+
+            <p style={{ ...pStyle, color: '#fff', fontWeight: 500, marginTop: 24, fontSize: 15 }}>
+              When to use Gate402:
+            </p>
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {[
+                'You have an MCP server and want to charge per call',
+                'You have a specialized API consumed by AI agents',
+                'You want to monetize tools without Stripe or banks',
+                'You need machine-to-machine payments with no human in the loop',
+              ].map((item) => (
+                <div key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <span style={{ color: '#00ff88', fontFamily: 'var(--font-code)', fontSize: 14, marginTop: 2, flexShrink: 0 }}>→</span>
+                  <span style={{ color: '#666', fontSize: 15, lineHeight: 1.6 }}>{item}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ══ Quick Start ══ */}
+          <section id="quick-start">
+            <h2 style={h2Style}>Quick Start</h2>
+            <p style={pStyle}>Get Gate402 running in under 5 minutes.</p>
+
+            <Callout color="green">
+              ✓ Prerequisites: Node.js 18+, Express, a Solana wallet address
+            </Callout>
+
+            <Step n="1" title="Install">
+              <CodeBlock lang="bash" code="npm install gate402" />
+            </Step>
+
+            <Step n="2" title="Add middleware">
+              <CodeBlock lang="typescript" code={`import { gate402 } from 'gate402'
+import express from 'express'
+
+const app = express()
+
+app.use(gate402({
+  apiKey: 'your-api-key',        // from gate402.dev/settings
+  walletAddress: 'your-wallet',  // Solana wallet to receive USDC
+  endpoints: {
+    '/api/data':    0.001,       // 0.001 USDC per call
+    '/api/premium': 0.010,       // 0.010 USDC per call
+  }
+}))
+
+app.get('/api/data', (req, res) => {
+  res.json({ result: 'your data here' })
+})
+
+app.listen(3000)
+console.log('Gate402 running on port 3000')`} />
+            </Step>
+
+            <Step n="3" title="Get credentials">
+              <div style={{
+                background: '#0d0d0d',
+                border: '1px solid #1a1a1a',
+                borderRadius: 6,
+                padding: 20,
+                marginTop: 12,
+              }}>
+                {[
+                  '1. Sign in at gate402.dev with GitHub',
+                  '2. Go to Settings',
+                  '3. Copy your API Key and Solana wallet address',
+                ].map((line) => (
+                  <p key={line} style={{ color: '#666', fontSize: 14, lineHeight: 1.8, margin: 0 }}>{line}</p>
+                ))}
+                <a href="/settings" style={{ color: '#00ff88', fontSize: 14, display: 'block', marginTop: 12, textDecoration: 'none' }}>
+                  Open Settings →
+                </a>
+              </div>
+            </Step>
+
+            <Step n="4" title="Test it">
+              <CodeBlock lang="bash" code={`# Returns 402 — blocked
+curl http://localhost:3000/api/data
+
+# Returns data — paid (demo mode)
+curl http://localhost:3000/api/data \\
+  -H "X-Payment-Payload: demo_test_123"`} />
+            </Step>
+          </section>
+
+          {/* ══ How It Works ══ */}
+          <section id="how-it-works">
+            <h2 style={h2Style}>How It Works</h2>
+
+            <CodeBlock lang="ascii" code={`AI Agent              Gate402              Solana
+    │                    │                    │
+    │── GET /api/data ──▶│                    │
+    │◀── HTTP 402 ────────│                    │
+    │   price: 0.001 USDC│                    │
+    │   payTo: 7UQc...   │                    │
+    │                    │                    │
+    │── send USDC ───────────────────────────▶│
+    │◀─ confirmed 412ms ──────────────────────│
+    │                    │                    │
+    │── GET /api/data ──▶│                    │
+    │  X-Payment: tx_... │                    │
+    │                    │── verify on-chain ▶│
+    │◀── 200 OK ──────────│◀─ confirmed ───────│`} />
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 24 }}>
+              {[
+                { n: '01', title: 'Intercept', desc: 'Gate402 intercepts every request before your handler' },
+                { n: '02', title: 'Challenge', desc: 'Returns HTTP 402 with price and wallet address' },
+                { n: '03', title: 'Verify', desc: 'Checks payment on Solana blockchain' },
+                { n: '04', title: 'Release', desc: 'Grants access and logs the call' },
+              ].map((card) => (
+                <div key={card.n} style={{
+                  background: '#0d0d0d',
+                  border: '1px solid #1a1a1a',
+                  borderRadius: 6,
+                  padding: 20,
+                }}>
+                  <div style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: '#333', marginBottom: 8 }}>{card.n}</div>
+                  <div style={{ fontFamily: 'var(--font-space)', fontWeight: 500, fontSize: 14, color: '#fff', marginBottom: 4 }}>{card.title}</div>
+                  <div style={{ fontSize: 13, color: '#666', lineHeight: 1.6 }}>{card.desc}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ══ Payment Flow ══ */}
+          <section id="payment-flow">
+            <h2 style={h2Style}>Payment Flow</h2>
+
+            <h3 id="http-402" style={h3Style}>HTTP 402 Response</h3>
+            <p style={pStyle}>When an agent calls without payment, Gate402 returns:</p>
+            <CodeBlock lang="json" code={`{
+  "error": "Payment Required",
+  "price": {
+    "amount": "0.001",
+    "currency": "USDC",
+    "network": "solana-devnet"
+  },
+  "payTo": "7UQctUWgfH87jjz9xjnCCKVY6Q1tMWZ8i1ZB3Whx939D",
+  "endpoint": "/api/weather",
+  "instructions": "Send USDC on Solana and include tx hash in X-Payment-Payload header"
+}`} />
+
+            <h3 id="x402-fetch" style={h3Style}>Paying with x402-fetch (recommended)</h3>
+            <CodeBlock lang="typescript" code={`import { wrapFetch } from 'x402-fetch'
+import { Keypair } from '@solana/web3.js'
+
+const agentWallet = Keypair.fromSecretKey(yourSecretKey)
+
+const fetch = wrapFetch({
+  wallet: agentWallet,
+  network: 'mainnet'
+})
+
+// Pays automatically when it receives 402
+const data = await fetch('https://yourapi.dev/api/data')
+console.log(data) // { result: '...' }`} />
+
+            <h3 style={h3Style}>Manual payment</h3>
+            <CodeBlock lang="bash" code={`# Send USDC on Solana, get tx hash
+# Then include it in the header:
+curl https://yourapi.dev/api/data \\
+  -H "X-Payment-Payload: 5kWq9mLP3rT..."`} />
+
+            <h3 id="demo-mode" style={h3Style}>Demo Mode</h3>
+            <Callout color="yellow">
+              In development, use hashes starting with{' '}
+              <code style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#ccc' }}>demo_</code>{' '}
+              to bypass blockchain verification. Demo mode is automatically disabled in production (NODE_ENV=production).
+            </Callout>
+            <CodeBlock lang="bash" code={`curl http://localhost:3000/api/data \\
+  -H "X-Payment-Payload: demo_anything_here"`} />
+          </section>
+
+          {/* ══ x402 Protocol ══ */}
+          <section id="x402-protocol">
+            <h2 style={h2Style}>x402 Protocol</h2>
+            <p style={pStyle}>
+              HTTP 402 — Payment Required — is a status code that has existed since 1991.
+              It was always designed for payments but never standardized. x402 changes that.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 20 }}>
+              {[
+                { title: 'Standard', desc: 'Built on HTTP. Every API already speaks it.' },
+                { title: 'Open', desc: 'No vendor lock-in. Any agent, any API.' },
+                { title: 'Backed', desc: 'Google, Microsoft, Stripe are x402 Foundation members.' },
+              ].map((card) => (
+                <div key={card.title} style={{
+                  background: '#0d0d0d',
+                  border: '1px solid #1a1a1a',
+                  borderRadius: 6,
+                  padding: 20,
+                }}>
+                  <div style={{ fontFamily: 'var(--font-space)', fontWeight: 500, fontSize: 14, color: '#fff', marginBottom: 6 }}>{card.title}</div>
+                  <div style={{ fontSize: 13, color: '#666', lineHeight: 1.6 }}>{card.desc}</div>
+                </div>
+              ))}
+            </div>
+
             <a
-              href="https://phantom.app"
+              href="https://x402.org"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: '#00ff88', fontSize: 12, textDecoration: 'none' }}
+              style={{ display: 'inline-block', marginTop: 20, color: '#00ff88', fontSize: 14, textDecoration: 'none' }}
             >
-              Create a Solana wallet at phantom.app →
+              Learn more about x402 →
             </a>
-          </div>
+          </section>
 
-          {/* Network */}
-          <div>
-            <p style={{ color: '#555', fontSize: 11, margin: '0 0 6px' }}>NETWORK</p>
-            <span style={{ fontSize: 12, color: '#ccc' }}>Solana Devnet</span>
-            <span style={{ fontSize: 11, color: '#555', marginLeft: 8 }}>(for testing — no real money)</span>
-          </div>
-        </Card>
-      </PageContainer>
-    </DashboardLayout>
+          {/* ══ Configuration ══ */}
+          <section id="configuration">
+            <h2 style={h2Style}>Configuration</h2>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    {['Option', 'Type', 'Required', 'Default', 'Description'].map((h) => (
+                      <th key={h} style={{
+                        fontFamily: 'var(--font-code)',
+                        fontSize: 11,
+                        color: '#333',
+                        letterSpacing: '0.06em',
+                        background: '#0d0d0d',
+                        padding: '10px 16px',
+                        textAlign: 'left',
+                        borderBottom: '1px solid #1a1a1a',
+                      }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { opt: 'apiKey', type: 'string', req: '✓', def: '—', desc: 'Your API key from gate402.dev/settings' },
+                    { opt: 'walletAddress', type: 'string', req: '✓', def: '—', desc: 'Solana wallet to receive USDC' },
+                    { opt: 'endpoints', type: 'object', req: '✓', def: '—', desc: 'Path → price in USDC mapping' },
+                    { opt: 'network', type: "'devnet' | 'mainnet'", req: '', def: "'devnet'", desc: 'Solana network' },
+                    { opt: 'serverUrl', type: 'string', req: '', def: 'auto', desc: 'Gate402 server for verification' },
+                  ].map((row) => (
+                    <tr key={row.opt}>
+                      <td style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', color: '#fff', fontWeight: 500, fontFamily: 'var(--font-code)', fontSize: 13 }}>{row.opt}</td>
+                      <td style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', color: '#666', fontSize: 13, fontFamily: 'var(--font-code)' }}>{row.type}</td>
+                      <td style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', color: '#00ff88', fontSize: 13, fontFamily: 'var(--font-code)' }}>{row.req}</td>
+                      <td style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', color: '#666', fontSize: 13, fontFamily: 'var(--font-code)' }}>{row.def}</td>
+                      <td style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', color: '#666', fontSize: 14 }}>{row.desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <CodeBlock lang="typescript" code={`app.use(gate402({
+  apiKey: 'gk_live_abc123',
+  walletAddress: '7UQctUWgfH87jjz9xjnCCKVY6Q1tMWZ8i1ZB3Whx939D',
+  network: 'mainnet',
+  serverUrl: 'https://api.gate402.dev',
+  endpoints: {
+    '/api/weather':  0.001,
+    '/api/analysis': 0.050,
+    '/api/premium':  0.100,
+  }
+}))`} />
+          </section>
+
+          {/* ══ MCP Server ══ */}
+          <section id="mcp-server">
+            <h2 style={h2Style}>MCP Server Integration</h2>
+            <p style={pStyle}>Gate402 works seamlessly with MCP servers for Claude Desktop and other AI agents.</p>
+
+            <CodeBlock lang="typescript" code={`import express from 'express'
+import { gate402 } from 'gate402'
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
+
+const app = express()
+app.use(express.json())
+
+// Gate402 middleware — all MCP calls are gated
+app.use(gate402({
+  apiKey: process.env.GATE402_API_KEY!,
+  walletAddress: process.env.SOLANA_WALLET!,
+  endpoints: {
+    '/mcp': 0.001,  // 0.001 USDC per MCP call
+  }
+}))
+
+// Your MCP server
+const server = new McpServer({ name: 'my-server', version: '1.0.0' })
+
+server.tool('get_weather', { city: z.string() }, async ({ city }) => ({
+  content: [{ type: 'text', text: \`Weather in \${city}: 28°C\` }]
+}))
+
+app.post('/mcp', async (req, res) => {
+  const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
+  await server.connect(transport)
+  await transport.handleRequest(req, res, req.body)
+})
+
+app.listen(3001)`} />
+
+            <h3 id="claude-desktop" style={h3Style}>Claude Desktop config (~/.claude/claude_desktop_config.json):</h3>
+            <CodeBlock lang="json" code={`{
+  "mcpServers": {
+    "my-gated-server": {
+      "command": "node",
+      "args": ["/path/to/dist/index.js"],
+      "env": {
+        "GATE402_API_KEY": "your-api-key",
+        "SOLANA_WALLET": "your-wallet"
+      }
+    }
+  }
+}`} />
+          </section>
+
+          {/* ══ API Reference ══ */}
+          <section id="api-reference">
+            <h2 style={h2Style}>API Reference</h2>
+            <p style={pStyle}>
+              Base URL:{' '}
+              <code style={{ fontFamily: 'var(--font-code)', fontSize: 13, color: '#ccc' }}>
+                https://api.gate402.dev
+              </code>
+            </p>
+
+            {[
+              {
+                method: 'GET', path: '/api/weather', desc: 'Demo endpoint (requires payment)',
+                headers: 'X-Payment-Payload: <tx-hash>',
+                response: '{ "city": "São Paulo", "temp": "28°C" }',
+              },
+              {
+                method: 'GET', path: '/api/metrics', desc: 'Your API metrics',
+                headers: 'Authorization: Bearer <api-key>',
+                response: '{ "totalCalls": 142, "totalRevenue": "0.142", "uniqueCallers": 8 }',
+              },
+              {
+                method: 'GET', path: '/api/calls/recent', desc: 'Recent calls feed',
+                headers: 'Authorization: Bearer <api-key>',
+                response: '[{ "id": "...", "endpoint": "/api/data", "amount": "0.001", "ts": "..." }]',
+              },
+              {
+                method: 'GET', path: '/api/calls/per-day', desc: 'Calls grouped by day',
+                headers: 'Authorization: Bearer <api-key>',
+                response: '[{ "date": "2026-05-08", "calls": 24, "revenue": "0.024" }]',
+              },
+              {
+                method: 'GET', path: '/api/endpoints', desc: 'Your configured endpoints',
+                headers: 'Authorization: Bearer <api-key>',
+                response: '[{ "path": "/api/data", "price": "0.001", "calls": 42 }]',
+              },
+              {
+                method: 'POST', path: '/api/endpoints', desc: 'Create new endpoint',
+                headers: 'Authorization: Bearer <api-key>\nContent-Type: application/json',
+                response: '{ "id": "...", "path": "/api/new", "price": "0.005" }',
+              },
+            ].map((ep) => (
+              <div key={ep.path + ep.method} style={{
+                background: '#0d0d0d',
+                border: '1px solid #1a1a1a',
+                borderRadius: 6,
+                padding: 20,
+                marginBottom: 12,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <span style={{
+                    fontFamily: 'var(--font-code)',
+                    fontSize: 11,
+                    fontWeight: 500,
+                    color: ep.method === 'GET' ? '#00ff88' : '#3b82f6',
+                    background: ep.method === 'GET' ? 'rgba(0,255,136,0.1)' : 'rgba(59,130,246,0.1)',
+                    border: `1px solid ${ep.method === 'GET' ? 'rgba(0,255,136,0.2)' : 'rgba(59,130,246,0.2)'}`,
+                    borderRadius: 4,
+                    padding: '2px 8px',
+                  }}>{ep.method}</span>
+                  <code style={{ fontFamily: 'var(--font-code)', fontSize: 13, color: '#ccc' }}>{ep.path}</code>
+                </div>
+                <p style={{ color: '#666', fontSize: 13, marginBottom: 12 }}>{ep.desc}</p>
+                <div style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#333', marginBottom: 4 }}>Headers</div>
+                <pre style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#666', margin: '0 0 8px', whiteSpace: 'pre-wrap' }}>{ep.headers}</pre>
+                <div style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#333', marginBottom: 4 }}>Response</div>
+                <pre style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#666', margin: 0, whiteSpace: 'pre-wrap' }}>{ep.response}</pre>
+              </div>
+            ))}
+          </section>
+
+          {/* ══ FAQ ══ */}
+          <section id="faq">
+            <h2 style={h2Style}>FAQ</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {FAQ_ITEMS.map((item, i) => (
+                <div key={i} style={{ border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden' }}>
+                  <button
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      width: '100%',
+                      padding: '14px 20px',
+                      background: openFaq === i ? '#0d0d0d' : 'transparent',
+                      border: 'none',
+                      color: '#fff',
+                      fontSize: 14,
+                      fontFamily: 'var(--font-space)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'background 0.15s',
+                    }}
+                  >
+                    <span>{item.q}</span>
+                    <span style={{ color: '#333', fontSize: 18, marginLeft: 16, flexShrink: 0 }}>
+                      {openFaq === i ? '−' : '+'}
+                    </span>
+                  </button>
+                  {openFaq === i && (
+                    <div style={{
+                      padding: '0 20px 16px',
+                      background: '#0d0d0d',
+                      color: '#666',
+                      fontSize: 14,
+                      lineHeight: 1.7,
+                    }}>
+                      {item.a}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ══ Troubleshooting ══ */}
+          <section id="troubleshooting">
+            <h2 style={h2Style}>Troubleshooting</h2>
+            {[
+              {
+                error: "Can't reach database server",
+                cause: 'DATABASE_URL incorreta ou IPv6 bloqueado',
+                fix: 'Use Session Pooler URL do Supabase. Ative IPv6 no Railway.',
+              },
+              {
+                error: 'No wallet found. Generated new wallet',
+                cause: 'SOLANA_WALLET_PRIVATE_KEY não está sendo lida',
+                fix: 'Verifique variáveis de ambiente. Re-set sem caracteres invisíveis.',
+              },
+              {
+                error: 'Payment Required em todo request',
+                cause: 'Endpoint não cadastrado no banco',
+                fix: 'Acesse gate402.dev/endpoints e cadastre o path.',
+              },
+              {
+                error: 'Could not connect to server. Is it running on localhost:3001?',
+                cause: 'NEXT_PUBLIC_SERVER_URL apontando para localhost',
+                fix: 'Atualize para https://api.gate402.dev na Vercel.',
+              },
+            ].map((item) => (
+              <div key={item.error} style={{
+                background: '#0d0d0d',
+                border: '1px solid #1a1a1a',
+                borderRadius: 6,
+                padding: 20,
+                marginBottom: 12,
+              }}>
+                <div style={{
+                  fontFamily: 'var(--font-code)',
+                  fontSize: 13,
+                  color: '#ff4444',
+                  background: 'rgba(255,68,68,0.05)',
+                  border: '1px solid rgba(255,68,68,0.15)',
+                  borderRadius: 4,
+                  padding: '6px 12px',
+                  display: 'inline-block',
+                  marginBottom: 12,
+                }}>
+                  {item.error}
+                </div>
+                <div style={{ marginBottom: 6 }}>
+                  <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: '#333', marginRight: 8 }}>CAUSE</span>
+                  <span style={{ fontSize: 13, color: '#666' }}>{item.cause}</span>
+                </div>
+                <div>
+                  <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: '#333', marginRight: 8 }}>FIX</span>
+                  <span style={{ fontSize: 13, color: '#999' }}>{item.fix}</span>
+                </div>
+              </div>
+            ))}
+          </section>
+
+          {/* ══ Changelog ══ */}
+          <section id="changelog" style={{ paddingBottom: 80 }}>
+            <h2 style={h2Style}>Changelog</h2>
+            <div style={{
+              fontFamily: 'var(--font-code)',
+              fontSize: 12,
+              color: '#fff',
+              marginBottom: 16,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}>
+              <span>v0.1.0</span>
+              <span style={{ color: '#333' }}>—</span>
+              <span style={{ color: '#666' }}>May 2026</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                'x402 middleware for Express',
+                'Solana devnet payment verification',
+                'Real-time dashboard with analytics',
+                'GitHub OAuth with multi-tenant auth',
+                'MCP server demo',
+                'npm package published',
+                'Demo mode for local development',
+              ].map((item) => (
+                <div key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <span style={{ color: '#00ff88', fontSize: 14, flexShrink: 0 }}>●</span>
+                  <span style={{ color: '#666', fontSize: 14, lineHeight: 1.6 }}>{item}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+        </div>
+      </main>
+    </div>
   )
 }
