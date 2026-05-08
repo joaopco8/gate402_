@@ -1,6 +1,22 @@
 'use client'
 import { useState, useEffect } from 'react'
 
+// ─── Breakpoints ──────────────────────────────────────────────────────────────
+// mobile  : < 768
+// tablet  : 768 – 1099
+// desktop : >= 1100
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(0)
+  useEffect(() => {
+    setWidth(window.innerWidth)
+    const handler = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return width
+}
+
 // ─── Nav Data ─────────────────────────────────────────────────────────────────
 
 const NAV_GROUPS = [
@@ -119,7 +135,7 @@ function CodeBlock({ lang, code }: { lang: string; code: string }) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '10px 24px 0',
+        padding: '10px 16px 0',
         fontFamily: 'var(--font-code)',
         fontSize: 11,
         color: '#333',
@@ -143,13 +159,14 @@ function CodeBlock({ lang, code }: { lang: string; code: string }) {
       </div>
       <pre style={{
         margin: 0,
-        padding: '12px 24px 20px',
+        padding: '12px 16px 20px',
         fontFamily: 'var(--font-code)',
         fontSize: 13,
         lineHeight: 1.7,
         color: '#ccc',
         overflowX: 'auto',
         whiteSpace: 'pre',
+        WebkitOverflowScrolling: 'touch',
       }}>
         {code}
       </pre>
@@ -191,6 +208,7 @@ function Step({ n, title, children }: { n: string; title: string; children: Reac
           border: '1px solid #1a1a1a',
           borderRadius: 4,
           padding: '2px 8px',
+          flexShrink: 0,
         }}>{n}</span>
         <span style={{
           fontFamily: 'var(--font-space)',
@@ -204,45 +222,138 @@ function Step({ n, title, children }: { n: string; title: string; children: Reac
   )
 }
 
+// ─── Sidebar Nav (shared between fixed panel and mobile drawer) ───────────────
+
+function SidebarNav({
+  activeId,
+  onNavigate,
+}: {
+  activeId: string
+  onNavigate: (id: string) => void
+}) {
+  return (
+    <>
+      {NAV_GROUPS.map((group) => (
+        <div key={group.group} style={{ marginBottom: 8 }}>
+          <div style={{
+            fontFamily: 'var(--font-code)',
+            fontSize: 10,
+            color: '#333',
+            letterSpacing: '0.1em',
+            padding: '8px 20px',
+            textTransform: 'uppercase',
+          }}>
+            {group.group}
+          </div>
+          {group.items.map((item) => {
+            const isActive = activeId === item.id
+            return (
+              <button
+                key={item.label}
+                onClick={() => onNavigate(item.id)}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '7px 20px',
+                  fontFamily: 'var(--font-code)',
+                  fontSize: 13,
+                  color: isActive ? '#fff' : '#666',
+                  background: isActive ? 'rgba(255,255,255,0.04)' : 'transparent',
+                  border: 'none',
+                  borderLeft: `2px solid ${isActive ? '#00ff88' : 'transparent'}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = '#fff'
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = '#666'
+                    e.currentTarget.style.background = 'transparent'
+                  }
+                }}
+              >
+                {item.label}
+              </button>
+            )
+          })}
+        </div>
+      ))}
+    </>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DocsPage() {
+  const width = useWindowWidth()
   const [activeId, setActiveId] = useState('introduction')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
+  const isMobile = width > 0 && width < 768
+  const isTablet = width >= 768 && width < 1100
+  const isDesktop = width >= 1100
+
+  // Close mobile nav on resize to tablet/desktop
+  useEffect(() => {
+    if (!isMobile) setMobileNavOpen(false)
+  }, [isMobile])
+
+  // Prevent body scroll when mobile nav is open
+  useEffect(() => {
+    if (mobileNavOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [mobileNavOpen])
+
+  // IntersectionObserver for active section
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id)
-          }
+          if (entry.isIntersecting) setActiveId(entry.target.id)
         }
       },
       { rootMargin: '-56px 0px -70% 0px', threshold: 0 },
     )
-
     ALL_SECTION_IDS.forEach((id) => {
       const el = document.getElementById(id)
       if (el) observer.observe(el)
     })
-
     return () => observer.disconnect()
   }, [])
 
   function scrollTo(id: string) {
     const el = document.getElementById(id)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (isMobile) setMobileNavOpen(false)
   }
 
+  // ── Layout measurements ──
+  const sidebarW = 240
+  const tocW = 200
+  const mainML = (isMobile || width === 0) ? 0 : sidebarW
+  const mainMR = isDesktop ? tocW : 0
+  const mainPad = isMobile ? '32px 16px' : isTablet ? '40px 28px' : '48px 40px'
+
+  // ── Shared style helpers ──
   const h2Style: React.CSSProperties = {
     fontFamily: 'var(--font-space)',
     fontWeight: 300,
-    fontSize: 28,
+    fontSize: isMobile ? 22 : 28,
     color: '#fff',
     borderBottom: '1px solid #1a1a1a',
     paddingBottom: 16,
-    marginTop: 64,
+    marginTop: isMobile ? 48 : 64,
     marginBottom: 24,
     scrollMarginTop: 80,
   }
@@ -250,7 +361,7 @@ export default function DocsPage() {
   const h3Style: React.CSSProperties = {
     fontFamily: 'var(--font-space)',
     fontWeight: 400,
-    fontSize: 18,
+    fontSize: isMobile ? 16 : 18,
     color: '#fff',
     marginTop: 32,
     marginBottom: 12,
@@ -259,7 +370,7 @@ export default function DocsPage() {
 
   const pStyle: React.CSSProperties = {
     color: '#666',
-    fontSize: 15,
+    fontSize: isMobile ? 14 : 15,
     lineHeight: 1.8,
     marginBottom: 12,
   }
@@ -279,12 +390,41 @@ export default function DocsPage() {
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         borderBottom: '1px solid #1a1a1a',
-        padding: '0 24px',
+        padding: '0 16px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        {/* Left: hamburger (mobile) + logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {isMobile && (
+            <button
+              onClick={() => setMobileNavOpen((v) => !v)}
+              aria-label="Toggle navigation"
+              style={{
+                background: 'transparent',
+                border: '1px solid #1a1a1a',
+                borderRadius: 4,
+                padding: '6px 8px',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+                marginRight: 4,
+              }}
+            >
+              {[0, 1, 2].map((i) => (
+                <span key={i} style={{
+                  display: 'block',
+                  width: 16,
+                  height: 1.5,
+                  background: '#666',
+                  borderRadius: 1,
+                  transition: 'background 0.15s',
+                }} />
+              ))}
+            </button>
+          )}
           <a href="/" style={{
             fontFamily: 'var(--font-space)',
             fontWeight: 500,
@@ -302,12 +442,13 @@ export default function DocsPage() {
             border: '1px solid #1a1a1a',
             padding: '2px 8px',
             borderRadius: 4,
-            marginLeft: 8,
           }}>
             docs
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+
+        {/* Right: links */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 16 : 24 }}>
           <a
             href="https://github.com/joaopco8/gate402_"
             target="_blank"
@@ -316,149 +457,140 @@ export default function DocsPage() {
             onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
             onMouseLeave={(e) => (e.currentTarget.style.color = '#666')}
           >
-            GitHub ↗
+            {isMobile ? 'GitHub' : 'GitHub ↗'}
           </a>
-          <a
-            href="/dashboard"
-            style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#666', textDecoration: 'none', transition: 'color 0.15s' }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = '#666')}
-          >
-            Dashboard →
-          </a>
+          {!isMobile && (
+            <a
+              href="/dashboard"
+              style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#666', textDecoration: 'none', transition: 'color 0.15s' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#666')}
+            >
+              Dashboard →
+            </a>
+          )}
         </div>
       </header>
 
-      {/* ── Left Sidebar ── */}
-      <nav style={{
-        position: 'fixed',
-        left: 0,
-        top: 56,
-        width: 240,
-        height: 'calc(100vh - 56px)',
-        overflowY: 'auto',
-        background: '#000',
-        borderRight: '1px solid #1a1a1a',
-        padding: '24px 0',
-        zIndex: 40,
-      }}>
-        {NAV_GROUPS.map((group) => (
-          <div key={group.group} style={{ marginBottom: 8 }}>
-            <div style={{
-              fontFamily: 'var(--font-code)',
-              fontSize: 10,
-              color: '#333',
-              letterSpacing: '0.1em',
-              padding: '8px 20px',
-              textTransform: 'uppercase',
-            }}>
-              {group.group}
-            </div>
-            {group.items.map((item) => {
-              const isActive = activeId === item.id
-              return (
-                <button
-                  key={item.label}
-                  onClick={() => scrollTo(item.id)}
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '6px 20px',
-                    fontFamily: 'var(--font-code)',
-                    fontSize: 13,
-                    color: isActive ? '#fff' : '#666',
-                    background: isActive ? 'rgba(255,255,255,0.04)' : 'transparent',
-                    border: 'none',
-                    borderLeft: `2px solid ${isActive ? '#00ff88' : 'transparent'}`,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.color = '#fff'
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.color = '#666'
-                      e.currentTarget.style.background = 'transparent'
-                    }
-                  }}
-                >
-                  {item.label}
-                </button>
-              )
-            })}
-          </div>
-        ))}
-      </nav>
+      {/* ── Mobile overlay ── */}
+      {isMobile && mobileNavOpen && (
+        <div
+          onClick={() => setMobileNavOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 45,
+            background: 'rgba(0,0,0,0.7)',
+          }}
+        />
+      )}
 
-      {/* ── Right TOC ── */}
-      <aside style={{
-        position: 'fixed',
-        right: 0,
-        top: 56,
-        width: 200,
-        height: 'calc(100vh - 56px)',
-        overflowY: 'auto',
-        background: '#000',
-        borderLeft: '1px solid #1a1a1a',
-        padding: '24px 16px',
-        zIndex: 40,
-      }}>
-        <div style={{
-          fontFamily: 'var(--font-code)',
-          fontSize: 11,
-          color: '#333',
-          letterSpacing: '0.1em',
-          marginBottom: 12,
-          textTransform: 'uppercase',
+      {/* ── Left Sidebar ── */}
+      {/* Desktop/tablet: fixed panel | Mobile: slide-in drawer */}
+      {(isTablet || isDesktop) && (
+        <nav style={{
+          position: 'fixed',
+          left: 0,
+          top: 56,
+          width: sidebarW,
+          height: 'calc(100vh - 56px)',
+          overflowY: 'auto',
+          background: '#000',
+          borderRight: '1px solid #1a1a1a',
+          padding: '24px 0',
+          zIndex: 40,
         }}>
-          On This Page
-        </div>
-        {TOC_ITEMS.map((item) => {
-          const isActive = activeId === item.id
-          return (
-            <button
-              key={item.id + item.label}
-              onClick={() => scrollTo(item.id)}
-              style={{
-                display: 'block',
-                width: '100%',
-                textAlign: 'left',
-                fontFamily: 'var(--font-code)',
-                fontSize: 11,
-                color: isActive ? '#00ff88' : '#333',
-                background: 'transparent',
-                border: 'none',
-                padding: `4px 0 4px ${item.level === 3 ? 12 : 0}px`,
-                cursor: 'pointer',
-                transition: 'color 0.15s',
-                lineHeight: 1.5,
-              }}
-              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = '#fff' }}
-              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = '#333' }}
-            >
-              {item.label}
-            </button>
-          )
-        })}
-      </aside>
+          <SidebarNav activeId={activeId} onNavigate={scrollTo} />
+        </nav>
+      )}
+
+      {isMobile && (
+        <nav style={{
+          position: 'fixed',
+          left: mobileNavOpen ? 0 : -280,
+          top: 0,
+          width: 280,
+          height: '100vh',
+          overflowY: 'auto',
+          background: '#000',
+          borderRight: '1px solid #1a1a1a',
+          paddingTop: 72,
+          paddingBottom: 24,
+          zIndex: 46,
+          transition: 'left 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: mobileNavOpen ? '4px 0 24px rgba(0,0,0,0.8)' : 'none',
+        }}>
+          <SidebarNav activeId={activeId} onNavigate={scrollTo} />
+        </nav>
+      )}
+
+      {/* ── Right TOC — desktop only ── */}
+      {isDesktop && (
+        <aside style={{
+          position: 'fixed',
+          right: 0,
+          top: 56,
+          width: tocW,
+          height: 'calc(100vh - 56px)',
+          overflowY: 'auto',
+          background: '#000',
+          borderLeft: '1px solid #1a1a1a',
+          padding: '24px 16px',
+          zIndex: 40,
+        }}>
+          <div style={{
+            fontFamily: 'var(--font-code)',
+            fontSize: 11,
+            color: '#333',
+            letterSpacing: '0.1em',
+            marginBottom: 12,
+            textTransform: 'uppercase',
+          }}>
+            On This Page
+          </div>
+          {TOC_ITEMS.map((item) => {
+            const isActive = activeId === item.id
+            return (
+              <button
+                key={item.id + item.label}
+                onClick={() => scrollTo(item.id)}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'left',
+                  fontFamily: 'var(--font-code)',
+                  fontSize: 11,
+                  color: isActive ? '#00ff88' : '#333',
+                  background: 'transparent',
+                  border: 'none',
+                  padding: `4px 0 4px ${item.level === 3 ? 12 : 0}px`,
+                  cursor: 'pointer',
+                  transition: 'color 0.15s',
+                  lineHeight: 1.5,
+                }}
+                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = '#333' }}
+              >
+                {item.label}
+              </button>
+            )
+          })}
+        </aside>
+      )}
 
       {/* ── Main Content ── */}
       <main style={{
-        marginLeft: 240,
-        marginRight: 200,
+        marginLeft: mainML,
+        marginRight: mainMR,
         marginTop: 56,
-        padding: '48px 40px',
+        padding: mainPad,
+        minWidth: 0,
       }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
 
           {/* ══ Introduction ══ */}
           <section id="introduction">
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
               {[
                 { label: 'v0.1.0', bg: '#0d0d0d', border: '#1a1a1a', color: '#666' },
                 { label: 'MIT', bg: '#0d0d0d', border: '#1a1a1a', color: '#666' },
@@ -482,9 +614,10 @@ export default function DocsPage() {
             <h1 style={{
               fontFamily: 'var(--font-space)',
               fontWeight: 300,
-              fontSize: 40,
+              fontSize: isMobile ? 32 : 40,
               color: '#fff',
               marginBottom: 8,
+              lineHeight: 1.1,
             }}>
               Gate402
             </h1>
@@ -507,7 +640,7 @@ export default function DocsPage() {
               ].map((item) => (
                 <div key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                   <span style={{ color: '#00ff88', fontFamily: 'var(--font-code)', fontSize: 14, marginTop: 2, flexShrink: 0 }}>→</span>
-                  <span style={{ color: '#666', fontSize: 15, lineHeight: 1.6 }}>{item}</span>
+                  <span style={{ color: '#666', fontSize: isMobile ? 14 : 15, lineHeight: 1.6 }}>{item}</span>
                 </div>
               ))}
             </div>
@@ -599,7 +732,12 @@ curl http://localhost:3000/api/data \\
     │                    │── verify on-chain ▶│
     │◀── 200 OK ──────────│◀─ confirmed ───────│`} />
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 24 }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+              gap: 12,
+              marginTop: 24,
+            }}>
               {[
                 { n: '01', title: 'Intercept', desc: 'Gate402 intercepts every request before your handler' },
                 { n: '02', title: 'Challenge', desc: 'Returns HTTP 402 with price and wallet address' },
@@ -677,7 +815,12 @@ curl https://yourapi.dev/api/data \\
               It was always designed for payments but never standardized. x402 changes that.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 20 }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr',
+              gap: 12,
+              marginTop: 20,
+            }}>
               {[
                 { title: 'Standard', desc: 'Built on HTTP. Every API already speaks it.' },
                 { title: 'Open', desc: 'No vendor lock-in. Any agent, any API.' },
@@ -709,8 +852,8 @@ curl https://yourapi.dev/api/data \\
           <section id="configuration">
             <h2 style={h2Style}>Configuration</h2>
 
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
                 <thead>
                   <tr>
                     {['Option', 'Type', 'Required', 'Default', 'Description'].map((h) => (
@@ -720,27 +863,28 @@ curl https://yourapi.dev/api/data \\
                         color: '#333',
                         letterSpacing: '0.06em',
                         background: '#0d0d0d',
-                        padding: '10px 16px',
+                        padding: '10px 12px',
                         textAlign: 'left',
                         borderBottom: '1px solid #1a1a1a',
+                        whiteSpace: 'nowrap',
                       }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    { opt: 'apiKey', type: 'string', req: '✓', def: '—', desc: 'Your API key from gate402.dev/settings' },
+                    { opt: 'apiKey', type: 'string', req: '✓', def: '—', desc: 'API key from gate402.dev/settings' },
                     { opt: 'walletAddress', type: 'string', req: '✓', def: '—', desc: 'Solana wallet to receive USDC' },
                     { opt: 'endpoints', type: 'object', req: '✓', def: '—', desc: 'Path → price in USDC mapping' },
-                    { opt: 'network', type: "'devnet' | 'mainnet'", req: '', def: "'devnet'", desc: 'Solana network' },
+                    { opt: 'network', type: "'devnet'|'mainnet'", req: '', def: "'devnet'", desc: 'Solana network' },
                     { opt: 'serverUrl', type: 'string', req: '', def: 'auto', desc: 'Gate402 server for verification' },
                   ].map((row) => (
                     <tr key={row.opt}>
-                      <td style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', color: '#fff', fontWeight: 500, fontFamily: 'var(--font-code)', fontSize: 13 }}>{row.opt}</td>
-                      <td style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', color: '#666', fontSize: 13, fontFamily: 'var(--font-code)' }}>{row.type}</td>
-                      <td style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', color: '#00ff88', fontSize: 13, fontFamily: 'var(--font-code)' }}>{row.req}</td>
-                      <td style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', color: '#666', fontSize: 13, fontFamily: 'var(--font-code)' }}>{row.def}</td>
-                      <td style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', color: '#666', fontSize: 14 }}>{row.desc}</td>
+                      <td style={{ padding: '10px 12px', borderBottom: '1px solid #1a1a1a', color: '#fff', fontWeight: 500, fontFamily: 'var(--font-code)', fontSize: 12, whiteSpace: 'nowrap' }}>{row.opt}</td>
+                      <td style={{ padding: '10px 12px', borderBottom: '1px solid #1a1a1a', color: '#666', fontSize: 12, fontFamily: 'var(--font-code)', whiteSpace: 'nowrap' }}>{row.type}</td>
+                      <td style={{ padding: '10px 12px', borderBottom: '1px solid #1a1a1a', color: '#00ff88', fontSize: 12, fontFamily: 'var(--font-code)', textAlign: 'center' }}>{row.req}</td>
+                      <td style={{ padding: '10px 12px', borderBottom: '1px solid #1a1a1a', color: '#666', fontSize: 12, fontFamily: 'var(--font-code)', whiteSpace: 'nowrap' }}>{row.def}</td>
+                      <td style={{ padding: '10px 12px', borderBottom: '1px solid #1a1a1a', color: '#666', fontSize: 13 }}>{row.desc}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -817,7 +961,7 @@ app.listen(3001)`} />
             <h2 style={h2Style}>API Reference</h2>
             <p style={pStyle}>
               Base URL:{' '}
-              <code style={{ fontFamily: 'var(--font-code)', fontSize: 13, color: '#ccc' }}>
+              <code style={{ fontFamily: 'var(--font-code)', fontSize: 13, color: '#ccc', wordBreak: 'break-all' }}>
                 https://api.gate402.dev
               </code>
             </p>
@@ -836,7 +980,7 @@ app.listen(3001)`} />
               {
                 method: 'GET', path: '/api/calls/recent', desc: 'Recent calls feed',
                 headers: 'Authorization: Bearer <api-key>',
-                response: '[{ "id": "...", "endpoint": "/api/data", "amount": "0.001", "ts": "..." }]',
+                response: '[{ "id": "...", "endpoint": "/api/data", "amount": "0.001" }]',
               },
               {
                 method: 'GET', path: '/api/calls/per-day', desc: 'Calls grouped by day',
@@ -858,10 +1002,10 @@ app.listen(3001)`} />
                 background: '#0d0d0d',
                 border: '1px solid #1a1a1a',
                 borderRadius: 6,
-                padding: 20,
+                padding: isMobile ? 16 : 20,
                 marginBottom: 12,
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
                   <span style={{
                     fontFamily: 'var(--font-code)',
                     fontSize: 11,
@@ -871,14 +1015,15 @@ app.listen(3001)`} />
                     border: `1px solid ${ep.method === 'GET' ? 'rgba(0,255,136,0.2)' : 'rgba(59,130,246,0.2)'}`,
                     borderRadius: 4,
                     padding: '2px 8px',
+                    flexShrink: 0,
                   }}>{ep.method}</span>
-                  <code style={{ fontFamily: 'var(--font-code)', fontSize: 13, color: '#ccc' }}>{ep.path}</code>
+                  <code style={{ fontFamily: 'var(--font-code)', fontSize: 13, color: '#ccc', wordBreak: 'break-all' }}>{ep.path}</code>
                 </div>
-                <p style={{ color: '#666', fontSize: 13, marginBottom: 12 }}>{ep.desc}</p>
-                <div style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#333', marginBottom: 4 }}>Headers</div>
-                <pre style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#666', margin: '0 0 8px', whiteSpace: 'pre-wrap' }}>{ep.headers}</pre>
-                <div style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#333', marginBottom: 4 }}>Response</div>
-                <pre style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#666', margin: 0, whiteSpace: 'pre-wrap' }}>{ep.response}</pre>
+                <p style={{ color: '#666', fontSize: 13, marginBottom: 10 }}>{ep.desc}</p>
+                <div style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: '#333', marginBottom: 4 }}>Headers</div>
+                <pre style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#666', margin: '0 0 8px', whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{ep.headers}</pre>
+                <div style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: '#333', marginBottom: 4 }}>Response</div>
+                <pre style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#666', margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{ep.response}</pre>
               </div>
             ))}
           </section>
@@ -896,28 +1041,29 @@ app.listen(3001)`} />
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       width: '100%',
-                      padding: '14px 20px',
+                      padding: isMobile ? '12px 16px' : '14px 20px',
                       background: openFaq === i ? '#0d0d0d' : 'transparent',
                       border: 'none',
                       color: '#fff',
-                      fontSize: 14,
+                      fontSize: isMobile ? 13 : 14,
                       fontFamily: 'var(--font-space)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'background 0.15s',
+                      gap: 12,
                     }}
                   >
-                    <span>{item.q}</span>
-                    <span style={{ color: '#333', fontSize: 18, marginLeft: 16, flexShrink: 0 }}>
+                    <span style={{ flex: 1 }}>{item.q}</span>
+                    <span style={{ color: '#333', fontSize: 18, flexShrink: 0 }}>
                       {openFaq === i ? '−' : '+'}
                     </span>
                   </button>
                   {openFaq === i && (
                     <div style={{
-                      padding: '0 20px 16px',
+                      padding: isMobile ? '0 16px 14px' : '0 20px 16px',
                       background: '#0d0d0d',
                       color: '#666',
-                      fontSize: 14,
+                      fontSize: isMobile ? 13 : 14,
                       lineHeight: 1.7,
                     }}>
                       {item.a}
@@ -957,12 +1103,12 @@ app.listen(3001)`} />
                 background: '#0d0d0d',
                 border: '1px solid #1a1a1a',
                 borderRadius: 6,
-                padding: 20,
+                padding: isMobile ? 16 : 20,
                 marginBottom: 12,
               }}>
                 <div style={{
                   fontFamily: 'var(--font-code)',
-                  fontSize: 13,
+                  fontSize: isMobile ? 11 : 13,
                   color: '#ff4444',
                   background: 'rgba(255,68,68,0.05)',
                   border: '1px solid rgba(255,68,68,0.15)',
@@ -970,6 +1116,8 @@ app.listen(3001)`} />
                   padding: '6px 12px',
                   display: 'inline-block',
                   marginBottom: 12,
+                  wordBreak: 'break-word',
+                  maxWidth: '100%',
                 }}>
                   {item.error}
                 </div>
@@ -996,6 +1144,7 @@ app.listen(3001)`} />
               display: 'flex',
               alignItems: 'center',
               gap: 10,
+              flexWrap: 'wrap',
             }}>
               <span>v0.1.0</span>
               <span style={{ color: '#333' }}>—</span>
@@ -1013,7 +1162,7 @@ app.listen(3001)`} />
               ].map((item) => (
                 <div key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                   <span style={{ color: '#00ff88', fontSize: 14, flexShrink: 0 }}>●</span>
-                  <span style={{ color: '#666', fontSize: 14, lineHeight: 1.6 }}>{item}</span>
+                  <span style={{ color: '#666', fontSize: isMobile ? 13 : 14, lineHeight: 1.6 }}>{item}</span>
                 </div>
               ))}
             </div>
