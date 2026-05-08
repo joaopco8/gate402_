@@ -6,19 +6,14 @@ import cors from 'cors';
 import { x402Middleware } from './middleware/x402';
 import demoRoutes from './routes/demo';
 import analyticsRoutes from './routes/analytics';
+import verifyRouter from './routes/verify';
 import { walletAddress } from './solana/wallet';
 
 const app = express();
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
 
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:3001',
-    'https://gate402.dev',
-    'https://www.gate402.dev',
-  ],
+  origin: '*',
   allowedHeaders: [
     'Content-Type',
     'X-Payment-Payload',
@@ -27,7 +22,6 @@ app.use(cors({
     'Authorization',
   ],
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-  credentials: true,
   optionsSuccessStatus: 200,
 }));
 app.use(express.json());
@@ -38,6 +32,9 @@ app.get('/health', (_req, res) => {
 
 // Analytics routes (no paywall)
 app.use('/api', analyticsRoutes);
+
+// External SDK verification endpoint (no paywall — authenticated via x-api-key)
+app.use('/api', verifyRouter);
 
 // x402 paywall middleware — runs after analytics routes
 app.use('/api', x402Middleware);
