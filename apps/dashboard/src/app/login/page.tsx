@@ -62,7 +62,7 @@ export default function LoginPage() {
         color: '#444',
         fontSize: 12,
       }}>
-        x402 Protocol · Solana · Frontier Hackathon 2026
+        x402 Protocol · Solana · May 2026
       </footer>
     </div>
   )

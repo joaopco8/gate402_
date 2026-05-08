@@ -222,8 +222,8 @@ Claude will now have access to your paywalled tools and will pay per call automa
 
 ## License
 
-MIT — Built with ❤️ for the Frontier Hackathon 2026
+MIT — Built with ❤️ by the Gate402 team
 
 ---
 
-*Built with x402 Protocol · Powered by Solana · Frontier Hackathon 2026*
+*Built with x402 Protocol · Powered by Solana*

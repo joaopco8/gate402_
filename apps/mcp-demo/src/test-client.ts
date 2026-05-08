@@ -38,7 +38,7 @@ async function main() {
   console.log(chalk.dim('Step 3: Calling /api/weather with X-Payment-Payload header...'));
   try {
     const res = await axios.get(`${SERVER_URL}/api/weather`, {
-      headers: { 'X-Payment-Payload': 'demo_hackathon_payment' },
+      headers: { 'X-Payment-Payload': 'demo_test_payment' },
       validateStatus: () => true,
     });
 

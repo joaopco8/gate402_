@@ -18,7 +18,7 @@ server.tool(
   async ({ city }) => {
     try {
       const response = await axios.get(`${SERVER_URL}/api/weather`, {
-        headers: { 'X-Payment-Payload': 'demo_hackathon_payment' },
+        headers: { 'X-Payment-Payload': 'demo_test_payment' },
         params: { city },
         validateStatus: () => true,
       });
@@ -62,7 +62,7 @@ server.tool(
   async ({ topic }) => {
     try {
       const response = await axios.get(`${SERVER_URL}/api/news`, {
-        headers: { 'X-Payment-Payload': 'demo_hackathon_payment' },
+        headers: { 'X-Payment-Payload': 'demo_test_payment' },
         params: { topic },
         validateStatus: () => true,
       });
