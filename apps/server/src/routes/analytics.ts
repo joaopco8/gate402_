@@ -1,14 +1,20 @@
 import { Router } from 'express';
-import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 
 const router = Router();
 
+// Converte supabaseId (x-user-id header) para o User.id interno do banco
+async function getInternalUserId(supabaseId: string | undefined): Promise<string | undefined> {
+  if (!supabaseId) return undefined;
+  const user = await prisma.user.findUnique({ where: { supabaseId }, select: { id: true } });
+  return user?.id;
+}
+
 // GET /api/metrics
 router.get('/metrics', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string | undefined;
-    const where = userId ? { userId: userId } : {};
+    const internalId = await getInternalUserId(req.headers['x-user-id'] as string | undefined);
+    const where = internalId ? { userId: internalId } : {};
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -33,10 +39,10 @@ router.get('/metrics', async (req, res) => {
   }
 });
 
-// GET /api/calls/per-day?days=7
+// GET /api/calls/per-day?days=7&endpoint=<path>
 router.get('/calls/per-day', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string | undefined;
+    const internalId = await getInternalUserId(req.headers['x-user-id'] as string | undefined);
     const days = Math.max(1, Math.min(90, parseInt(req.query.days as string) || 7));
     const endpointPath = req.query.endpoint as string | undefined;
 
@@ -47,13 +53,12 @@ router.get('/calls/per-day', async (req, res) => {
     const apiCalls = await prisma.apiCall.findMany({
       where: {
         createdAt: { gte: startDate },
-        ...(userId ? { userId } : {}),
+        ...(internalId ? { userId: internalId } : {}),
         ...(endpointPath ? { endpoint: { path: endpointPath } } : {}),
       },
       select: { createdAt: true, amountUsdc: true },
     });
 
-    // Group by date in JS
     const dbMap = new Map<string, { calls: number; usdc: number }>();
     for (const call of apiCalls) {
       const d = call.createdAt;
@@ -62,7 +67,6 @@ router.get('/calls/per-day', async (req, res) => {
       dbMap.set(key, { calls: existing.calls + 1, usdc: existing.usdc + call.amountUsdc });
     }
 
-    // Fill all days in range
     const result = [];
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date();
@@ -81,8 +85,8 @@ router.get('/calls/per-day', async (req, res) => {
 // GET /api/calls/recent?limit=10
 router.get('/calls/recent', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string | undefined;
-    const where = userId ? { userId: userId } : {};
+    const internalId = await getInternalUserId(req.headers['x-user-id'] as string | undefined);
+    const where = internalId ? { userId: internalId } : {};
     const limit = Math.max(1, Math.min(100, parseInt(req.query.limit as string) || 10));
     const calls = await prisma.apiCall.findMany({
       where,
@@ -97,97 +101,31 @@ router.get('/calls/recent', async (req, res) => {
   }
 });
 
-// GET /api/endpoints
-router.get('/endpoints', async (req, res) => {
-  try {
-    const userId = req.headers['x-user-id'] as string | undefined;
-    const where = userId ? { userId: userId } : {};
-    const endpoints = await prisma.endpoint.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: { _count: { select: { calls: true } } },
-    });
-    res.json(endpoints);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-const createEndpointSchema = z.object({
-  path: z.string().startsWith('/'),
-  priceUsdc: z.number().positive(),
-  description: z.string().optional(),
-});
-
-// POST /api/endpoints
-router.post('/endpoints', async (req, res) => {
-  try {
-    const userId = req.headers['x-user-id'] as string | undefined;
-    const parsed = createEndpointSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: parsed.error.errors[0].message });
-      return;
-    }
-    const { path, priceUsdc, description } = parsed.data;
-    const endpoint = await prisma.endpoint.create({ data: { path, priceUsdc, description, userId } });
-    res.status(201).json(endpoint);
-  } catch (err: unknown) {
-    const pe = err as { code?: string };
-    if (pe.code === 'P2002') {
-      res.status(409).json({ error: 'Endpoint path already exists' });
-      return;
-    }
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 // GET /api/endpoints/revenue
 router.get('/endpoints/revenue', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string | undefined;
-    const where = userId ? { userId: userId } : {};
+    const internalId = await getInternalUserId(req.headers['x-user-id'] as string | undefined);
+    const where = internalId ? { userId: internalId } : {};
 
     const endpoints = await prisma.endpoint.findMany({
       where,
       include: {
         calls: {
-          where,
           select: { amountUsdc: true },
         },
       },
     });
 
-    type EndpointWithCalls = { path: string; calls: { amountUsdc: number }[] };
-    const revenue = (endpoints as EndpointWithCalls[])
-      .map((ep: EndpointWithCalls) => ({
+    const revenue = endpoints
+      .map(ep => ({
         name: ep.path,
-        value: ep.calls.reduce((sum: number, c: { amountUsdc: number }) => sum + c.amountUsdc, 0),
+        value: ep.calls.reduce((sum, c) => sum + c.amountUsdc, 0),
         calls: ep.calls.length,
       }))
-      .filter((ep: { name: string; value: number; calls: number }) => ep.value > 0);
+      .filter(ep => ep.value > 0);
 
     res.json(revenue);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// PATCH /api/endpoints/:id
-router.patch('/endpoints/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { active } = z.object({ active: z.boolean() }).parse(req.body);
-    const endpoint = await prisma.endpoint.update({ where: { id }, data: { active } });
-    res.json(endpoint);
-  } catch (err: unknown) {
-    const pe = err as { code?: string };
-    if (pe.code === 'P2025') {
-      res.status(404).json({ error: 'Endpoint not found' });
-      return;
-    }
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }

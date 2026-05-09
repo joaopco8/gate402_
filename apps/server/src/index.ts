@@ -8,6 +8,7 @@ import demoRoutes from './routes/demo';
 import analyticsRoutes from './routes/analytics';
 import verifyRouter from './routes/verify';
 import usersRouter from './routes/users';
+import endpointsRouter from './routes/endpoints';
 import { walletAddress } from './solana/wallet';
 
 const app = express();
@@ -37,10 +38,13 @@ app.use('/api', analyticsRoutes);
 // User management routes (no paywall)
 app.use('/api', usersRouter);
 
+// Endpoint CRUD + public pricing route (no paywall)
+app.use('/api', endpointsRouter);
+
 // External SDK verification endpoint (no paywall — authenticated via x-api-key)
 app.use('/api', verifyRouter);
 
-// x402 paywall middleware — runs after analytics routes
+// x402 paywall middleware — runs after all management routes
 app.use('/api', x402Middleware);
 app.use('/api', demoRoutes);
 
