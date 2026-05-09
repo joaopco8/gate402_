@@ -4,220 +4,151 @@ import { walletAddress as serverWallet } from '../solana/wallet';
 import { prisma } from '../lib/prisma';
 import { sendPaymentAlert } from '../lib/email';
 
-interface ResolvedEndpoint {
-  endpointId: string;
-  price: number;
-  wallet: string;
-  network: string;
-  userId: string | null;
-  userEmail: string | null;
-  emailAlerts: boolean;
-}
-
-// Resolve qual endpoint está sendo acessado e quem é o dono.
-// Se x-api-key estiver presente, restringe a busca ao usuário dono da key.
-// Sem apiKey, faz lookup global (endpoints próprios do Gate402).
-async function resolveEndpoint(req: Request): Promise<ResolvedEndpoint | null> {
-  const fullPath = req.baseUrl + req.path;
-  const apiKey = req.headers['x-api-key'] as string | undefined;
-
-  if (apiKey) {
-    const user = await prisma.user.findUnique({
-      where: { apiKey },
-      include: {
-        endpoints: {
-          where: { path: fullPath, active: true },
-        },
-      },
-    });
-
-    if (user && user.endpoints.length > 0 && user.walletAddress) {
-      const ep = user.endpoints[0];
-      return {
-        endpointId: ep.id,
-        price: ep.priceUsdc,
-        wallet: user.walletAddress,
-        network: user.network,
-        userId: user.id,
-        userEmail: user.email ?? null,
-        emailAlerts: user.emailAlerts,
-      };
-    }
-    return null;
-  }
-
-  // Fallback: lookup global (para endpoints do próprio Gate402)
-  const endpoint = await prisma.endpoint.findFirst({
+// Busca endpoint pelo path completo ou pelo path relativo (sem prefixo /api)
+async function findEndpointRecord(fullPath: string, shortPath: string) {
+  const record = await prisma.endpoint.findFirst({
     where: { path: fullPath, active: true },
     include: { user: true },
   });
+  if (record) return record;
 
-  if (!endpoint) return null;
-
-  return {
-    endpointId: endpoint.id,
-    price: endpoint.priceUsdc,
-    wallet: endpoint.user?.walletAddress ?? serverWallet,
-    network: endpoint.user?.network ?? 'devnet',
-    userId: endpoint.userId ?? null,
-    userEmail: endpoint.user?.email ?? null,
-    emailAlerts: endpoint.user?.emailAlerts ?? true,
-  };
-}
-
-// Fire-and-forget: tenta enviar email de alerta com logging diagnóstico.
-// Usa req.path (sem prefixo /api) como fallback de lookup caso resolved não tenha email.
-async function fireEmailAlert(
-  req: Request,
-  resolved: ResolvedEndpoint,
-  txHash: string,
-  amount: number,
-  payerWallet?: string,
-) {
-  try {
-    let email = resolved.userEmail;
-    let alerts = resolved.emailAlerts;
-    let network = resolved.network;
-
-    // Se resolved não trouxe email (endpoint sem user linkado), faz lookup direto
-    if (!email) {
-      const record = await prisma.endpoint.findFirst({
-        where: { path: req.path, active: true },
-        include: { user: true },
-      });
-      email = record?.user?.email ?? null;
-      alerts = record?.user?.emailAlerts ?? true;
-      network = record?.user?.network ?? resolved.network;
-      console.log('[email] Fallback lookup result:', JSON.stringify({
-        foundRecord: !!record,
-        hasUser: !!record?.user,
-        email,
-        emailAlerts: alerts,
-      }));
-    }
-
-    console.log('[email] Alert check:', JSON.stringify({
-      userEmail: email,
-      emailAlerts: alerts,
-      endpoint: req.path,
-      txHash,
-    }));
-
-    if (email && alerts) {
-      sendPaymentAlert({
-        to: email,
-        endpoint: req.path,
-        amount,
-        txHash,
-        payerWallet,
-        network,
-      })
-        .then(() => console.log('[email] Payment alert sent to', email))
-        .catch(err => console.error('[email] Failed:', err instanceof Error ? err.message : err));
-    } else {
-      console.log('[email] Skipped — no email or alerts disabled');
-    }
-  } catch (err) {
-    console.error('[email] Error in fireEmailAlert:', err);
-  }
+  // Fallback: tenta o path sem o prefixo do baseUrl
+  return prisma.endpoint.findFirst({
+    where: { path: shortPath, active: true },
+    include: { user: true },
+  });
 }
 
 export async function x402Middleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    const fullPath = req.baseUrl + req.path; // e.g. /api/weather
+    const shortPath = req.path;              // e.g. /weather
     const paymentHeader = req.headers['x-payment-payload'] as string | undefined;
+    const apiKey = req.headers['x-api-key'] as string | undefined;
 
-    // Demo mode: aceita hashes começando com "demo_" sem verificação Solana
-    if (paymentHeader && paymentHeader.startsWith('demo_')) {
-      const resolved = await resolveEndpoint(req);
-      if (resolved) {
-        const demoTxHash = `demo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-        try {
-          await prisma.apiCall.create({
-            data: {
-              endpointId: resolved.endpointId,
-              txHash: demoTxHash,
-              amountUsdc: resolved.price,
-              payerWallet: 'demo_wallet',
-              status: 'demo',
-              userId: resolved.userId,
-            },
-          });
-          console.log('[x402] Demo call logged for userId:', resolved.userId ?? 'anonymous');
-        } catch (e) {
-          console.log('[x402] Demo call log failed:', e);
-        }
+    // 1. Busca o endpoint e dono via apiKey (SDK externo) ou path global
+    let endpointId: string | null = null;
+    let price: number | null = null;
+    let recipientWallet: string = serverWallet;
+    let network = 'devnet';
+    let userId: string | null = null;
 
-        // Envia email também em demo mode para facilitar testes
-        fireEmailAlert(req, resolved, demoTxHash, resolved.price, 'demo_wallet');
-      } else {
-        console.log('[x402] Demo: resolveEndpoint returned null for path:', req.baseUrl + req.path);
+    if (apiKey) {
+      const user = await prisma.user.findUnique({
+        where: { apiKey },
+        include: { endpoints: { where: { path: fullPath, active: true } } },
+      });
+      if (user && user.endpoints.length > 0 && user.walletAddress) {
+        const ep = user.endpoints[0];
+        endpointId = ep.id;
+        price = ep.priceUsdc;
+        recipientWallet = user.walletAddress;
+        network = user.network;
+        userId = user.id;
       }
-      next();
+    } else {
+      const ep = await findEndpointRecord(fullPath, shortPath);
+      if (ep) {
+        endpointId = ep.id;
+        price = ep.priceUsdc;
+        recipientWallet = ep.user?.walletAddress ?? serverWallet;
+        network = ep.user?.network ?? 'devnet';
+        userId = ep.userId ?? null;
+      }
+    }
+
+    // Endpoint não cadastrado — deixa passar
+    if (!endpointId || price === null) {
+      return next();
+    }
+
+    // 2. Sem payment header → retorna 402 com instrução de pagamento
+    if (!paymentHeader) {
+      res.status(402).json({
+        error: 'Payment Required',
+        price: { amount: price.toString(), currency: 'USDC', network: `solana-${network}` },
+        payTo: recipientWallet,
+        endpoint: fullPath,
+        instructions: 'Send USDC on Solana and include tx hash in X-Payment-Payload header',
+      });
       return;
     }
 
-    // Pagamento real — verifica na blockchain Solana
-    if (paymentHeader) {
-      const resolved = await resolveEndpoint(req);
-      if (!resolved) {
-        next();
-        return;
-      }
+    // 3. Demo mode OU verificação real na blockchain
+    let paymentConfirmed = false;
+    let confirmedAmount = price;
+    let payerWallet: string | undefined;
+    let txHashToLog = paymentHeader;
 
+    if (paymentHeader.startsWith('demo_')) {
+      paymentConfirmed = true;
+      txHashToLog = `demo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      payerWallet = 'demo_wallet';
+    } else {
       const result = await verifyPayment({
         txHash: paymentHeader,
-        expectedAmountUsdc: resolved.price,
-        recipientAddress: resolved.wallet,
+        expectedAmountUsdc: price,
+        recipientAddress: recipientWallet,
       });
-
       if (result.valid && result.payerWallet && result.amount !== undefined) {
-        try {
-          await prisma.apiCall.create({
-            data: {
-              endpointId: resolved.endpointId,
-              txHash: paymentHeader,
-              amountUsdc: result.amount,
-              payerWallet: result.payerWallet,
-              userId: resolved.userId,
-            },
-          });
-        } catch (e) {
-          console.error('[x402] Failed to log api call:', e);
-        }
-
-        // Fire-and-forget email alert
-        fireEmailAlert(req, resolved, paymentHeader, result.amount, result.payerWallet ?? undefined);
-
-        next();
+        paymentConfirmed = true;
+        confirmedAmount = result.amount;
+        payerWallet = result.payerWallet;
+      } else {
+        res.status(402).json({ error: 'Invalid payment', reason: result.reason, txHash: paymentHeader });
         return;
       }
-
-      res.status(402).json({
-        error: 'Invalid payment',
-        reason: result.reason,
-        txHash: paymentHeader,
-      });
-      return;
     }
 
-    // Sem header de pagamento — retorna 402 com pricing info
-    const resolved = await resolveEndpoint(req);
-    if (!resolved) {
-      next();
-      return;
+    // 4. Pagamento confirmado (demo OU real) — loga ApiCall
+    if (paymentConfirmed) {
+      try {
+        await prisma.apiCall.create({
+          data: {
+            endpointId,
+            txHash: txHashToLog,
+            amountUsdc: confirmedAmount,
+            payerWallet: payerWallet ?? null,
+            status: paymentHeader.startsWith('demo_') ? 'demo' : 'confirmed',
+            userId,
+          },
+        });
+      } catch (e) {
+        console.error('[x402] Failed to log api call:', e);
+      }
+
+      // 5. Dispara email alert — busca dono do endpoint por req.path (sem prefixo)
+      try {
+        const endpointRecord = await findEndpointRecord(fullPath, shortPath);
+
+        console.log('[email] Checking alert for endpoint:', fullPath);
+        console.log('[email] User email:', endpointRecord?.user?.email ?? null);
+        console.log('[email] emailAlerts:', endpointRecord?.user?.emailAlerts ?? null);
+
+        if (endpointRecord?.user?.email && endpointRecord.user.emailAlerts) {
+          sendPaymentAlert({
+            to: endpointRecord.user.email,
+            endpoint: fullPath,
+            amount: confirmedAmount,
+            txHash: txHashToLog,
+            payerWallet,
+            network: endpointRecord.user.network || 'devnet',
+          })
+            .then(() => console.log('[email] Alert sent to', endpointRecord.user!.email))
+            .catch(err => console.error('[email] Failed:', err instanceof Error ? err.message : err));
+        } else {
+          console.log('[email] Skipped — no email or alerts disabled');
+        }
+      } catch (err) {
+        console.error('[email] Error fetching endpoint for alert:', err);
+      }
+
+      // 6. Libera acesso
+      req.headers['x-payment-verified'] = 'true';
+      req.headers['x-payment-amount'] = confirmedAmount.toString();
+      return next();
     }
 
-    res.status(402).json({
-      error: 'Payment Required',
-      price: {
-        amount: resolved.price.toString(),
-        currency: 'USDC',
-        network: `solana-${resolved.network}`,
-      },
-      payTo: resolved.wallet,
-      endpoint: req.baseUrl + req.path,
-      instructions: 'Send USDC on Solana and include tx hash in X-Payment-Payload header',
-    });
   } catch (error) {
     console.error('[x402] Middleware error:', error);
     res.status(503).json({ error: 'Service temporarily unavailable' });
