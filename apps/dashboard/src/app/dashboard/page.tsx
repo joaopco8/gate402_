@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Activity, DollarSign, Zap, TrendingUp } from 'lucide-react';
 import MetricCard from '../components/MetricCard';
 import DashboardLayout from '../components/DashboardLayout';
@@ -55,6 +55,7 @@ export default function DashboardPage() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<string>('all');
   const [projection, setProjection] = useState<number>(0);
   const [endpointRevenue, setEndpointRevenue] = useState<{ name: string; value: number; calls: number }[]>([]);
+  const [animated, setAnimated] = useState(false);
 
   async function fetchAll() {
     const [m, c, r, endpointList, rev] = await Promise.all([
@@ -88,6 +89,11 @@ export default function DashboardPage() {
   useEffect(() => {
     getCallsPerDay(7, selectedEndpoint).then(setChartData);
   }, [selectedEndpoint]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setAnimated(true), 100);
+    return () => clearTimeout(t);
+  }, []);
 
   function exportCSV() {
     const headers = ['endpoint', 'amount_usdc', 'payer_wallet', 'tx_hash', 'status', 'created_at'];
@@ -213,41 +219,98 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        {/* Pie Chart */}
+        {/* Revenue by Endpoint */}
         {!loading && (
           <Card style={{ padding: '24px 28px', marginBottom: 24 }}>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-code)', letterSpacing: '0.08em', marginBottom: 24 }}>
-              REVENUE BY ENDPOINT
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.1em' }}>
+                REVENUE BY ENDPOINT
+              </div>
+              <div style={{ fontSize: 12, color: '#333', fontFamily: 'var(--font-code)' }}>
+                {endpointRevenue.length} endpoint{endpointRevenue.length !== 1 ? 's' : ''}
+              </div>
             </div>
             {endpointRevenue.length === 0 ? (
-              <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0', fontSize: 13 }}>
-                No revenue data yet
+              <div style={{
+                textAlign: 'center',
+                padding: '32px 0',
+                fontFamily: 'var(--font-code)',
+                fontSize: 13,
+                color: '#333',
+              }}>
+                No endpoints with revenue yet
               </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie
-                    data={endpointRevenue}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ name, percent }: { name?: string; percent?: number }) => `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                    labelLine={{ stroke: '#444' }}
+            ) : (() => {
+              const barColors = ['#00ff88', '#9945FF', '#3b82f6', '#f59e0b', '#666'];
+              const total = endpointRevenue.reduce((sum, e) => sum + e.value, 0);
+              return endpointRevenue.map((ep, i) => {
+                const percentage = total > 0 ? Math.round((ep.value / total) * 100) : 0;
+                const color = barColors[Math.min(i, barColors.length - 1)];
+                return (
+                  <div
+                    key={ep.name}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 16,
+                      padding: '12px 0',
+                      borderBottom: '1px solid #0d0d0d',
+                    }}
                   >
-                    {endpointRevenue.map((_, index) => (
-                      <Cell key={index} fill={['#00ff88', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'][index % 5]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => [`$${Number(value).toFixed(4)} USDC`, 'Revenue']}
-                    contentStyle={{ background: '#111', border: '1px solid #333', borderRadius: 8, fontFamily: 'monospace', fontSize: 12 }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
+                    <div style={{
+                      fontFamily: 'var(--font-code)',
+                      fontSize: 13,
+                      color: '#666',
+                      width: 160,
+                      flexShrink: 0,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {ep.name}
+                    </div>
+                    <div style={{
+                      flex: 1,
+                      height: 4,
+                      background: '#0d0d0d',
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                    }}>
+                      <div style={{
+                        height: '100%',
+                        width: animated ? `${percentage}%` : '0%',
+                        background: color,
+                        borderRadius: 2,
+                        transition: 'width 600ms ease',
+                      }} />
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      flexShrink: 0,
+                    }}>
+                      <span style={{
+                        fontFamily: 'var(--font-code)',
+                        fontSize: 12,
+                        color: color,
+                      }}>
+                        ${ep.value.toFixed(4)}
+                      </span>
+                      <span style={{
+                        fontFamily: 'var(--font-code)',
+                        fontSize: 11,
+                        color: '#333',
+                        width: 36,
+                        textAlign: 'right',
+                      }}>
+                        {percentage}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </Card>
         )}
 
