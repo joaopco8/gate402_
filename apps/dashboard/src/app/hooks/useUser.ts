@@ -10,6 +10,7 @@ interface UserData {
   network: string
   totalCalls: number
   totalEndpoints: number
+  emailAlerts: boolean
 }
 
 export function useUser() {

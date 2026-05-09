@@ -79,6 +79,34 @@ export default function SettingsPage() {
   const [walletInput, setWalletInput] = useState('')
   const [savingWallet, setSavingWallet] = useState(false)
   const [rotatingKey, setRotatingKey] = useState(false)
+  const [emailAlerts, setEmailAlerts] = useState<boolean | null>(null)
+  const [togglingEmail, setTogglingEmail] = useState(false)
+
+  // Sync emailAlerts state when userData loads
+  const resolvedEmailAlerts = emailAlerts ?? userData?.emailAlerts ?? true
+
+  async function handleToggleEmailAlerts() {
+    if (togglingEmail) return
+    const next = !resolvedEmailAlerts
+    setEmailAlerts(next) // optimistic
+    setTogglingEmail(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+      const res = await fetch(`${SERVER_URL}/api/users/email-alerts`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+        body: JSON.stringify({ enabled: next }),
+      })
+      if (!res.ok) setEmailAlerts(!next) // revert on error
+    } catch {
+      setEmailAlerts(!next) // revert on error
+    } finally {
+      setTogglingEmail(false)
+    }
+  }
 
   async function handleSaveWallet() {
     if (!walletInput.trim()) return
@@ -284,6 +312,54 @@ export default function SettingsPage() {
           >
             Mainnet (coming soon)
           </button>
+        </Card>
+
+        {/* Email Alerts */}
+        <Card style={{ marginBottom: 16 }}>
+          <div style={labelStyle}>EMAIL ALERTS</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
+                Payment notifications
+              </div>
+              <div style={subtextStyle}>
+                Receive an email each time a payment is confirmed on your endpoints
+              </div>
+            </div>
+            {/* Toggle switch */}
+            <button
+              onClick={handleToggleEmailAlerts}
+              disabled={loading || togglingEmail}
+              aria-pressed={resolvedEmailAlerts}
+              style={{
+                flexShrink: 0,
+                width: 44,
+                height: 24,
+                borderRadius: 12,
+                border: 'none',
+                background: resolvedEmailAlerts ? 'var(--green)' : '#222',
+                cursor: loading || togglingEmail ? 'not-allowed' : 'pointer',
+                position: 'relative',
+                transition: 'background 200ms',
+                opacity: loading ? 0.5 : 1,
+                padding: 0,
+              }}
+            >
+              <span style={{
+                position: 'absolute',
+                top: 3,
+                left: resolvedEmailAlerts ? 23 : 3,
+                width: 18,
+                height: 18,
+                borderRadius: '50%',
+                background: '#fff',
+                transition: 'left 200ms',
+              }} />
+            </button>
+          </div>
+          <div style={{ marginTop: 12, fontSize: 11, fontFamily: 'var(--font-code)', color: '#333' }}>
+            {loading ? '...' : resolvedEmailAlerts ? 'Alerts enabled' : 'Alerts disabled'}
+          </div>
         </Card>
 
         {/* Account */}

@@ -94,6 +94,7 @@ router.get('/users/me', async (req, res) => {
       walletAddress: user.walletAddress,
       plan: user.plan,
       network: user.network,
+      emailAlerts: user.emailAlerts,
       totalCalls: user._count.apiCalls,
       totalEndpoints: user._count.endpoints,
       createdAt: user.createdAt,
