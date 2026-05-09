@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyPayment } from '../solana/verify';
 import { walletAddress as serverWallet } from '../solana/wallet';
 import { prisma } from '../lib/prisma';
+import { sendPaymentAlert } from '../lib/email';
 
 interface ResolvedEndpoint {
   endpointId: string;
@@ -9,6 +10,8 @@ interface ResolvedEndpoint {
   wallet: string;
   network: string;
   userId: string | null;
+  userEmail: string | null;
+  emailAlerts: boolean;
 }
 
 // Resolve qual endpoint está sendo acessado e quem é o dono.
@@ -36,6 +39,8 @@ async function resolveEndpoint(req: Request): Promise<ResolvedEndpoint | null> {
         wallet: user.walletAddress,
         network: user.network,
         userId: user.id,
+        userEmail: user.email ?? null,
+        emailAlerts: user.emailAlerts,
       };
     }
     return null;
@@ -55,6 +60,8 @@ async function resolveEndpoint(req: Request): Promise<ResolvedEndpoint | null> {
     wallet: endpoint.user?.walletAddress ?? serverWallet,
     network: endpoint.user?.network ?? 'devnet',
     userId: endpoint.userId ?? null,
+    userEmail: endpoint.user?.email ?? null,
+    emailAlerts: endpoint.user?.emailAlerts ?? true,
   };
 }
 
@@ -114,6 +121,19 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         } catch (e) {
           console.error('[x402] Failed to log api call:', e);
         }
+
+        // Fire-and-forget email alert — não bloqueia a resposta
+        if (resolved.userEmail && resolved.emailAlerts) {
+          sendPaymentAlert({
+            to: resolved.userEmail,
+            endpoint: req.path,
+            amount: result.amount,
+            txHash: paymentHeader,
+            payerWallet: result.payerWallet ?? undefined,
+            network: resolved.network,
+          }).catch(console.error);
+        }
+
         next();
         return;
       }

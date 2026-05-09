@@ -130,4 +130,27 @@ router.post('/users/rotate-key', async (req, res) => {
   }
 })
 
+// PATCH /api/users/email-alerts — toggle email alerts
+router.patch('/users/email-alerts', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' })
+
+    const { enabled } = req.body
+
+    const user = await prisma.user.update({
+      where: { supabaseId },
+      data: { emailAlerts: enabled },
+    })
+
+    return res.json({
+      emailAlerts: user.emailAlerts,
+      message: `Email alerts ${enabled ? 'enabled' : 'disabled'}`,
+    })
+  } catch (error) {
+    console.error('[users/email-alerts] Error:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
 export default router
