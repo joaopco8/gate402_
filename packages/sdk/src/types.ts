@@ -1,7 +1,7 @@
 export interface Gate402Config {
   apiKey: string
-  walletAddress: string
-  endpoints: Record<string, number>
+  walletAddress?: string  // opcional quando serverUrl configurado
+  endpoints?: Record<string, number>  // opcional quando serverUrl configurado
   network?: 'devnet' | 'mainnet'
   serverUrl?: string
 }
