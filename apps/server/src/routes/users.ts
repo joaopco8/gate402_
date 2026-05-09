@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
+import { sendWebhook } from '../lib/webhook'
 
 const router = Router()
 
@@ -150,6 +151,65 @@ router.patch('/users/email-alerts', async (req, res) => {
     })
   } catch (error) {
     console.error('[users/email-alerts] Error:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// PATCH /api/users/webhook — configura ou remove webhook URL
+router.patch('/users/webhook', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' })
+
+    const { webhookUrl, webhookSecret } = req.body
+
+    if (webhookUrl && !webhookUrl.startsWith('https://')) {
+      return res.status(400).json({ error: 'webhookUrl must use HTTPS' })
+    }
+
+    const user = await prisma.user.update({
+      where: { supabaseId },
+      data: {
+        webhookUrl: webhookUrl || null,
+        webhookSecret: webhookSecret || null,
+      },
+    })
+
+    return res.json({
+      webhookUrl: user.webhookUrl,
+      webhookSecret: user.webhookSecret ? '***configured***' : null,
+      message: webhookUrl ? 'Webhook configured' : 'Webhook removed',
+    })
+  } catch (error) {
+    console.error('[users/webhook] Error:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// POST /api/users/webhook/test — dispara um webhook de teste
+router.post('/users/webhook/test', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' })
+
+    const user = await prisma.user.findUnique({ where: { supabaseId } })
+    if (!user?.webhookUrl) {
+      return res.status(400).json({ error: 'No webhook URL configured' })
+    }
+
+    await sendWebhook(user.webhookUrl, user.webhookSecret ?? null, {
+      event: 'payment.confirmed',
+      endpoint: '/api/test',
+      amount: 0.001,
+      currency: 'USDC',
+      network: user.network || 'devnet',
+      txHash: `demo_webhook_test_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+    })
+
+    return res.json({ message: 'Test webhook sent', url: user.webhookUrl })
+  } catch (error) {
+    console.error('[users/webhook/test] Error:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 })

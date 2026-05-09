@@ -3,6 +3,7 @@ import { verifyPayment } from '../solana/verify';
 import { walletAddress as serverWallet } from '../solana/wallet';
 import { prisma } from '../lib/prisma';
 import { sendPaymentAlert } from '../lib/email';
+import { sendWebhook } from '../lib/webhook';
 
 // Busca endpoint pelo path completo ou pelo path relativo (sem prefixo /api)
 async function findEndpointRecord(fullPath: string, shortPath: string) {
@@ -143,7 +144,30 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         console.error('[email] Error fetching endpoint for alert:', err);
       }
 
-      // 6. Libera acesso
+      // 6. Dispara webhook — fire-and-forget
+      try {
+        const webhookRecord = await findEndpointRecord(fullPath, shortPath);
+        if (webhookRecord?.user?.webhookUrl) {
+          sendWebhook(
+            webhookRecord.user.webhookUrl,
+            webhookRecord.user.webhookSecret ?? null,
+            {
+              event: 'payment.confirmed',
+              endpoint: fullPath,
+              amount: confirmedAmount,
+              currency: 'USDC',
+              network: webhookRecord.user.network || 'devnet',
+              txHash: txHashToLog,
+              payerWallet,
+              timestamp: new Date().toISOString(),
+            }
+          ).catch(err => console.error('[webhook] Unhandled error:', err));
+        }
+      } catch (err) {
+        console.error('[webhook] Error fetching endpoint for webhook:', err);
+      }
+
+      // 7. Libera acesso
       req.headers['x-payment-verified'] = 'true';
       req.headers['x-payment-amount'] = confirmedAmount.toString();
       return next();
