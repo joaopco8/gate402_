@@ -10,21 +10,33 @@ export async function GET(request: Request) {
     const { error, data } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001'}/api/endpoints`,
-          { headers: { 'x-user-id': data.user.id } }
-        )
-        const endpoints = await res.json()
+      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001'
 
-        if (!endpoints || endpoints.length === 0) {
-          return NextResponse.redirect(`${origin}/onboarding`)
+      try {
+        // Ensure user record exists
+        await fetch(`${SERVER_URL}/api/users/sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ supabaseId: data.user.id, email: data.user.email }),
+        })
+
+        // Fetch user profile to decide where to redirect
+        const res = await fetch(`${SERVER_URL}/api/users/me`, {
+          headers: { 'x-user-id': data.user.id },
+        })
+
+        if (res.ok) {
+          const user = await res.json()
+          if (user.totalEndpoints === 0 && user.totalCalls === 0) {
+            return NextResponse.redirect(`${origin}/onboarding`)
+          }
+          return NextResponse.redirect(`${origin}/dashboard`)
         }
       } catch {
-        return NextResponse.redirect(`${origin}/onboarding`)
+        // Fall through to onboarding on any error
       }
 
-      return NextResponse.redirect(`${origin}/dashboard`)
+      return NextResponse.redirect(`${origin}/onboarding`)
     }
   }
 
