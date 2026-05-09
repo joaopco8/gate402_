@@ -53,4 +53,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Receiving payments at: ${walletAddress}`);
   console.log(`Network: Solana devnet`);
   console.log(`Get devnet SOL: https://faucet.solana.com`);
+  console.log(`[startup] RESEND_API_KEY: ${process.env.RESEND_API_KEY ? 'configured' : 'MISSING'}`);
 });

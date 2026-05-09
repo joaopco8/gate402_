@@ -65,6 +65,63 @@ async function resolveEndpoint(req: Request): Promise<ResolvedEndpoint | null> {
   };
 }
 
+// Fire-and-forget: tenta enviar email de alerta com logging diagnóstico.
+// Usa req.path (sem prefixo /api) como fallback de lookup caso resolved não tenha email.
+async function fireEmailAlert(
+  req: Request,
+  resolved: ResolvedEndpoint,
+  txHash: string,
+  amount: number,
+  payerWallet?: string,
+) {
+  try {
+    let email = resolved.userEmail;
+    let alerts = resolved.emailAlerts;
+    let network = resolved.network;
+
+    // Se resolved não trouxe email (endpoint sem user linkado), faz lookup direto
+    if (!email) {
+      const record = await prisma.endpoint.findFirst({
+        where: { path: req.path, active: true },
+        include: { user: true },
+      });
+      email = record?.user?.email ?? null;
+      alerts = record?.user?.emailAlerts ?? true;
+      network = record?.user?.network ?? resolved.network;
+      console.log('[email] Fallback lookup result:', JSON.stringify({
+        foundRecord: !!record,
+        hasUser: !!record?.user,
+        email,
+        emailAlerts: alerts,
+      }));
+    }
+
+    console.log('[email] Alert check:', JSON.stringify({
+      userEmail: email,
+      emailAlerts: alerts,
+      endpoint: req.path,
+      txHash,
+    }));
+
+    if (email && alerts) {
+      sendPaymentAlert({
+        to: email,
+        endpoint: req.path,
+        amount,
+        txHash,
+        payerWallet,
+        network,
+      })
+        .then(() => console.log('[email] Payment alert sent to', email))
+        .catch(err => console.error('[email] Failed:', err instanceof Error ? err.message : err));
+    } else {
+      console.log('[email] Skipped — no email or alerts disabled');
+    }
+  } catch (err) {
+    console.error('[email] Error in fireEmailAlert:', err);
+  }
+}
+
 export async function x402Middleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const paymentHeader = req.headers['x-payment-payload'] as string | undefined;
@@ -73,11 +130,12 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
     if (paymentHeader && paymentHeader.startsWith('demo_')) {
       const resolved = await resolveEndpoint(req);
       if (resolved) {
+        const demoTxHash = `demo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         try {
           await prisma.apiCall.create({
             data: {
               endpointId: resolved.endpointId,
-              txHash: `demo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+              txHash: demoTxHash,
               amountUsdc: resolved.price,
               payerWallet: 'demo_wallet',
               status: 'demo',
@@ -88,6 +146,11 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         } catch (e) {
           console.log('[x402] Demo call log failed:', e);
         }
+
+        // Envia email também em demo mode para facilitar testes
+        fireEmailAlert(req, resolved, demoTxHash, resolved.price, 'demo_wallet');
+      } else {
+        console.log('[x402] Demo: resolveEndpoint returned null for path:', req.baseUrl + req.path);
       }
       next();
       return;
@@ -122,17 +185,8 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
           console.error('[x402] Failed to log api call:', e);
         }
 
-        // Fire-and-forget email alert — não bloqueia a resposta
-        if (resolved.userEmail && resolved.emailAlerts) {
-          sendPaymentAlert({
-            to: resolved.userEmail,
-            endpoint: req.path,
-            amount: result.amount,
-            txHash: paymentHeader,
-            payerWallet: result.payerWallet ?? undefined,
-            network: resolved.network,
-          }).catch(console.error);
-        }
+        // Fire-and-forget email alert
+        fireEmailAlert(req, resolved, paymentHeader, result.amount, result.payerWallet ?? undefined);
 
         next();
         return;
