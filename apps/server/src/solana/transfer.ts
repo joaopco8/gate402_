@@ -32,27 +32,37 @@ export async function transferUsdc(
     console.log('[transfer] To address:', toAddress)
     console.log('[transfer] Amount USDC:', amountUsdc)
 
+    console.log('[transfer] Connecting to RPC:', rpcUrl)
     const connection = new Connection(rpcUrl, 'confirmed')
     const mintAddress = new PublicKey(USDC_MINT[network])
     const toPublicKey = new PublicKey(toAddress)
 
+    console.log('[transfer] Getting mint info...')
     const mintInfo = await getMint(connection, mintAddress)
+    console.log('[transfer] Mint decimals:', mintInfo.decimals)
     const amount = Math.floor(amountUsdc * Math.pow(10, mintInfo.decimals))
+    console.log('[transfer] Amount (raw):', amount)
 
+    console.log('[transfer] Getting from token account...')
     const fromTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       wallet,
       mintAddress,
       wallet.publicKey
     )
+    console.log('[transfer] From token account:', fromTokenAccount.address.toBase58())
+    console.log('[transfer] From balance:', fromTokenAccount.amount.toString())
 
+    console.log('[transfer] Getting to token account...')
     const toTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       wallet,
       mintAddress,
       toPublicKey
     )
+    console.log('[transfer] To token account:', toTokenAccount.address.toBase58())
 
+    console.log('[transfer] Sending transaction...')
     const transaction = new Transaction().add(
       createTransferInstruction(
         fromTokenAccount.address,
