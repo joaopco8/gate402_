@@ -7,28 +7,23 @@ import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
 import PageHeader from '../components/PageHeader'
 import Card from '../components/Card'
-import { getMetrics } from '../lib/api'
+import { useUser } from '../hooks/useUser'
 
-const WALLET_ADDRESS = '7UQctUWgfH87jjz9xjnCCKVY6Q1tMWZ8i1ZB3Whx939D'
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
 
-const MOCK_TRANSACTIONS = [
-  { id: '1', type: 'received',  amount: 0.050, from: 'Agent_GPT4...',    endpoint: '/api/weather', time: '2 min ago',   hash: 'tx_5kWq...9mLP' },
-  { id: '2', type: 'received',  amount: 0.020, from: 'Agent_Claude...',  endpoint: '/api/news',    time: '14 min ago',  hash: 'tx_3pRt...7vNQ' },
-  { id: '3', type: 'withdrawn', amount: 5.000, from: 'My Phantom Wallet', endpoint: null,          time: '2 hours ago', hash: 'tx_9mLZ...4kWE' },
-  { id: '4', type: 'received',  amount: 0.010, from: 'Agent_GPT4...',    endpoint: '/api/data',    time: '5 hours ago', hash: 'tx_2vTx...8nRP' },
-  { id: '5', type: 'received',  amount: 0.002, from: 'Agent_Gemini...',  endpoint: '/api/news',    time: '1 day ago',   hash: 'tx_8xKj...9mLP' },
-  { id: '6', type: 'withdrawn', amount: 2.500, from: 'My Phantom Wallet', endpoint: null,          time: '3 days ago',  hash: 'tx_1mNp...3kWE' },
-]
-
-function truncateAddress(addr: string) {
-  return addr.slice(0, 16) + '...' + addr.slice(-4)
+interface WalletBalance {
+  available: number
+  totalEarned: number
+  totalWithdrawn: number
+  currency: string
+  network: string
 }
 
 export default function WalletPage() {
   const router = useRouter()
-  const [user, setUser] = useState<{ id: string; email?: string } | null>(null)
-  const [balance, setBalance] = useState<number>(0)
-  const [totalEarned, setTotalEarned] = useState<number>(0)
+  const { userData } = useUser()
+  const [balance, setBalance] = useState<WalletBalance | null>(null)
+  const [loadingBalance, setLoadingBalance] = useState(true)
   const [copied, setCopied] = useState(false)
   const [withdrawing, setWithdrawing] = useState(false)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
@@ -38,38 +33,71 @@ export default function WalletPage() {
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-      const { data: { user: u } } = await supabase.auth.getUser()
-      if (!u) { router.push('/login'); return }
-      setUser({ id: u.id, email: u.email })
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
 
-      const metrics = await getMetrics()
-      setTotalEarned(metrics.totalUsdc)
-      setBalance(metrics.totalUsdc * 0.8)
-      setWithdrawAmount((metrics.totalUsdc * 0.8).toFixed(4))
+      try {
+        const res = await fetch(`${SERVER_URL}/api/wallet/balance`, {
+          headers: { 'x-user-id': user.id },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setBalance(data)
+          setWithdrawAmount(data.available > 0 ? data.available.toFixed(4) : '')
+        }
+      } finally {
+        setLoadingBalance(false)
+      }
     }
     load()
   }, [router])
 
   function handleCopyAddress() {
-    navigator.clipboard.writeText(WALLET_ADDRESS)
+    const addr = userData?.walletAddress
+    if (!addr) return
+    navigator.clipboard.writeText(addr)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
-  function handleConfirmWithdraw() {
+  async function handleConfirmWithdraw() {
+    if (!withdrawAddress.trim() || !withdrawAmount) return
     setWithdrawing(true)
-    setTimeout(() => {
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const res = await fetch(`${SERVER_URL}/api/wallet/withdraw`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+        body: JSON.stringify({ toAddress: withdrawAddress.trim(), amountUsdc: parseFloat(withdrawAmount) }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setShowWithdrawModal(false)
+        alert(`Withdrawal successful!\nTx: ${data.txHash}\n\nExplorer: ${data.explorerUrl}`)
+        window.location.reload()
+      } else {
+        alert(`Error: ${data.error}`)
+      }
+    } catch {
+      alert('Transfer failed. Please try again.')
+    } finally {
       setWithdrawing(false)
-      setShowWithdrawModal(false)
-      setBalance(0)
-      alert('Withdrawal simulated! In production, USDC would be sent to your wallet on Solana mainnet.')
-    }, 2000)
+    }
   }
+
+  const available = balance?.available ?? 0
+  const network = balance?.network ?? userData?.network ?? 'devnet'
+  const receivingAddress = userData?.walletAddress
 
   return (
     <DashboardLayout>
       <PageContainer>
-        <PageHeader eyebrow="WALLET" title="Your Wallet" subtitle="USDC balance from API payments · Solana devnet" />
+        <PageHeader eyebrow="WALLET" title="Your Wallet" subtitle={`USDC balance from API payments · Solana ${network}`} />
 
         {/* Balance card */}
         <Card accent style={{
@@ -77,14 +105,8 @@ export default function WalletPage() {
           padding: 32,
           marginBottom: 16,
         }}>
-          {/* Decorative orb */}
           <div style={{
-            position: 'absolute',
-            top: -40,
-            right: -40,
-            width: 200,
-            height: 200,
-            borderRadius: '50%',
+            position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%',
             background: 'radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%)',
             pointerEvents: 'none',
           }} />
@@ -93,18 +115,11 @@ export default function WalletPage() {
             <div style={{ fontSize: 11, fontFamily: 'var(--font-code)', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 12 }}>
               AVAILABLE BALANCE
             </div>
-            <div style={{
-              fontSize: 48,
-              fontWeight: 300,
-              color: 'var(--green)',
-              letterSpacing: '-0.03em',
-              lineHeight: 1,
-              marginBottom: 6,
-            }}>
-              ${balance.toFixed(4)}
+            <div style={{ fontSize: 48, fontWeight: 300, color: 'var(--green)', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 6 }}>
+              {loadingBalance ? '...' : `$${available.toFixed(4)}`}
             </div>
             <div style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: '#333', marginBottom: 24 }}>
-              USDC · Solana devnet
+              USDC · Solana {network}
             </div>
 
             <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 20 }} />
@@ -113,18 +128,26 @@ export default function WalletPage() {
               <div>
                 <div style={{ fontSize: 11, fontFamily: 'var(--font-code)', color: 'var(--text-muted)', marginBottom: 4 }}>Total earned</div>
                 <div style={{ fontSize: 14, color: 'var(--text)', fontFamily: 'var(--font-code)' }}>
-                  ${totalEarned.toFixed(4)} USDC
+                  ${(balance?.totalEarned ?? 0).toFixed(4)} USDC
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontFamily: 'var(--font-code)', color: 'var(--text-muted)', marginBottom: 4 }}>Total withdrawn</div>
+                <div style={{ fontSize: 14, color: 'var(--text)', fontFamily: 'var(--font-code)' }}>
+                  ${(balance?.totalWithdrawn ?? 0).toFixed(4)} USDC
                 </div>
               </div>
               <div>
                 <div style={{ fontSize: 11, fontFamily: 'var(--font-code)', color: 'var(--text-muted)', marginBottom: 4 }}>Network</div>
-                <div style={{ fontSize: 14, color: 'var(--text)', fontFamily: 'var(--font-code)' }}>Solana Devnet</div>
+                <div style={{ fontSize: 14, color: 'var(--text)', fontFamily: 'var(--font-code)' }}>
+                  Solana {network.charAt(0).toUpperCase() + network.slice(1)}
+                </div>
               </div>
             </div>
 
             <button
               onClick={() => setShowWithdrawModal(true)}
-              disabled={balance === 0}
+              disabled={available === 0 || loadingBalance}
               style={{
                 marginTop: 24,
                 padding: '12px 28px',
@@ -135,44 +158,38 @@ export default function WalletPage() {
                 fontSize: 14,
                 fontWeight: 500,
                 fontFamily: 'var(--font-display)',
-                cursor: balance === 0 ? 'not-allowed' : 'pointer',
-                opacity: balance === 0 ? 0.4 : 1,
+                cursor: available === 0 || loadingBalance ? 'not-allowed' : 'pointer',
+                opacity: available === 0 || loadingBalance ? 0.4 : 1,
                 transition: 'opacity 150ms',
               }}
             >
-              {balance === 0 ? 'No balance yet' : 'Withdraw USDC →'}
+              {loadingBalance ? 'Loading...' : available === 0 ? 'No balance yet' : 'Withdraw USDC →'}
             </button>
           </div>
         </Card>
 
         {/* Wallet address card */}
-        <Card style={{
-          padding: 20,
-          marginBottom: 16,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-          flexWrap: 'wrap',
-        }}>
-          <div>
-            <div style={{ fontSize: 11, fontFamily: 'var(--font-code)', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 8 }}>
-              RECEIVING ADDRESS
+        {receivingAddress && (
+          <Card style={{
+            padding: 20, marginBottom: 16,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
+          }}>
+            <div>
+              <div style={{ fontSize: 11, fontFamily: 'var(--font-code)', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 8 }}>
+                RECEIVING ADDRESS
+              </div>
+              <div style={{ fontSize: 13, fontFamily: 'var(--font-code)', color: 'var(--text)', marginBottom: 8 }}>
+                {receivingAddress.slice(0, 16)}...{receivingAddress.slice(-4)}
+              </div>
+              <a
+                href={`https://explorer.solana.com/address/${receivingAddress}?cluster=${network}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 12, color: 'var(--green)', fontFamily: 'var(--font-code)', textDecoration: 'none' }}
+              >
+                View on Solana Explorer →
+              </a>
             </div>
-            <div style={{ fontSize: 13, fontFamily: 'var(--font-code)', color: 'var(--text)', marginBottom: 8 }}>
-              {truncateAddress(WALLET_ADDRESS)}
-            </div>
-            <a
-              href={`https://explorer.solana.com/address/${WALLET_ADDRESS}?cluster=devnet`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: 12, color: 'var(--green)', fontFamily: 'var(--font-code)', textDecoration: 'none' }}
-            >
-              View on Solana Explorer →
-            </a>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button
               onClick={handleCopyAddress}
               style={{
@@ -190,98 +207,8 @@ export default function WalletPage() {
             >
               {copied ? 'Copied ✓' : 'Copy address'}
             </button>
-
-            {/* QR placeholder */}
-            <div style={{
-              width: 64,
-              height: 64,
-              background: '#1a1a1a',
-              border: '1px solid #333',
-              borderRadius: 4,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 10,
-              fontFamily: 'var(--font-code)',
-              color: '#333',
-              flexShrink: 0,
-            }}>
-              QR
-            </div>
-          </div>
-        </Card>
-
-        {/* Transaction history */}
-        <Card style={{ overflow: 'hidden', padding: 0 }}>
-          <div style={{
-            padding: '16px 24px',
-            borderBottom: '1px solid var(--border)',
-            fontSize: 11,
-            fontFamily: 'var(--font-code)',
-            color: 'var(--text-muted)',
-            letterSpacing: '0.1em',
-          }}>
-            TRANSACTION HISTORY
-          </div>
-
-          {MOCK_TRANSACTIONS.map((tx, i) => (
-            <div
-              key={tx.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 24px',
-                borderBottom: i < MOCK_TRANSACTIONS.length - 1 ? '1px solid var(--border)' : 'none',
-                gap: 12,
-              }}
-            >
-              {/* Left: icon + info */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
-                <div style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: '50%',
-                  background: tx.type === 'received' ? 'rgba(0,255,136,0.1)' : 'rgba(255,255,255,0.06)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 13,
-                  color: tx.type === 'received' ? 'var(--green)' : '#666',
-                  flexShrink: 0,
-                }}>
-                  {tx.type === 'received' ? '↓' : '↑'}
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, color: 'var(--text)', marginBottom: 2 }}>
-                    {tx.type === 'received' ? 'Payment received' : 'Withdrawal'}
-                  </div>
-                  <div style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {tx.endpoint ?? tx.from}
-                  </div>
-                </div>
-              </div>
-
-              {/* Center: tx hash */}
-              <div style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: 'var(--text-muted)', flexShrink: 0 }}>
-                {tx.hash}
-              </div>
-
-              {/* Right: amount + time */}
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{
-                  fontSize: 13,
-                  fontFamily: 'var(--font-code)',
-                  color: tx.type === 'received' ? 'var(--green)' : '#666',
-                  marginBottom: 2,
-                }}>
-                  {tx.type === 'received' ? '+' : '-'}${tx.amount.toFixed(3)} USDC
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{tx.time}</div>
-              </div>
-            </div>
-          ))}
-        </Card>
+          </Card>
+        )}
       </PageContainer>
 
       {/* Withdraw modal */}
@@ -289,36 +216,21 @@ export default function WalletPage() {
         <div
           onClick={() => !withdrawing && setShowWithdrawModal(false)}
           style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.8)',
-            zIndex: 200,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 24,
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)',
+            zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
           }}
         >
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: '#0d0d0d',
-              border: '1px solid var(--border)',
-              borderRadius: 12,
-              padding: 32,
-              maxWidth: 400,
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
+              background: '#0d0d0d', border: '1px solid var(--border)', borderRadius: 12,
+              padding: 32, maxWidth: 400, width: '100%', display: 'flex', flexDirection: 'column', gap: 16,
             }}
           >
             <div>
-              <div style={{ fontSize: 20, fontWeight: 400, color: 'var(--text)', marginBottom: 6 }}>
-                Withdraw USDC
-              </div>
+              <div style={{ fontSize: 20, fontWeight: 400, color: 'var(--text)', marginBottom: 6 }}>Withdraw USDC</div>
               <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                Send your balance to any Solana wallet
+                Transfer {available.toFixed(4)} USDC to any Solana wallet on {network}
               </div>
             </div>
 
@@ -332,94 +244,56 @@ export default function WalletPage() {
                 onChange={e => setWithdrawAddress(e.target.value)}
                 placeholder="Enter Solana wallet address..."
                 style={{
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 6,
-                  padding: '10px 14px',
-                  fontSize: 13,
-                  fontFamily: 'var(--font-code)',
-                  color: 'var(--text)',
-                  outline: 'none',
-                  width: '100%',
-                  boxSizing: 'border-box',
+                  background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6,
+                  padding: '10px 14px', fontSize: 13, fontFamily: 'var(--font-code)', color: 'var(--text)',
+                  outline: 'none', width: '100%', boxSizing: 'border-box',
                 }}
               />
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <label style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
-                AMOUNT (USDC)
+                AMOUNT (USDC) · max {available.toFixed(4)}
               </label>
               <input
                 type="number"
                 value={withdrawAmount}
                 onChange={e => setWithdrawAmount(e.target.value)}
+                min="0.001"
+                max={available}
+                step="0.001"
                 style={{
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 6,
-                  padding: '10px 14px',
-                  fontSize: 13,
-                  fontFamily: 'var(--font-code)',
-                  color: 'var(--text)',
-                  outline: 'none',
-                  width: '100%',
-                  boxSizing: 'border-box',
+                  background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6,
+                  padding: '10px 14px', fontSize: 13, fontFamily: 'var(--font-code)', color: 'var(--text)',
+                  outline: 'none', width: '100%', boxSizing: 'border-box',
                 }}
               />
             </div>
 
-            {/* Warning */}
-            <div style={{
-              background: 'rgba(245,158,11,0.08)',
-              border: '1px solid rgba(245,158,11,0.2)',
-              borderRadius: 6,
-              padding: 12,
-            }}>
-              <span style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: '#f59e0b' }}>
-                ⚠ This is a devnet demo. No real USDC will be transferred.
-              </span>
-            </div>
-
-            {/* Buttons */}
             <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
               <button
                 onClick={() => setShowWithdrawModal(false)}
                 disabled={withdrawing}
                 style={{
-                  flex: 1,
-                  padding: '11px 0',
-                  background: 'transparent',
-                  border: '1px solid var(--border)',
-                  borderRadius: 6,
-                  fontSize: 14,
-                  fontFamily: 'var(--font-display)',
-                  color: 'var(--text-muted)',
+                  flex: 1, padding: '11px 0', background: 'transparent',
+                  border: '1px solid var(--border)', borderRadius: 6, fontSize: 14,
+                  fontFamily: 'var(--font-display)', color: 'var(--text-muted)',
                   cursor: withdrawing ? 'not-allowed' : 'pointer',
-                  transition: 'border-color 150ms, color 150ms',
                 }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmWithdraw}
-                disabled={withdrawing}
+                disabled={withdrawing || !withdrawAddress.trim() || !withdrawAmount}
                 style={{
-                  flex: 1,
-                  padding: '11px 0',
-                  background: 'var(--green)',
-                  border: 'none',
-                  borderRadius: 6,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  fontFamily: 'var(--font-display)',
-                  color: '#000',
-                  cursor: withdrawing ? 'not-allowed' : 'pointer',
-                  opacity: withdrawing ? 0.7 : 1,
-                  transition: 'opacity 150ms',
+                  flex: 1, padding: '11px 0', background: 'var(--green)', border: 'none',
+                  borderRadius: 6, fontSize: 14, fontWeight: 500, fontFamily: 'var(--font-display)',
+                  color: '#000', cursor: withdrawing ? 'not-allowed' : 'pointer',
+                  opacity: withdrawing ? 0.7 : 1, transition: 'opacity 150ms',
                 }}
               >
-                {withdrawing ? 'Processing...' : 'Confirm Withdrawal →'}
+                {withdrawing ? 'Sending...' : 'Confirm Withdrawal →'}
               </button>
             </div>
           </div>

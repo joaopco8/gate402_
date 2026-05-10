@@ -42,8 +42,8 @@ model Endpoint {
 
 model ApiCall {
   id          String    @id @default(uuid())
-  endpointId  String
-  endpoint    Endpoint  @relation(fields: [endpointId], references: [id])
+  endpointId  String?
+  endpoint    Endpoint? @relation(fields: [endpointId], references: [id])
   userId      String?
   user        User?     @relation(fields: [userId], references: [id])
   txHash      String    @unique

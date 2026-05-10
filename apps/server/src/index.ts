@@ -9,6 +9,7 @@ import analyticsRoutes from './routes/analytics';
 import verifyRouter from './routes/verify';
 import usersRouter from './routes/users';
 import endpointsRouter from './routes/endpoints';
+import walletRouter from './routes/wallet';
 import { walletAddress } from './solana/wallet';
 
 const app = express();
@@ -37,6 +38,9 @@ app.use('/api', analyticsRoutes);
 
 // User management routes (no paywall)
 app.use('/api', usersRouter);
+
+// Wallet balance + withdrawal routes (no paywall)
+app.use('/api', walletRouter);
 
 // Endpoint CRUD + public pricing route (no paywall)
 app.use('/api', endpointsRouter);
