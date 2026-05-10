@@ -81,9 +81,36 @@ export default function SettingsPage() {
   const [rotatingKey, setRotatingKey] = useState(false)
   const [emailAlerts, setEmailAlerts] = useState<boolean | null>(null)
   const [togglingEmail, setTogglingEmail] = useState(false)
+  const [togglingNetwork, setTogglingNetwork] = useState(false)
 
   // Sync emailAlerts state when userData loads
   const resolvedEmailAlerts = emailAlerts ?? userData?.emailAlerts ?? true
+
+  async function handleNetworkSwitch(network: string) {
+    if (togglingNetwork) return
+    setTogglingNetwork(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+      const res = await fetch(`${SERVER_URL}/api/users/network`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+        body: JSON.stringify({ network }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        window.location.reload()
+      } else {
+        alert(data.error)
+      }
+    } catch (err) {
+      console.error('[handleNetworkSwitch]', err)
+    } finally {
+      setTogglingNetwork(false)
+    }
+  }
 
   async function handleToggleEmailAlerts() {
     if (togglingEmail) return
@@ -294,24 +321,47 @@ export default function SettingsPage() {
             </span>
           </div>
           <div style={{ ...subtextStyle, marginBottom: 14 }}>
-            Switch to mainnet to receive real USDC payments
+            {userData?.network === 'mainnet'
+              ? 'Live on mainnet — receiving real USDC payments'
+              : 'Switch to mainnet to receive real USDC payments. Requires a wallet configured.'}
           </div>
-          <button
-            disabled
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--border)',
-              borderRadius: 6,
-              padding: '7px 16px',
-              fontSize: 12,
-              fontFamily: 'var(--font-code)',
-              color: 'var(--text-muted)',
-              cursor: 'not-allowed',
-              opacity: 0.4,
-            }}
-          >
-            Mainnet (coming soon)
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => handleNetworkSwitch('devnet')}
+              disabled={loading || togglingNetwork || userData?.network === 'devnet'}
+              style={{
+                background: userData?.network === 'devnet' ? 'rgba(0,255,136,0.1)' : 'transparent',
+                border: `1px solid ${userData?.network === 'devnet' ? 'rgba(0,255,136,0.3)' : 'var(--border)'}`,
+                borderRadius: 6,
+                padding: '7px 16px',
+                fontSize: 12,
+                fontFamily: 'var(--font-code)',
+                color: userData?.network === 'devnet' ? 'var(--green)' : 'var(--text-muted)',
+                cursor: userData?.network === 'devnet' ? 'default' : 'pointer',
+                transition: 'all 150ms',
+              }}
+            >
+              Devnet
+            </button>
+            <button
+              onClick={() => handleNetworkSwitch('mainnet')}
+              disabled={loading || togglingNetwork || userData?.network === 'mainnet'}
+              style={{
+                background: userData?.network === 'mainnet' ? 'rgba(0,255,136,0.1)' : 'transparent',
+                border: `1px solid ${userData?.network === 'mainnet' ? 'rgba(0,255,136,0.3)' : 'var(--border)'}`,
+                borderRadius: 6,
+                padding: '7px 16px',
+                fontSize: 12,
+                fontFamily: 'var(--font-code)',
+                color: userData?.network === 'mainnet' ? 'var(--green)' : 'var(--text-muted)',
+                cursor: loading || togglingNetwork || userData?.network === 'mainnet' ? 'not-allowed' : 'pointer',
+                opacity: loading || togglingNetwork ? 0.5 : 1,
+                transition: 'all 150ms',
+              }}
+            >
+              {togglingNetwork ? 'Switching...' : 'Mainnet'}
+            </button>
+          </div>
         </Card>
 
         {/* Email Alerts */}

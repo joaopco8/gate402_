@@ -155,6 +155,39 @@ router.patch('/users/email-alerts', async (req, res) => {
   }
 })
 
+// PATCH /api/users/network — switch between devnet and mainnet
+router.patch('/users/network', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' })
+
+    const { network } = req.body
+
+    if (!['devnet', 'mainnet'].includes(network)) {
+      return res.status(400).json({ error: 'network must be devnet or mainnet' })
+    }
+
+    const user = await prisma.user.findUnique({ where: { supabaseId } })
+    if (!user) return res.status(404).json({ error: 'User not found' })
+
+    if (network === 'mainnet' && !user.walletAddress) {
+      return res.status(400).json({
+        error: 'You must configure a Solana wallet before switching to mainnet',
+      })
+    }
+
+    const updated = await prisma.user.update({
+      where: { supabaseId },
+      data: { network },
+    })
+
+    return res.json({ network: updated.network, message: `Switched to ${network}` })
+  } catch (error) {
+    console.error('[users/network] Error:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
 // PATCH /api/users/webhook — configura ou remove webhook URL
 router.patch('/users/webhook', async (req, res) => {
   try {

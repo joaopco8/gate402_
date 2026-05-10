@@ -90,6 +90,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         txHash: paymentHeader,
         expectedAmountUsdc: price,
         recipientAddress: recipientWallet,
+        network,
       });
       if (result.valid && result.payerWallet && result.amount !== undefined) {
         paymentConfirmed = true;
