@@ -3,6 +3,30 @@ import bs58 from 'bs58';
 import dotenv from 'dotenv';
 dotenv.config();
 
+function decodePrivateKey(privateKeyStr: string): Uint8Array {
+  // Format 1: JSON array [1,2,3,...]
+  try {
+    const arr = JSON.parse(privateKeyStr);
+    if (Array.isArray(arr)) {
+      console.log('[wallet] Key format detected: JSON array');
+      return new Uint8Array(arr);
+    }
+  } catch {}
+
+  // Format 2: base64 (64 bytes)
+  try {
+    const buf = Buffer.from(privateKeyStr, 'base64');
+    if (buf.length === 64) {
+      console.log('[wallet] Key format detected: base64');
+      return new Uint8Array(buf);
+    }
+  } catch {}
+
+  // Format 3: base58 (Solana CLI default)
+  console.log('[wallet] Key format detected: base58');
+  return bs58.decode(privateKeyStr);
+}
+
 function getWalletFromEnv(): Keypair {
   const privateKey = process.env.SOLANA_WALLET_PRIVATE_KEY;
 
@@ -19,8 +43,19 @@ function getWalletFromEnv(): Keypair {
     return keypair;
   }
 
-  const secretKey = bs58.decode(privateKey);
-  return Keypair.fromSecretKey(secretKey);
+  console.log('[wallet] Private key length:', privateKey.length);
+  console.log('[wallet] Private key prefix:', privateKey.slice(0, 8));
+
+  try {
+    const secretKey = decodePrivateKey(privateKey);
+    const keypair = Keypair.fromSecretKey(secretKey);
+    console.log('[wallet] Keypair loaded, pubkey:', keypair.publicKey.toBase58());
+    return keypair;
+  } catch (err: any) {
+    const msg = err?.message || err?.toString() || 'Unknown error';
+    console.error('[wallet] FAILED to load keypair:', msg);
+    throw err;
+  }
 }
 
 export const wallet = getWalletFromEnv();
