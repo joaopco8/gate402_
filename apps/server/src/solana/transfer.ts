@@ -19,9 +19,18 @@ export async function transferUsdc(
   network: 'devnet' | 'mainnet' = 'devnet'
 ): Promise<TransferResult> {
   try {
+    const privateKeyStr = process.env.SOLANA_WALLET_PRIVATE_KEY
+    if (!privateKeyStr) throw new Error('SOLANA_WALLET_PRIVATE_KEY not configured')
+    console.log('[transfer] Private key length:', privateKeyStr.length)
+    console.log('[transfer] Private key prefix:', privateKeyStr.slice(0, 8))
+
     const rpcUrl = network === 'mainnet'
       ? (process.env.SOLANA_MAINNET_RPC_URL || 'https://api.mainnet-beta.solana.com')
       : (process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com')
+
+    console.log('[transfer] Using RPC:', rpcUrl)
+    console.log('[transfer] To address:', toAddress)
+    console.log('[transfer] Amount USDC:', amountUsdc)
 
     const connection = new Connection(rpcUrl, 'confirmed')
     const mintAddress = new PublicKey(USDC_MINT[network])
@@ -60,7 +69,9 @@ export async function transferUsdc(
     console.log(`[transfer] Sent ${amountUsdc} USDC to ${toAddress} — ${txHash}`)
     return { success: true, txHash }
   } catch (error: any) {
-    console.error('[transfer] Error:', error.message)
-    return { success: false, error: error.message }
+    const msg = error?.message || error?.toString() || JSON.stringify(error) || 'Unknown error'
+    console.error('[transfer] Error details:', msg)
+    console.error('[transfer] Error stack:', error?.stack)
+    return { success: false, error: msg }
   }
 }
