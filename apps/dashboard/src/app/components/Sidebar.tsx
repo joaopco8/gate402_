@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
 
@@ -298,7 +298,7 @@ function NavItem({
 }: {
   href: string
   label: string
-  Icon: () => JSX.Element
+  Icon: () => React.ReactElement
   active: boolean
   onClick?: () => void
 }) {

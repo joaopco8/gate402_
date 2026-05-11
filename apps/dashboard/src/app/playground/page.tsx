@@ -20,7 +20,6 @@ type CallResult = {
 function syntaxHighlight(json: string): React.ReactNode[] {
   const lines = json.split('\n')
   return lines.map((line, i) => {
-    // key: "value" pattern
     const keyMatch = line.match(/^(\s*)("[\w\s]+")(: )(.*)/)
     if (keyMatch) {
       const [, indent, key, colon, val] = keyMatch
@@ -34,7 +33,6 @@ function syntaxHighlight(json: string): React.ReactNode[] {
         valueEl = <span style={{ color: '#f59e0b' }}>{val}</span>
       }
 
-      // Special highlights
       const rawKey = key.replace(/"/g, '')
       if (rawKey === 'error') {
         valueEl = <span style={{ color: '#ef4444' }}>{val}</span>
@@ -85,14 +83,6 @@ function LoadingDots() {
     return () => clearInterval(t)
   }, [])
   return <span>{'Calling' + '.'.repeat(dots)}</span>
-}
-
-const cardStyle: React.CSSProperties = {
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
-  borderRadius: 8,
-  padding: 24,
-  marginBottom: 16,
 }
 
 const sectionLabel: React.CSSProperties = {
@@ -258,7 +248,6 @@ export default function PlaygroundPage() {
         {/* Section 3 — Response viewer */}
         {response && (
           <Card style={{ marginBottom: 16 }}>
-            {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <StatusBadge status={response.status} />
@@ -270,7 +259,6 @@ export default function PlaygroundPage() {
                 {response.timeMs}ms
               </span>
             </div>
-            {/* Body */}
             <div style={{
               background: '#0a0a0a',
               border: '1px solid var(--border)',
@@ -354,7 +342,7 @@ export default function PlaygroundPage() {
                 This call was logged to your dashboard.
               </div>
               <a
-                href="/"
+                href="/dashboard"
                 style={{ fontSize: 12, color: 'var(--green)', fontFamily: 'var(--font-code)', textDecoration: 'none' }}
                 onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
                 onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
