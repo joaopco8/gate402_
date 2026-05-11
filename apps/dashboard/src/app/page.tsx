@@ -1122,7 +1122,7 @@ function Pricing() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
-        window.location.href = '/login?next=/checkout'
+        window.location.href = '/login?next=checkout_pro'
         return
       }
 
@@ -1135,12 +1135,14 @@ function Pricing() {
 
       if (data.url) {
         window.location.href = data.url
+      } else if (data.error === 'Already on Pro plan') {
+        window.location.href = '/dashboard'
       } else {
         alert(data.error || 'Failed to create checkout session')
       }
     } catch (error) {
       console.error('[checkout] Error:', error)
-      alert('Something went wrong. Please try again.')
+      alert('Failed to start checkout. Please try again.')
     } finally {
       setCheckoutLoading(false)
     }

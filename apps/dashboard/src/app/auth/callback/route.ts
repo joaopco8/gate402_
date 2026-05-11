@@ -21,9 +21,18 @@ export async function GET(request: Request) {
           body: JSON.stringify({ supabaseId: data.user.id, email: data.user.email }),
         })
 
-        // If there's a next param (e.g. /checkout), redirect there directly
-        if (next && next.startsWith('/')) {
-          return NextResponse.redirect(`${origin}${next}`)
+        // Checkout intent: call billing API server-side and redirect straight to Stripe
+        if (next === 'checkout_pro') {
+          const checkoutRes = await fetch(`${SERVER_URL}/api/billing/checkout`, {
+            method: 'POST',
+            headers: { 'x-user-id': data.user.id },
+          })
+          const checkoutData = await checkoutRes.json()
+          if (checkoutData.url) {
+            return NextResponse.redirect(checkoutData.url)
+          }
+          // Already pro or error — fall through to dashboard
+          return NextResponse.redirect(`${origin}/dashboard`)
         }
 
         // Fetch user profile to decide where to redirect
