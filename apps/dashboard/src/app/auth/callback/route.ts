@@ -4,6 +4,7 @@ import { createClient } from '../../../../lib/supabase/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const next = searchParams.get('next')
 
   if (code) {
     const supabase = await createClient()
@@ -19,6 +20,11 @@ export async function GET(request: Request) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ supabaseId: data.user.id, email: data.user.email }),
         })
+
+        // If there's a next param (e.g. /checkout), redirect there directly
+        if (next && next.startsWith('/')) {
+          return NextResponse.redirect(`${origin}${next}`)
+        }
 
         // Fetch user profile to decide where to redirect
         const res = await fetch(`${SERVER_URL}/api/users/me`, {

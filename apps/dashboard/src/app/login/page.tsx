@@ -4,11 +4,13 @@ import { createClient } from '../../../lib/supabase/client'
 export default function LoginPage() {
   async function handleGitHub() {
     const supabase = createClient()
+    const next = new URLSearchParams(window.location.search).get('next') || ''
+    const callbackUrl = next
+      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+      : `${window.location.origin}/auth/callback`
     await supabase.auth.signInWithOAuth({
       provider: 'github',
-      options: {
-        redirectTo: window.location.origin + '/auth/callback',
-      },
+      options: { redirectTo: callbackUrl },
     })
   }
 

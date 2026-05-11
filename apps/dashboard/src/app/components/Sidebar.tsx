@@ -211,7 +211,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
               </span>
             ) : (
               <a
-                href="/pricing"
+                href="/checkout"
                 style={{
                   fontSize: 11,
                   fontFamily: 'var(--font-code)',
