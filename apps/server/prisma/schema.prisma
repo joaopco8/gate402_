@@ -17,9 +17,11 @@ model User {
   plan          String     @default("free")
   network       String     @default("devnet")
   emailAlerts   Boolean    @default(true)
-  webhookUrl    String?
-  webhookSecret String?
-  createdAt     DateTime   @default(now())
+  webhookUrl           String?
+  webhookSecret        String?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  createdAt            DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   endpoints     Endpoint[]
   apiCalls      ApiCall[]

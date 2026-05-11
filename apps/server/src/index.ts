@@ -12,6 +12,7 @@ import usersRouter from './routes/users';
 import endpointsRouter from './routes/endpoints';
 import walletRouter from './routes/wallet';
 import adminRouter from './routes/admin';
+import billingRouter from './routes/billing';
 import { walletAddress } from './solana/wallet';
 
 const app = express();
@@ -25,10 +26,14 @@ app.use(cors({
     'x-user-id',
     'x-api-key',
     'Authorization',
+    'stripe-signature',
   ],
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   optionsSuccessStatus: 200,
 }));
+// Stripe webhook needs raw body — must be BEFORE express.json()
+app.use('/api/billing/webhook', express.raw({ type: 'application/json' }), billingRouter);
+
 app.use(express.json());
 
 app.get('/health', (_req, res) => {
@@ -63,6 +68,9 @@ app.use('/api', endpointsRouter);
 
 // External SDK verification endpoint
 app.use('/api', verifyRouter);
+
+// Billing routes (checkout + status)
+app.use('/api', billingRouter);
 
 // x402 paywall middleware — runs after all management routes
 app.use('/api', x402Middleware);

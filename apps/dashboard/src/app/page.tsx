@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { Space_Grotesk, JetBrains_Mono } from 'next/font/google'
+import { createClient } from '../../lib/supabase/client'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -1111,7 +1112,39 @@ function PricingFeature({ label }: { label: string }) {
 
 function Pricing() {
   const [visible, setVisible] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+
+  async function handleStartPro() {
+    setCheckoutLoading(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        window.location.href = '/login'
+        return
+      }
+
+      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+      const res = await fetch(`${SERVER_URL}/api/billing/checkout`, {
+        method: 'POST',
+        headers: { 'x-user-id': user.id },
+      })
+      const data = await res.json()
+
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert(data.error || 'Failed to create checkout session')
+      }
+    } catch (error) {
+      console.error('[checkout] Error:', error)
+      alert('Something went wrong. Please try again.')
+    } finally {
+      setCheckoutLoading(false)
+    }
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -1242,9 +1275,14 @@ function Pricing() {
             <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 12, color: '#444', marginBottom: 20, lineHeight: 1.5 }}>
               We handle the infrastructure. You collect USDC.
             </p>
-            <a href="https://gate402.dev/login" target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ textAlign: 'center' }}>
-              Start Pro →
-            </a>
+            <button
+              onClick={handleStartPro}
+              disabled={checkoutLoading}
+              className="btn-primary"
+              style={{ textAlign: 'center', opacity: checkoutLoading ? 0.7 : 1, cursor: checkoutLoading ? 'wait' : 'pointer' }}
+            >
+              {checkoutLoading ? 'Loading...' : 'Start Pro →'}
+            </button>
           </div>
 
           {/* ── CARD 3: Enterprise ── */}

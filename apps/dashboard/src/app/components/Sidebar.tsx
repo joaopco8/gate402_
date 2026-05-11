@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
+import { useUser } from '../hooks/useUser'
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 
@@ -75,6 +76,8 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname()
   const router   = useRouter()
   const [email, setEmail] = useState<string | null>(null)
+  const { userData } = useUser()
+  const isPro = userData?.plan === 'pro' || userData?.plan === 'enterprise'
 
   useEffect(() => {
     async function load() {
@@ -186,6 +189,45 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
 
       {/* Bottom user section */}
       <div style={{ borderTop: '1px solid var(--border)', padding: '16px 20px' }}>
+        {/* Plan badge / upgrade link */}
+        {userData && (
+          <div style={{ marginBottom: 10 }}>
+            {isPro ? (
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                background: 'rgba(0,255,136,0.08)',
+                color: '#00ff88',
+                border: '1px solid rgba(0,255,136,0.2)',
+                borderRadius: 4,
+                padding: '2px 8px',
+                fontSize: 10,
+                fontFamily: 'var(--font-code)',
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+              }}>
+                ✦ PRO
+              </span>
+            ) : (
+              <a
+                href="/pricing"
+                style={{
+                  fontSize: 11,
+                  fontFamily: 'var(--font-code)',
+                  color: '#333',
+                  textDecoration: 'none',
+                  transition: 'color 150ms',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#00ff88')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#333')}
+              >
+                Upgrade to Pro →
+              </a>
+            )}
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* Avatar */}
           <div style={{
