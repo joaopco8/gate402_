@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '../../../../lib/supabase/server'
+import { createClient } from '../../../lib/supabase/server'
 import PostLoginClient from './client'
 
 export default async function PostLoginPage() {
