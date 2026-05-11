@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '../../../lib/supabase/server'
-import PostLoginClient from './client'
 
 export default async function PostLoginPage() {
   const supabase = await createClient()
@@ -10,9 +10,26 @@ export default async function PostLoginPage() {
     redirect('/login')
   }
 
+  const cookieStore = await cookies()
+  const intent = cookieStore.get('gate402_intent')?.value
   const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
 
-  let defaultRedirect = '/dashboard'
+  // If checkout intent was set before login, call billing API and redirect to Stripe
+  if (intent === 'checkout') {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/billing/checkout`, {
+        method: 'POST',
+        headers: { 'x-user-id': user.id },
+      })
+      const data = await res.json()
+      if (data.url) {
+        // Clear the intent cookie and redirect to Stripe
+        redirect(data.url)
+      }
+    } catch {}
+  }
+
+  // No intent — decide based on user profile
   try {
     const res = await fetch(`${SERVER_URL}/api/users/me`, {
       headers: { 'x-user-id': user.id },
@@ -20,10 +37,10 @@ export default async function PostLoginPage() {
     if (res.ok) {
       const userData = await res.json()
       if (userData.totalEndpoints === 0 && userData.totalCalls === 0) {
-        defaultRedirect = '/onboarding'
+        redirect('/onboarding')
       }
     }
   } catch {}
 
-  return <PostLoginClient userId={user.id} defaultRedirect={defaultRedirect} />
+  redirect('/dashboard')
 }

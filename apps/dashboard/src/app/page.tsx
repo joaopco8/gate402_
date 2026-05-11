@@ -1122,7 +1122,7 @@ function Pricing() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
-        localStorage.setItem('gate402_intent', 'checkout')
+        document.cookie = 'gate402_intent=checkout; path=/; max-age=300; samesite=lax'
         window.location.href = '/login'
         return
       }
