@@ -5,12 +5,15 @@ export default function LoginPage() {
   async function handleGitHub() {
     const supabase = createClient()
     const next = new URLSearchParams(window.location.search).get('next') || ''
-    const callbackUrl = next
-      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
-      : `${window.location.origin}/auth/callback`
+
+    // Store intent in cookie — more reliable than query params through OAuth redirects
+    if (next) {
+      document.cookie = `gate402_next=${encodeURIComponent(next)};path=/;max-age=300;samesite=lax`
+    }
+
     await supabase.auth.signInWithOAuth({
       provider: 'github',
-      options: { redirectTo: callbackUrl },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
   }
 

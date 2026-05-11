@@ -4,7 +4,10 @@ import { createClient } from '../../../../lib/supabase/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next')
+  // Read intent from cookie (query params are stripped by Supabase OAuth redirect)
+  const cookieHeader = request.headers.get('cookie') || ''
+  const nextMatch = cookieHeader.match(/gate402_next=([^;]+)/)
+  const next = nextMatch ? decodeURIComponent(nextMatch[1]) : null
 
   if (code) {
     const supabase = await createClient()
