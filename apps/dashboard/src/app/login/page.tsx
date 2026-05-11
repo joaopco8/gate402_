@@ -4,16 +4,11 @@ import { createClient } from '../../../lib/supabase/client'
 export default function LoginPage() {
   async function handleGitHub() {
     const supabase = createClient()
-    const next = new URLSearchParams(window.location.search).get('next') || ''
-
-    // Store intent in cookie — more reliable than query params through OAuth redirects
-    if (next) {
-      document.cookie = `gate402_next=${encodeURIComponent(next)};path=/;max-age=300;samesite=lax`
-    }
-
     await supabase.auth.signInWithOAuth({
       provider: 'github',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        redirectTo: window.location.origin + '/auth/callback',
+      },
     })
   }
 
@@ -28,7 +23,6 @@ export default function LoginPage() {
       fontFamily: 'monospace',
       color: '#fff',
     }}>
-      {/* Logo + subtitle */}
       <div style={{ textAlign: 'center', marginBottom: 48 }}>
         <img src="/logo-gate.png" alt="Gate402" style={{ height: 52, width: 'auto', marginBottom: 16 }} />
         <p style={{ color: '#888', fontSize: 14, margin: 0 }}>
@@ -36,7 +30,6 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* GitHub button */}
       <button
         onClick={handleGitHub}
         style={{
@@ -60,13 +53,7 @@ export default function LoginPage() {
         Continue with GitHub
       </button>
 
-      {/* Footer */}
-      <footer style={{
-        position: 'fixed',
-        bottom: 24,
-        color: '#444',
-        fontSize: 12,
-      }}>
+      <footer style={{ position: 'fixed', bottom: 24, color: '#444', fontSize: 12 }}>
         x402 Protocol · Solana · May 2026
       </footer>
     </div>

@@ -1122,7 +1122,8 @@ function Pricing() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
-        window.location.href = '/login?next=checkout_pro'
+        localStorage.setItem('gate402_intent', 'checkout')
+        window.location.href = '/login'
         return
       }
 
