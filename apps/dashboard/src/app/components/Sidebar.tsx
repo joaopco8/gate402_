@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
 
@@ -57,41 +57,14 @@ const IconSettings = () => (
   </svg>
 )
 
-const IconLogout = () => (
-  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8.5 4.5L11 6.5L8.5 8.5"/>
-    <path d="M11 6.5H4.5"/>
-    <path d="M4.5 2H2a1 1 0 00-1 1v7a1 1 0 001 1h2.5"/>
-  </svg>
-)
-
-// ─── Nav groups ──────────────────────────────────────────────────────────────
-
-const NAV_GROUPS = [
-  {
-    label: 'Main',
-    items: [
-      { label: 'Overview',   href: '/dashboard',  Icon: IconOverview },
-      { label: 'Wallet',     href: '/wallet',     Icon: IconWallet },
-      { label: 'Endpoints',  href: '/endpoints',  Icon: IconEndpoints },
-    ],
-  },
-  {
-    label: 'Developer',
-    items: [
-      { label: 'Playground', href: '/playground', Icon: IconPlayground },
-      { label: 'Docs',       href: '/docs',       Icon: IconDocs },
-    ],
-  },
-  {
-    label: 'Account',
-    items: [
-      { label: 'Settings',   href: '/settings',   Icon: IconSettings },
-    ],
-  },
+const NAV_ITEMS = [
+  { label: 'Overview',   href: '/dashboard',  Icon: IconOverview },
+  { label: 'Wallet',     href: '/wallet',     Icon: IconWallet },
+  { label: 'Endpoints',  href: '/endpoints',  Icon: IconEndpoints },
+  { label: 'Playground', href: '/playground', Icon: IconPlayground },
+  { label: 'Docs',       href: '/docs',       Icon: IconDocs },
+  { label: 'Settings',   href: '/settings',   Icon: IconSettings },
 ]
-
-// ─── Component ───────────────────────────────────────────────────────────────
 
 interface SidebarProps {
   mobileOpen?: boolean
@@ -102,7 +75,6 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname()
   const router   = useRouter()
   const [email, setEmail] = useState<string | null>(null)
-  const [logoutHovered, setLogoutHovered] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -128,120 +100,106 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
       position: 'fixed',
       top: 0,
       left: mobileOpen ? 0 : undefined,
-      background: '#050505',
-      borderRight: '1px solid #1a1a1a',
+      background: 'var(--surface)',
+      borderRight: '1px solid var(--border)',
       display: 'flex',
       flexDirection: 'column',
       zIndex: 50,
+      transform: mobileOpen !== undefined ? undefined : undefined,
     }}>
-
-      {/* ── Logo ── */}
-      <div style={{
-        padding: '22px 18px 18px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        borderBottom: '1px solid #1a1a1a',
-      }}>
+      {/* Logo */}
+      <div style={{ padding: '24px 20px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
         {onClose && (
           <button
             onClick={onClose}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#555',
-              cursor: 'pointer',
-              fontSize: 16,
-              padding: '0 8px 0 0',
-              lineHeight: 1,
-            }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 18, padding: '0 8px 0 0', lineHeight: 1 }}
           >
             ✕
           </button>
         )}
-
-        <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-          <span style={{
-            fontFamily: 'var(--font-display)',
-            fontWeight: 500,
-            fontSize: 15,
-            color: '#fff',
-            letterSpacing: '-0.01em',
-          }}>
-            gate402
-          </span>
-          <span style={{
-            background: 'rgba(0,255,136,0.1)',
-            color: '#00ff88',
-            border: '1px solid rgba(0,255,136,0.2)',
-            borderRadius: 4,
-            padding: '1px 6px',
-            fontSize: 9,
-            fontFamily: 'var(--font-code)',
-            fontWeight: 600,
-            letterSpacing: '0.1em',
-            animation: 'liveBlink 2s ease-in-out infinite',
-          }}>
-            LIVE
-          </span>
+        <a href="/dashboard">
+          <img src="/logo-gate.png" alt="Gate402" style={{ height: 24, width: 'auto', display: 'block' }} />
         </a>
+        <span style={{
+          background: 'rgba(0,255,136,0.1)',
+          color: '#00ff88',
+          border: '1px solid rgba(0,255,136,0.25)',
+          borderRadius: 4,
+          padding: '1px 6px',
+          fontSize: 9,
+          fontFamily: 'var(--font-code)',
+          fontWeight: 500,
+          letterSpacing: '0.08em',
+          animation: 'liveBlink 2s ease-in-out infinite',
+        }}>
+          LIVE
+        </span>
       </div>
 
-      {/* ── Nav ── */}
-      <nav style={{ flex: 1, padding: '12px 0', overflowY: 'auto' }}>
-        {NAV_GROUPS.map(({ label, items }) => (
-          <div key={label} style={{ marginBottom: 4 }}>
-            {/* Group label */}
-            <div style={{
-              padding: '8px 18px 4px',
-              fontSize: 10,
-              fontFamily: 'var(--font-code)',
-              color: '#2a2a2a',
-              letterSpacing: '0.1em',
-              fontWeight: 600,
-            }}>
-              {label.toUpperCase()}
-            </div>
+      {/* Divider */}
+      <div style={{ height: 1, background: 'var(--border)', margin: '0 0 8px' }} />
 
-            {/* Items */}
-            {items.map(({ label: itemLabel, href, Icon }) => {
-              const active = pathname === href
-              return (
-                <NavItem
-                  key={href}
-                  href={href}
-                  label={itemLabel}
-                  Icon={Icon}
-                  active={active}
-                  onClick={onClose}
-                />
-              )
-            })}
-          </div>
-        ))}
+      {/* Nav */}
+      <nav style={{ flex: 1, padding: '8px 0' }}>
+        {NAV_ITEMS.map(({ label, href, Icon }) => {
+          const active = pathname === href
+          return (
+            <a
+              key={href}
+              href={href}
+              onClick={onClose}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 20px',
+                fontSize: 14,
+                fontFamily: 'var(--font-display)',
+                fontWeight: 400,
+                color: active ? 'var(--green)' : 'var(--text-secondary)',
+                background: active ? 'rgba(0,255,136,0.06)' : 'transparent',
+                borderLeft: active ? '2px solid var(--green)' : '2px solid transparent',
+                transition: 'all 150ms ease',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={e => {
+                if (!active) {
+                  e.currentTarget.style.color = '#fff'
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                }
+              }}
+              onMouseLeave={e => {
+                if (!active) {
+                  e.currentTarget.style.color = 'var(--text-secondary)'
+                  e.currentTarget.style.background = 'transparent'
+                }
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, opacity: active ? 1 : 0.6 }}>
+                <Icon />
+              </span>
+              {label}
+            </a>
+          )
+        })}
       </nav>
 
-      {/* ── User footer ── */}
-      <div style={{
-        borderTop: '1px solid #1a1a1a',
-        padding: '14px 18px',
-        background: '#050505',
-      }}>
+      {/* Bottom user section */}
+      <div style={{ borderTop: '1px solid var(--border)', padding: '16px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* Avatar */}
           <div style={{
             width: 28,
             height: 28,
             borderRadius: '50%',
-            background: 'rgba(0,255,136,0.08)',
-            border: '1px solid rgba(0,255,136,0.15)',
+            background: '#1a1a1a',
+            border: '1px solid #333',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: 11,
             fontFamily: 'var(--font-code)',
-            fontWeight: 600,
-            color: '#00ff88',
+            color: '#888',
             flexShrink: 0,
           }}>
             {initial}
@@ -250,12 +208,12 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           {/* Email */}
           <span style={{
             fontSize: 12,
-            fontFamily: 'var(--font-display)',
-            color: '#555',
+            color: 'var(--text-secondary)',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             flex: 1,
+            maxWidth: 120,
           }}>
             {email ?? '...'}
           </span>
@@ -263,99 +221,25 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           {/* Logout */}
           <button
             onClick={handleLogout}
-            title="Sign out"
-            onMouseEnter={() => setLogoutHovered(true)}
-            onMouseLeave={() => setLogoutHovered(false)}
+            title="Logout"
             style={{
               background: 'transparent',
               border: 'none',
-              color: logoutHovered ? '#ff4444' : '#333',
+              color: '#333',
               cursor: 'pointer',
-              padding: '4px',
+              fontSize: 14,
+              padding: '2px 4px',
               borderRadius: 4,
-              display: 'flex',
-              alignItems: 'center',
               transition: 'color 150ms',
               flexShrink: 0,
             }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#ff4444')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#333')}
           >
-            <IconLogout />
+            →
           </button>
         </div>
       </div>
     </aside>
-  )
-}
-
-// ─── NavItem ─────────────────────────────────────────────────────────────────
-
-function NavItem({
-  href,
-  label,
-  Icon,
-  active,
-  onClick,
-}: {
-  href: string
-  label: string
-  Icon: () => React.ReactElement
-  active: boolean
-  onClick?: () => void
-}) {
-  const [hovered, setHovered] = useState(false)
-
-  return (
-    <a
-      href={href}
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        margin: '1px 8px',
-        padding: '8px 10px',
-        borderRadius: 6,
-        fontSize: 13,
-        fontFamily: 'var(--font-display)',
-        fontWeight: active ? 500 : 400,
-        color: active ? '#00ff88' : hovered ? '#fff' : '#555',
-        background: active
-          ? 'rgba(0,255,136,0.07)'
-          : hovered
-          ? 'rgba(255,255,255,0.04)'
-          : 'transparent',
-        transition: 'all 120ms ease',
-        cursor: 'pointer',
-        position: 'relative',
-      }}
-    >
-      {/* Active indicator */}
-      {active && (
-        <span style={{
-          position: 'absolute',
-          left: 0,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          width: 2,
-          height: 16,
-          borderRadius: 2,
-          background: '#00ff88',
-        }} />
-      )}
-
-      <span style={{
-        display: 'flex',
-        alignItems: 'center',
-        opacity: active ? 1 : hovered ? 0.9 : 0.5,
-        transition: 'opacity 120ms ease',
-        flexShrink: 0,
-      }}>
-        <Icon />
-      </span>
-
-      {label}
-    </a>
   )
 }

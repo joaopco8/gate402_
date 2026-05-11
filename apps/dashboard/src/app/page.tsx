@@ -2,11 +2,6 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { Space_Grotesk, JetBrains_Mono } from 'next/font/google'
-import { GlowCard } from '@/components/ui/spotlight-card'
-import { GradientDots } from '@/components/ui/gradient-dots'
-import { RealismButton } from '@/components/ui/shiny-borders-button'
-import { ContributorsTable, type PaymentRow } from '@/components/ui/contributors-table'
-import { TestimonialCard, type TestimonialData } from '@/components/ui/testimonial'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -318,8 +313,15 @@ function Hero() {
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Animated gradient dots background */}
-      <GradientDots duration={20} />
+      {/* Dot grid */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        backgroundImage: 'radial-gradient(circle, #1a1a1a 1px, transparent 1px)',
+        backgroundSize: '40px 40px',
+        opacity: 0.6,
+        zIndex: 0,
+      }} />
 
       {/* Green orbe */}
       <div style={{
@@ -398,7 +400,7 @@ function Hero() {
 
       {/* CTAs */}
       <div className="fade-in-up hero-ctas" style={{ display: 'flex', gap: 12, marginBottom: 28, animationDelay: '1.0s', position: 'relative', zIndex: 1 }}>
-        <RealismButton href="/login">Start free →</RealismButton>
+        <a href="/login" className="btn-primary" style={{ fontSize: 15, padding: '13px 28px' }}>Start free →</a>
         <a href="#how" className="btn-ghost" style={{ fontSize: 15, padding: '13px 28px' }}>View live demo</a>
       </div>
 
@@ -580,6 +582,8 @@ const HOW_STEPS = [
 ]
 
 function HowItWorks() {
+  const [hovered, setHovered] = useState<number | null>(null)
+
   return (
     <section id="how-it-works" style={{ background: '#000', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -599,14 +603,29 @@ function HowItWorks() {
           Drop in. Price it. Get paid.
         </h2>
 
-        {/* Card grid — GlowCard per step */}
+        {/* Card grid container */}
         <div className="how-cards" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 16,
+          gap: 0,
+          background: '#1a1a1a',
+          border: '1px solid #1a1a1a',
+          borderRadius: 8,
+          overflow: 'hidden',
         }}>
-          {HOW_STEPS.map(({ n, title, desc, snippet, snippetColor }) => (
-            <GlowCard key={n} style={{ padding: '40px 32px' }}>
+          {HOW_STEPS.map(({ n, title, desc, snippet, snippetColor }, idx) => (
+            <div
+              key={n}
+              onMouseEnter={() => setHovered(idx)}
+              onMouseLeave={() => setHovered(null)}
+              style={{
+                background: hovered === idx ? '#0a0a0a' : '#000',
+                padding: '40px 32px',
+                borderRight: idx < HOW_STEPS.length - 1 ? '1px solid #1a1a1a' : 'none',
+                borderBottom: 'none',
+                transition: 'background 200ms ease',
+              }}
+            >
               <div className="mono" style={{ fontSize: 11, color: '#222', letterSpacing: '0.1em', marginBottom: 24 }}>
                 {n}
               </div>
@@ -626,6 +645,7 @@ function HowItWorks() {
                 fontSize: 14,
                 color: '#666',
                 lineHeight: 1.6,
+                marginBottom: 0,
               }}>
                 {desc}
               </p>
@@ -641,7 +661,7 @@ function HowItWorks() {
               }}>
                 {snippet}
               </div>
-            </GlowCard>
+            </div>
           ))}
         </div>
 
@@ -890,6 +910,19 @@ function Features() {
 
   const cardDelays = ['0.1s', '0.25s', '0.4s']
 
+  function handle3DMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width - 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5
+    e.currentTarget.style.transform = `perspective(600px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg)`
+    e.currentTarget.style.borderTopColor = '#00ff88'
+  }
+
+  function handle3DLeave(e: React.MouseEvent<HTMLDivElement>) {
+    e.currentTarget.style.transform = 'perspective(600px) rotateY(0deg) rotateX(0deg)'
+    e.currentTarget.style.borderTopColor = 'transparent'
+  }
+
   const FEATURE_CARDS = [
     {
       icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2L21.39 7.5V16.5L12 22L2.61 16.5V7.5L12 2Z" stroke="#9945FF" strokeWidth="1.5" strokeLinejoin="round"/></svg>,
@@ -926,14 +959,19 @@ function Features() {
 
         <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           {FEATURE_CARDS.map((card, idx) => (
-            <GlowCard
+            <div
               key={card.title}
+              className="g-card"
+              onMouseMove={handle3DMove}
+              onMouseLeave={handle3DLeave}
               style={{
                 padding: 28,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 16,
                 cursor: 'default',
+                borderTop: '1px solid transparent',
+                transition: 'transform 150ms ease, border-color 200ms ease',
                 opacity: visible ? undefined : 0,
                 animation: visible ? `cardReveal 0.6s ease-out ${cardDelays[idx]} both` : undefined,
               }}
@@ -942,7 +980,7 @@ function Features() {
               <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 400, fontSize: 18, color: '#fff' }}>{card.title}</div>
               <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 14, color: '#666', lineHeight: 1.7, flex: 1 }}>{card.desc}</p>
               {card.badge}
-            </GlowCard>
+            </div>
           ))}
         </div>
       </div>
@@ -1026,7 +1064,7 @@ function CodeSection() {
               </div>
             ))}
           </div>
-          <RealismButton href="https://npmjs.com/package/gate402" target="_blank" rel="noopener noreferrer">View on npm →</RealismButton>
+          <a href="/login" className="btn-primary">npm install gate402 →</a>
         </div>
 
         {/* Right: code block */}
@@ -1053,129 +1091,6 @@ function CodeSection() {
           </pre>
         </div>
 
-      </div>
-    </section>
-  )
-}
-
-/* ─── LIVE PAYMENTS ─────────────────────────────────────────────────────── */
-
-/* SECTION: LivePayments */
-const PAYMENT_ROWS: PaymentRow[] = [
-  { endpoint: '/api/weather',  amount: '0.001 USDC', wallet: '5kWq...9mLP', time: '2 min ago',  status: 'confirmed' },
-  { endpoint: '/api/data',     amount: '0.005 USDC', wallet: '3pRt...7vNQ', time: '14 min ago', status: 'confirmed' },
-  { endpoint: '/api/analysis', amount: '0.010 USDC', wallet: '8mLz...4kWE', time: '1 hour ago', status: 'confirmed' },
-  { endpoint: '/api/premium',  amount: '0.050 USDC', wallet: 'BwL2...88nX', time: '2 hours ago', status: 'confirmed' },
-  { endpoint: '/api/search',   amount: '0.003 USDC', wallet: '9mLZ...zZ3A', time: '3 hours ago', status: 'confirmed' },
-]
-
-function LivePayments() {
-  return (
-    <section style={{ background: '#000', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-
-        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>
-          PAYMENTS
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40, flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <h2 style={{
-              fontFamily: 'var(--font-space, sans-serif)',
-              fontWeight: 300,
-              fontSize: 40,
-              letterSpacing: '-0.03em',
-              color: '#fff',
-              marginBottom: 8,
-            }}>
-              Live payments happening right now
-            </h2>
-            <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#666' }}>
-              Real USDC flowing to developers using Gate402
-            </p>
-          </div>
-          <span style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            border: '1px solid rgba(0,255,136,0.2)',
-            borderRadius: 100,
-            padding: '5px 14px',
-            fontSize: 11,
-            fontFamily: 'var(--font-code)',
-            color: '#00ff88',
-            background: 'rgba(0,255,136,0.05)',
-          }}>
-            <span style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: '#00ff88',
-              display: 'inline-block',
-              animation: 'liveBlink 2s ease-in-out infinite',
-            }} />
-            LIVE
-          </span>
-        </div>
-
-        <ContributorsTable rows={PAYMENT_ROWS} />
-      </div>
-    </section>
-  )
-}
-
-/* ─── TESTIMONIALS ───────────────────────────────────────────────────────── */
-
-/* SECTION: Testimonials */
-const TESTIMONIALS: TestimonialData[] = [
-  {
-    name: 'Alex Chen',
-    role: 'MCP Server Developer',
-    initials: 'AC',
-    avatarColor: '#00ff88',
-    text: 'Gate402 turned my free weather API into $40/day passive income. Took me 10 minutes to integrate.',
-  },
-  {
-    name: 'Sarah Kim',
-    role: 'AI Tools Builder',
-    initials: 'SK',
-    avatarColor: '#9945FF',
-    text: 'Finally a billing solution that works for agents. My Claude tools now pay for themselves.',
-  },
-  {
-    name: 'Marcus Dev',
-    role: 'Indie Hacker',
-    initials: 'MD',
-    avatarColor: '#3b82f6',
-    text: 'x402 + Gate402 is the future of API monetization. Shipped in a weekend, earning on Monday.',
-  },
-]
-
-function Testimonials() {
-  return (
-    <section style={{ background: '#000', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-
-        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>
-          TESTIMONIALS
-        </div>
-
-        <h2 style={{
-          fontFamily: 'var(--font-space, sans-serif)',
-          fontWeight: 300,
-          fontSize: 40,
-          letterSpacing: '-0.03em',
-          color: '#fff',
-          marginBottom: 56,
-        }}>
-          Developers are already earning.
-        </h2>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }} className="features-grid">
-          {TESTIMONIALS.map(t => (
-            <TestimonialCard key={t.name} data={t} />
-          ))}
-        </div>
       </div>
     </section>
   )
@@ -1463,7 +1378,9 @@ function FinalCTA() {
         </div>
 
         <div style={{ marginBottom: 16 }}>
-          <RealismButton href="/dashboard">Open Dashboard →</RealismButton>
+          <a href="/dashboard" className="btn-primary" style={{ padding: '14px 32px', fontSize: 16 }}>
+            Open Dashboard →
+          </a>
         </div>
         <p className="mono" style={{ fontSize: 12, color: '#333' }}>
           No credit card. No account. Open source.
@@ -1535,8 +1452,6 @@ export default function LandingPage() {
       <AgentFlow />
       <Features />
       <CodeSection />
-      <LivePayments />
-      <Testimonials />
       <Pricing />
       <FinalCTA />
       <Footer />
