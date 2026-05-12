@@ -1640,6 +1640,8 @@ function Footer() {
               ['GitHub',    'https://github.com/joaopco8/gate402_',  '_blank'],
               ['npm',       'https://npmjs.com/package/gate402',     '_blank'],
               ['Docs',      '/docs',                                  undefined],
+              ['Privacy',   '/privacy',                               undefined],
+              ['Terms',     '/terms',                                 undefined],
               ['Dashboard', '/dashboard',                             undefined],
             ].map(([label, href, target]) => (
               <a

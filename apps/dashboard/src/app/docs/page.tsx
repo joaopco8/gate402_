@@ -1170,6 +1170,33 @@ app.listen(3001)`} />
 
         </div>
       </main>
+
+      {/* Footer */}
+      <footer style={{
+        borderTop: '1px solid #1a1a1a',
+        padding: '24px',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 24,
+      }}>
+        {[
+          { label: 'Home', href: '/' },
+          { label: 'Privacy', href: '/privacy' },
+          { label: 'Terms', href: '/terms' },
+          { label: 'GitHub', href: 'https://github.com/joaopco8/gate402_' },
+        ].map(({ label, href }) => (
+          <a
+            key={label}
+            href={href}
+            style={{ fontFamily: 'var(--font-code)', color: '#444', textDecoration: 'none', fontSize: 13, transition: 'color 0.15s' }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#888')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#444')}
+          >
+            {label}
+          </a>
+        ))}
+      </footer>
+
     </div>
   )
 }
