@@ -47,11 +47,14 @@ app.use('/api', adminRouter);
 app.use('/api/verify-payment', requirePro);
 app.use('/api/endpoints/pricing', requirePro);
 
-// Account required for dashboard routes
+// Account required for dashboard routes (/api/users/sync is exempt — it creates new accounts)
 app.use('/api/metrics', requireAccount);
 app.use('/api/calls', requireAccount);
 app.use('/api/wallet', requireAccount);
-app.use('/api/users', requireAccount);
+app.use('/api/users', (req, res, next) => {
+  if (req.path === '/sync' && req.method === 'POST') return next()
+  return requireAccount(req, res, next)
+});
 app.use('/api/endpoints', requireAccount);
 
 // Analytics routes

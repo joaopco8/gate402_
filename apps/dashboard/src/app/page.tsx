@@ -197,6 +197,8 @@ const CSS = `
     .how-cards { grid-template-columns: 1fr !important; }
     .how-cards > div { border-right: none !important; border-bottom: 1px solid #1a1a1a !important; }
     .how-cards > div:last-child { border-bottom: none !important; }
+    .how-agents-grid { grid-template-columns: 1fr !important; }
+    .two-wallets-grid { grid-template-columns: 1fr !important; }
   }
 `
 
@@ -1101,6 +1103,194 @@ function CodeSection() {
 
 /* SECTION: Pricing */
 
+/* ─── HOW AGENTS PAY ─────────────────────────────────────────────────────── */
+
+const DIAGRAM_LINES = [
+  { text: '  AI Agent              Gate402           Solana', color: '#555' },
+  { text: '      │                    │                │',   color: '#333' },
+  { text: '      │── GET /api/data ──▶│                │',   color: '#9945FF' },
+  { text: '      │                    │                │',   color: '#333' },
+  { text: '      │◀── HTTP 402 ────────│                │',  color: '#EF4444' },
+  { text: '      │   amount: 0.001    │                │',   color: '#666' },
+  { text: '      │   currency: USDC   │                │',   color: '#666' },
+  { text: '      │   payTo: 7UQct...  │                │',   color: '#666' },
+  { text: '      │                    │                │',   color: '#333' },
+  { text: '      │── send USDC ────────────────────────▶│',  color: '#9945FF' },
+  { text: '      │◀── confirmed (412ms) ───────────────│',   color: '#14F195' },
+  { text: '      │   txHash: 5kWq...  │                │',   color: '#666' },
+  { text: '      │                    │                │',   color: '#333' },
+  { text: '      │── GET /api/data ──▶│                │',   color: '#9945FF' },
+  { text: '      │   X-Payment: 5kWq  │                │',   color: '#666' },
+  { text: '      │                    │── verify ─────▶│',   color: '#9945FF' },
+  { text: '      │◀── 200 OK ──────────│◀── confirmed ──│',  color: '#00ff88' },
+  { text: '      │   { your data }    │                │',   color: '#666' },
+]
+
+const HOW_STEPS = [
+  { n: '01', title: 'Agent calls your API',       desc: 'Any HTTP request to your endpoint. No special SDK needed on the agent side.' },
+  { n: '02', title: 'Gate402 intercepts',         desc: 'Our Express middleware catches the request before it reaches your handler.' },
+  { n: '03', title: 'Returns HTTP 402',           desc: 'The standard Payment Required status code, with USDC amount and your Solana wallet address.' },
+  { n: '04', title: 'Agent pays on Solana',       desc: 'The agent sends USDC directly to your wallet. Not to us. Directly to you. In 400ms.' },
+  { n: '05', title: 'Agent sends proof',          desc: 'The transaction hash goes in the X-Payment-Payload header on the retry request.' },
+  { n: '06', title: 'Gate402 verifies on-chain',  desc: 'We query Solana to confirm the payment reached your wallet with the correct amount.' },
+  { n: '07', title: 'Your handler executes',      desc: 'The request reaches your code. You respond normally. USDC is already in your wallet.' },
+]
+
+function HowAgentsPay() {
+  const [visibleLines, setVisibleLines] = useState(0)
+  const [observed, setObserved] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setObserved(true) },
+      { threshold: 0.1 }
+    )
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!observed) return
+    let current = 0
+    const timers: ReturnType<typeof setTimeout>[] = []
+    for (let i = 0; i < DIAGRAM_LINES.length; i++) {
+      const t = setTimeout(() => { current += 1; setVisibleLines(current) }, 250 * (i + 1))
+      timers.push(t)
+    }
+    return () => timers.forEach(clearTimeout)
+  }, [observed])
+
+  return (
+    <section style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
+        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>UNDER THE HOOD</div>
+        <h2 style={{ fontSize: 40, fontWeight: 300, marginBottom: 16, lineHeight: 1.2 }}>How agents pay your API</h2>
+        <p style={{ color: '#666', fontSize: 16, marginBottom: 64, maxWidth: 520 }}>
+          No SDK on the agent side required. Any HTTP client works. Here is exactly what happens in under one second.
+        </p>
+        <div ref={ref} className="how-agents-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'start' }}>
+          <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: 24, fontFamily: 'var(--font-mono, Courier, monospace)', fontSize: 12, lineHeight: 1.8, overflowX: 'auto' }}>
+            {DIAGRAM_LINES.map((line, idx) => (
+              <div key={idx} style={{ color: line.color, opacity: idx < visibleLines ? 1 : 0, transition: 'opacity 0.3s ease', whiteSpace: 'pre' }}>
+                {line.text}
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {HOW_STEPS.map(step => (
+              <div key={step.n} style={{ display: 'flex', gap: 16 }}>
+                <div className="mono" style={{ color: '#00ff88', fontSize: 11, fontWeight: 500, minWidth: 24, paddingTop: 2 }}>{step.n}</div>
+                <div>
+                  <div style={{ color: '#fff', fontWeight: 500, fontSize: 14, marginBottom: 4 }}>{step.title}</div>
+                  <div style={{ color: '#666', fontSize: 13, lineHeight: 1.6 }}>{step.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ─── TWO WALLETS ────────────────────────────────────────────────────────── */
+
+function TwoWallets() {
+  return (
+    <section style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
+        <h2 style={{ fontSize: 40, fontWeight: 300, marginBottom: 16, lineHeight: 1.2, textAlign: 'center' }}>
+          Two wallets. Two sides of the same protocol.
+        </h2>
+        <p style={{ color: '#666', fontSize: 16, maxWidth: 600, margin: '0 auto 64px', textAlign: 'center' }}>
+          The dev who owns the API receives USDC. The dev who runs the agent pays USDC. Gate402 sits in the middle and verifies everything on-chain.
+        </p>
+        <div className="two-wallets-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
+          <div style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 8, padding: 32 }}>
+            <div style={{ marginBottom: 20 }}>
+              <span style={{ display: 'inline-block', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', fontSize: 10, fontFamily: 'var(--font-mono,monospace)', letterSpacing: '0.1em', padding: '4px 10px', borderRadius: 100 }}>RECEIVES USDC</span>
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 24 }}>API Developer (you)</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {['Install gate402 on your Express/Flask API','Configure your Solana wallet address','Set a price per endpoint','Deploy — agents can now pay you','Watch USDC arrive in real-time on the dashboard'].map(item => (
+                <div key={item} style={{ display: 'flex', gap: 10, color: '#ccc', fontSize: 14 }}>
+                  <span style={{ color: '#00ff88', flexShrink: 0 }}>✓</span><span>{item}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid #1a1a1a', color: '#333', fontFamily: 'var(--font-mono,monospace)', fontSize: 11 }}>Your wallet. Your USDC. Direct on-chain transfer.</div>
+          </div>
+          <div style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 8, padding: 32 }}>
+            <div style={{ marginBottom: 20 }}>
+              <span style={{ display: 'inline-block', background: 'rgba(153,69,255,0.1)', border: '1px solid rgba(153,69,255,0.3)', color: '#9945FF', fontSize: 10, fontFamily: 'var(--font-mono,monospace)', letterSpacing: '0.1em', padding: '4px 10px', borderRadius: 100 }}>PAYS USDC</span>
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 24 }}>Agent Operator</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {['Has an agent (Claude, GPT-4, AutoGen, etc.)','Funds agent wallet with USDC on Solana','Uses x402-fetch or any HTTP client','Agent pays automatically on HTTP 402','No manual intervention after setup'].map(item => (
+                <div key={item} style={{ display: 'flex', gap: 10, color: '#ccc', fontSize: 14 }}>
+                  <span style={{ color: '#9945FF', flexShrink: 0 }}>→</span><span>{item}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid #1a1a1a', color: '#333', fontFamily: 'var(--font-mono,monospace)', fontSize: 11 }}>Today: manual wallet setup. Soon: native in agent runtimes.</div>
+          </div>
+        </div>
+        <div style={{ background: 'rgba(153,69,255,0.05)', border: '1px solid rgba(153,69,255,0.2)', borderRadius: 8, padding: '20px 24px', fontFamily: 'var(--font-mono,monospace)', fontSize: 12, color: '#9945FF', lineHeight: 1.7 }}>
+          Anthropic, OpenAI, and Google have not yet shipped native wallets in their agent runtimes.<br />
+          When they do — and they will — Gate402 is already the infrastructure layer waiting for them.
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ─── FAQ ─────────────────────────────────────────────────────────────────── */
+
+const FAQ_ITEMS = [
+  { q: 'Does Gate402 hold my money?',                   a: "No. Payments go directly from the agent's wallet to your Solana wallet on-chain. Gate402 only verifies that the payment happened. We never touch your funds." },
+  { q: 'Do agents need special software to pay?',       a: "Any HTTP client works. For automatic payment handling when receiving a 402, agents use the x402-fetch library (npm install x402-fetch). Without it, agents must manually send USDC and include the transaction hash in the header." },
+  { q: 'What is USDC?',                                 a: "USDC is a stablecoin pegged 1:1 to the US dollar, issued by Circle. 0.001 USDC = exactly $0.001. No volatility, no conversion needed. It runs on Solana and settles in ~400ms." },
+  { q: 'What is the x402 protocol?',                   a: 'HTTP 402 "Payment Required" is a status code that has existed since 1991 but was never widely used. The x402 protocol defines how APIs should use it for machine-to-machine payments. Backed by Google, Microsoft, Stripe, Coinbase, and Cloudflare through the x402 Foundation.' },
+  { q: 'Can I use Gate402 with any framework?',         a: "The npm SDK currently supports Express (Node.js). The Python SDK supports Flask and FastAPI. Next.js API routes and Fastify support are coming in Q3 2026. The server (api.gate402.dev) works with any framework via direct API calls." },
+  { q: 'How do agents get USDC to pay?',               a: "The person or company running the agent funds the agent's Solana wallet with USDC. This is analogous to giving an employee a corporate card. The agent spends from that balance automatically. Minimum balance depends on how many API calls you expect." },
+  { q: 'What is Solana devnet vs mainnet?',             a: "Devnet is a test network with fake tokens — free to use for development and testing. Mainnet is the live network with real USDC. Gate402 supports both. You switch with one environment variable: network: 'mainnet'." },
+  { q: 'What happens if the agent sends the wrong amount?', a: "Gate402 verifies the exact amount on-chain. If the payment is less than the configured price, the request is rejected with HTTP 402 again. The agent must send the correct amount to get access." },
+  { q: 'Is Gate402 open source?',                      a: "Yes. The core middleware, SDK, and server are MIT licensed at github.com/joaopco8/gate402_. The hosted dashboard at gate402.dev is the commercial offering — same model as Supabase and Redis." },
+  { q: 'How long does payment verification take?',     a: "Solana confirms transactions in an average of 400ms. Gate402 verification adds ~50ms on top of that. Total overhead to the agent: under 500ms per payment. Subsequent calls with the same hash are cached." },
+]
+
+function FAQ() {
+  const [open, setOpen] = useState<number | null>(null)
+
+  return (
+    <section style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 32px' }}>
+        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>FAQ</div>
+        <h2 style={{ fontSize: 40, fontWeight: 300, marginBottom: 64, lineHeight: 1.2 }}>Common questions</h2>
+        <div>
+          {FAQ_ITEMS.map((item, idx) => (
+            <div key={idx} style={{ borderBottom: '1px solid #1a1a1a' }}>
+              <button
+                onClick={() => setOpen(open === idx ? null : idx)}
+                style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '18px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', textAlign: 'left' }}
+              >
+                <span style={{ color: '#fff', fontSize: 15, fontFamily: 'inherit' }}>{item.q}</span>
+                <span style={{ color: '#00ff88', fontSize: 20, flexShrink: 0, marginLeft: 16, fontFamily: 'var(--font-mono,monospace)' }}>{open === idx ? '−' : '+'}</span>
+              </button>
+              <div style={{ maxHeight: open === idx ? 300 : 0, overflow: 'hidden', transition: 'max-height 0.3s ease' }}>
+                <p style={{ color: '#666', fontSize: 14, lineHeight: 1.7, paddingBottom: 18 }}>{item.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ─── PRICING ────────────────────────────────────────────────────────────── */
+
 function PricingFeature({ label }: { label: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
@@ -1122,8 +1312,7 @@ function Pricing() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
-        document.cookie = 'gate402_intent=checkout; path=/; max-age=300; samesite=lax'
-        window.location.href = '/login'
+        window.location.href = '/login?intent=checkout'
         return
       }
 
@@ -1493,6 +1682,9 @@ export default function LandingPage() {
       <AgentFlow />
       <Features />
       <CodeSection />
+      <HowAgentsPay />
+      <TwoWallets />
+      <FAQ />
       <Pricing />
       <FinalCTA />
       <Footer />

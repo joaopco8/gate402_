@@ -4,6 +4,7 @@ import { createClient } from '../../../../lib/supabase/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const intent = searchParams.get('intent')
 
   if (code) {
     const supabase = await createClient()
@@ -20,7 +21,8 @@ export async function GET(request: Request) {
         })
       } catch {}
 
-      return NextResponse.redirect(`${origin}/post-login`)
+      const dest = intent ? `${origin}/post-login?intent=${intent}` : `${origin}/post-login`
+      return NextResponse.redirect(dest)
     }
   }
 

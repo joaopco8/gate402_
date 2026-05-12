@@ -1,46 +1,67 @@
-import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
-import { createClient } from '../../../lib/supabase/server'
+'use client'
 
-export default async function PostLoginPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+import { useEffect } from 'react'
+import { createClient } from '../../../lib/supabase/client'
 
-  if (!user) {
-    redirect('/login')
-  }
+export default function PostLoginPage() {
+  useEffect(() => {
+    async function go() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
 
-  const cookieStore = await cookies()
-  const intent = cookieStore.get('gate402_intent')?.value
-  const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
-
-  // If checkout intent was set before login, call billing API and redirect to Stripe
-  if (intent === 'checkout') {
-    try {
-      const res = await fetch(`${SERVER_URL}/api/billing/checkout`, {
-        method: 'POST',
-        headers: { 'x-user-id': user.id },
-      })
-      const data = await res.json()
-      if (data.url) {
-        // Clear the intent cookie and redirect to Stripe
-        redirect(data.url)
+      if (!user) {
+        window.location.href = '/login'
+        return
       }
-    } catch {}
-  }
 
-  // No intent — decide based on user profile
-  try {
-    const res = await fetch(`${SERVER_URL}/api/users/me`, {
-      headers: { 'x-user-id': user.id },
-    })
-    if (res.ok) {
-      const userData = await res.json()
-      if (userData.totalEndpoints === 0 && userData.totalCalls === 0) {
-        redirect('/onboarding')
+      const intent = new URLSearchParams(window.location.search).get('intent')
+
+      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+
+      if (intent === 'checkout') {
+        try {
+          const res = await fetch(`${SERVER_URL}/api/billing/checkout`, {
+            method: 'POST',
+            headers: { 'x-user-id': user.id },
+          })
+          const data = await res.json()
+          if (data.url) {
+            window.location.href = data.url
+            return
+          }
+        } catch {}
       }
+
+      try {
+        const res = await fetch(`${SERVER_URL}/api/users/me`, {
+          headers: { 'x-user-id': user.id },
+        })
+        if (res.ok) {
+          const userData = await res.json()
+          if (userData.totalEndpoints === 0 && userData.totalCalls === 0) {
+            window.location.href = '/onboarding'
+            return
+          }
+        }
+      } catch {}
+
+      window.location.href = '/dashboard'
     }
-  } catch {}
+    go()
+  }, [])
 
-  redirect('/dashboard')
+  return (
+    <div style={{
+      background: '#000',
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'monospace',
+      color: '#555',
+      fontSize: 13,
+    }}>
+      Redirecting...
+    </div>
+  )
 }
