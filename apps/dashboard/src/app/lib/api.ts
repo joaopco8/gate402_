@@ -114,6 +114,36 @@ export async function getAllCalls() {
   return data;
 }
 
+export interface Transaction {
+  id: string;
+  endpoint: string;
+  totalAmount: number;
+  providerAmount: number;
+  platformFee: number;
+  status: string;
+  txHashProvider: string;
+  network: string;
+  createdAt: string;
+}
+
+export interface TransactionStats {
+  totalGross: number;
+  totalNet: number;
+  totalFeesPaid: number;
+  transactionCount: number;
+}
+
+export async function getTransactions(): Promise<{ transactions: Transaction[]; stats: TransactionStats }> {
+  try {
+    const userId = await getUserId();
+    const headers = userId ? { 'x-user-id': userId } : {};
+    const { data } = await axios.get(`${SERVER_URL}/api/transactions`, { headers });
+    return data;
+  } catch {
+    return { transactions: [], stats: { totalGross: 0, totalNet: 0, totalFeesPaid: 0, transactionCount: 0 } };
+  }
+}
+
 export async function toggleEndpoint(id: string, active: boolean) {
   const userId = await getUserId();
   const headers = userId ? { 'x-user-id': userId } : {};

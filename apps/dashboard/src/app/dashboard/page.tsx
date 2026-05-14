@@ -10,7 +10,7 @@ import DashboardLayout from '../components/DashboardLayout';
 import PageContainer from '../components/PageContainer';
 import PageHeader from '../components/PageHeader';
 import Card from '../components/Card';
-import { getMetrics, getCallsPerDay, getRecentCalls, getEndpoints, getEndpointRevenue, type Metrics, type DayData, type RecentCall } from '../lib/api';
+import { getMetrics, getCallsPerDay, getRecentCalls, getEndpoints, getEndpointRevenue, getTransactions, type Metrics, type DayData, type RecentCall, type Transaction, type TransactionStats } from '../lib/api';
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -58,19 +58,24 @@ export default function DashboardPage() {
   const [projection, setProjection] = useState<number>(0);
   const [endpointRevenue, setEndpointRevenue] = useState<{ name: string; value: number; calls: number }[]>([]);
   const [animated, setAnimated] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [txStats, setTxStats] = useState<TransactionStats>({ totalGross: 0, totalNet: 0, totalFeesPaid: 0, transactionCount: 0 });
 
   async function fetchAll() {
-    const [m, c, r, endpointList, rev] = await Promise.all([
+    const [m, c, r, endpointList, rev, txData] = await Promise.all([
       getMetrics(),
       getCallsPerDay(7, selectedEndpoint),
       getRecentCalls(),
       getEndpoints(),
       getEndpointRevenue(),
+      getTransactions(),
     ]);
     setMetrics(m);
     setChartData(c);
     setRecentCalls(r);
     setEndpointRevenue(Array.isArray(rev) ? rev : []);
+    setTransactions(txData.transactions ?? []);
+    setTxStats(txData.stats ?? { totalGross: 0, totalNet: 0, totalFeesPaid: 0, transactionCount: 0 });
     const paths = Array.isArray(endpointList)
       ? endpointList.map((e: { path: string }) => e.path)
       : [];
@@ -313,6 +318,80 @@ export default function DashboardPage() {
                 );
               });
             })()}
+          </Card>
+        )}
+
+        {/* Revenue Breakdown */}
+        {!loading && (
+          <Card style={{ padding: '24px 28px', marginBottom: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.1em' }}>REVENUE BREAKDOWN</div>
+              <div style={{ fontSize: 10, color: '#333', fontFamily: 'var(--font-code)' }}>1% platform fee on each transaction</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              {[
+                { label: 'Gross Revenue', value: txStats.totalGross, color: '#fff' },
+                { label: 'Net Revenue', value: txStats.totalNet, color: '#00ff88' },
+                { label: 'Platform Fees', value: txStats.totalFeesPaid, color: '#666' },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '16px 20px' }}>
+                  <div style={{ fontSize: 10, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.08em', marginBottom: 10 }}>{label.toUpperCase()}</div>
+                  <div style={{ fontSize: 24, fontWeight: 300, color, fontFamily: 'var(--font-code)', letterSpacing: '-0.02em' }}>
+                    ${value.toFixed(4)}
+                  </div>
+                  <div style={{ fontSize: 10, color: '#333', fontFamily: 'var(--font-code)', marginTop: 4 }}>USDC</div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Recent Transactions */}
+        {!loading && transactions.length > 0 && (
+          <Card style={{ overflow: 'hidden', padding: 0, marginBottom: 24 }}>
+            <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-code)', letterSpacing: '0.08em' }}>RECENT TRANSACTIONS</div>
+              <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)' }}>{txStats.transactionCount} total</div>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  {['Endpoint', 'Gross', 'Net (yours)', 'Fee (1%)', 'Status', 'Time'].map(h => (
+                    <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontWeight: 400, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-code)', letterSpacing: '0.05em' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.slice(0, 10).map(tx => (
+                  <tr
+                    key={tx.id}
+                    style={{ borderBottom: '1px solid var(--border)', transition: 'background 150ms' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <td style={{ padding: '12px 20px', color: '#fff', fontFamily: 'var(--font-code)', fontSize: 12 }}>{tx.endpoint}</td>
+                    <td style={{ padding: '12px 20px', color: '#666', fontFamily: 'var(--font-code)', fontSize: 12 }}>${tx.totalAmount.toFixed(4)}</td>
+                    <td style={{ padding: '12px 20px', color: '#00ff88', fontFamily: 'var(--font-code)', fontSize: 12 }}>${tx.providerAmount.toFixed(4)}</td>
+                    <td style={{ padding: '12px 20px', color: '#444', fontFamily: 'var(--font-code)', fontSize: 12 }}>${tx.platformFee.toFixed(6)}</td>
+                    <td style={{ padding: '12px 20px' }}>
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        borderRadius: 4,
+                        fontSize: 11,
+                        fontFamily: 'var(--font-code)',
+                        background: tx.status === 'verified' ? 'rgba(0,255,136,0.08)' : tx.status === 'demo' ? 'rgba(153,69,255,0.08)' : 'rgba(255,255,255,0.04)',
+                        color: tx.status === 'verified' ? '#00ff88' : tx.status === 'demo' ? '#9945FF' : '#666',
+                        border: `1px solid ${tx.status === 'verified' ? 'rgba(0,255,136,0.2)' : tx.status === 'demo' ? 'rgba(153,69,255,0.2)' : '#1a1a1a'}`,
+                      }}>
+                        {tx.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px 20px', color: 'var(--text-muted)', fontSize: 12 }}>{timeAgo(tx.createdAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </Card>
         )}
 

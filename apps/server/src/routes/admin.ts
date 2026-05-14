@@ -35,8 +35,30 @@ router.get('/admin/revenue', async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
-  const stats = await getRevenueStats()
-  return res.json(stats)
+  const [revenueStats, recentFees, topProviders] = await Promise.all([
+    prisma.revenueLog.aggregate({
+      _sum: { amount: true },
+      _count: { id: true },
+    }),
+    prisma.revenueLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    }),
+    prisma.transaction.groupBy({
+      by: ['userId'],
+      _sum: { totalAmount: true, platformFee: true },
+      _count: { id: true },
+      orderBy: { _sum: { totalAmount: 'desc' } },
+      take: 10,
+    }),
+  ])
+
+  return res.json({
+    totalRevenue: revenueStats._sum.amount ?? 0,
+    totalTransactions: revenueStats._count.id,
+    recentFees,
+    topProviders,
+  })
 })
 
 export default router

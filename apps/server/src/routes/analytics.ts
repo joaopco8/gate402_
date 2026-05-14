@@ -131,4 +131,49 @@ router.get('/endpoints/revenue', async (req, res) => {
   }
 });
 
+// GET /api/transactions
+router.get('/transactions', async (req, res) => {
+  try {
+    const internalId = await getInternalUserId(req.headers['x-user-id'] as string | undefined);
+    if (!internalId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const [transactions, stats] = await Promise.all([
+      prisma.transaction.findMany({
+        where: { userId: internalId },
+        include: { splits: true, endpoint: { select: { path: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }),
+      prisma.transaction.aggregate({
+        where: { userId: internalId, status: { in: ['verified', 'demo'] } },
+        _sum: { totalAmount: true, providerAmount: true, platformFee: true },
+        _count: { id: true },
+      }),
+    ]);
+
+    return res.json({
+      transactions: transactions.map(t => ({
+        id: t.id,
+        endpoint: t.endpoint.path,
+        totalAmount: t.totalAmount,
+        providerAmount: t.providerAmount,
+        platformFee: t.platformFee,
+        status: t.status,
+        txHashProvider: t.txHashProvider,
+        network: t.network,
+        createdAt: t.createdAt,
+      })),
+      stats: {
+        totalGross: stats._sum.totalAmount ?? 0,
+        totalNet: stats._sum.providerAmount ?? 0,
+        totalFeesPaid: stats._sum.platformFee ?? 0,
+        transactionCount: stats._count.id,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;
