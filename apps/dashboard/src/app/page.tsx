@@ -205,6 +205,8 @@ const CSS = `
     .timeline-grid-7 { grid-template-columns: repeat(2, 1fr) !important; }
     .provider-steps-grid { grid-template-columns: 1fr !important; }
     .stats-bar-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .hood-grid { grid-template-columns: 1fr !important; }
+    .hood-card-8 { flex-direction: column !important; align-items: flex-start !important; }
   }
 `
 
@@ -1295,42 +1297,179 @@ function AgentSide() {
   )
 }
 
-const TIMELINE_STEPS = [
-  { n: '01', title: 'Request arrives',  desc: 'Agent makes HTTP request to your endpoint',           dotBg: '#000',                 dotBorder: '#1a1a1a',             dotColor: '#444' },
-  { n: '02', title: 'Intercepted',      desc: 'gate402 middleware catches it before your handler',   dotBg: '#000',                 dotBorder: '#1a1a1a',             dotColor: '#444' },
-  { n: '03', title: 'HTTP 402',         desc: 'Returns price, currency, and your wallet address',    dotBg: '#000',                 dotBorder: '#1a1a1a',             dotColor: '#444' },
-  { n: '04', title: 'Agent pays',       desc: 'USDC sent directly to your wallet on Solana',         dotBg: '#000',                 dotBorder: '#1a1a1a',             dotColor: '#444' },
-  { n: '05', title: 'Proof sent',       desc: 'Transaction hash in X-Payment-Payload header',        dotBg: '#000',                 dotBorder: '#1a1a1a',             dotColor: '#444' },
-  { n: '06', title: 'Verified',         desc: 'Solana RPC confirms amount and recipient on-chain',   dotBg: 'rgba(245,158,11,0.1)', dotBorder: 'rgba(245,158,11,0.3)', dotColor: '#f59e0b' },
-  { n: '07', title: 'Access granted',   desc: 'Handler executes. USDC already in your wallet.',      dotBg: 'rgba(0,255,136,0.1)',  dotBorder: 'rgba(0,255,136,0.3)',  dotColor: '#00ff88' },
+const HOOD_CARDS = [
+  {
+    n: '01', span: 1,
+    title: 'Request arrives',
+    desc: 'Your agent makes an HTTP request to the protected endpoint. Any method, any payload.',
+    detail: 'GET /api/data HTTP/1.1',
+    dot: null,
+  },
+  {
+    n: '02', span: 1,
+    title: 'Middleware intercepts',
+    desc: 'gate402 catches the request before it reaches your handler. Zero changes to your business logic.',
+    detail: 'app.use(gate402({ ... }))',
+    dot: null,
+  },
+  {
+    n: '03', span: 1,
+    title: 'HTTP 402 returned',
+    desc: 'The standard Payment Required response. Includes price, currency, and your wallet address.',
+    detail: '402 Payment Required',
+    dot: null,
+  },
+  {
+    n: '04', span: 1,
+    title: 'Agent pays on Solana',
+    desc: 'USDC is sent directly to your wallet. Gate402 never holds your funds. Non-custodial by design.',
+    detail: '→ 0.001 USDC · 7UQct...939D',
+    dot: null,
+  },
+  {
+    n: '05', span: 1,
+    title: 'Transaction confirmed',
+    desc: 'Solana confirms the transaction in under 400ms. The agent receives the transaction hash.',
+    detail: '✓ confirmed · 412ms',
+    dot: null,
+  },
+  {
+    n: '06', span: 1,
+    title: 'Proof submitted',
+    desc: 'The agent retries the request with the transaction hash in the X-Payment-Payload header.',
+    detail: 'X-Payment-Payload: 5kWq...',
+    dot: 'amber',
+  },
+  {
+    n: '07', span: 1,
+    title: 'Verified on-chain',
+    desc: 'Gate402 queries Solana to confirm the payment reached the correct wallet with the correct amount. Replay attacks blocked.',
+    detail: 'RPC → verified ✓',
+    dot: 'amber',
+  },
 ]
 
-function HowItWorksTimeline() {
+function HoodCard({ card }: { card: typeof HOOD_CARDS[number] }) {
+  const [hovered, setHovered] = useState(false)
   return (
-    <section style={{ background: '#000', padding: '96px 0', borderTop: '1px solid #1a1a1a' }}>
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ background: hovered ? '#030303' : '#000', padding: 32, position: 'relative', transition: 'background 150ms' }}
+    >
+      {/* Decorative number */}
+      <div style={{
+        position: 'absolute', top: 20, right: 24,
+        fontFamily: 'var(--font-mono, monospace)', fontSize: 72, fontWeight: 700,
+        color: hovered ? '#111' : '#0d0d0d', lineHeight: 1,
+        userSelect: 'none', pointerEvents: 'none', transition: 'color 150ms',
+      }}>{card.n}</div>
+
+      {/* Step badge + dot */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+        <span style={{
+          display: 'inline-block',
+          fontFamily: 'var(--font-mono, monospace)', fontSize: 9, color: '#333',
+          letterSpacing: '0.12em', background: '#0a0a0a', border: '1px solid #1a1a1a',
+          borderRadius: 3, padding: '3px 8px',
+        }}>STEP {card.n}</span>
+        {card.dot === 'amber' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />}
+        {card.dot === 'green' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00ff88', display: 'inline-block' }} />}
+      </div>
+
+      <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 500, fontSize: 17, color: '#fff', marginBottom: 8 }}>{card.title}</div>
+      <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#555', lineHeight: 1.7, margin: 0 }}>{card.desc}</p>
+
+      {card.detail && (
+        <div style={{
+          display: 'inline-block', marginTop: 16,
+          fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333',
+          background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 4, padding: '6px 12px',
+        }}>{card.detail}</div>
+      )}
+    </div>
+  )
+}
+
+function HowItWorksTimeline() {
+  const [hovered8, setHovered8] = useState(false)
+  return (
+    <section style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ marginBottom: 64 }}>
-          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', letterSpacing: '0.12em', marginBottom: 16 }}>UNDER THE HOOD</div>
-          <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 40, color: '#fff', lineHeight: 1.1 }}>Seven steps. Under one second.</h2>
+
+        {/* Header */}
+        <div style={{ marginBottom: 48 }}>
+          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333', letterSpacing: '0.15em', marginBottom: 16 }}>UNDER THE HOOD</div>
+          <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 52, lineHeight: 1.1, marginBottom: 16 }}>
+            <span style={{ color: '#fff' }}>Seven steps.</span>
+            <span style={{ color: '#333' }}> Under one second.</span>
+          </h2>
+          <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#555', margin: 0 }}>
+            Every payment. Every time. Fully verified on-chain.
+          </p>
         </div>
-        <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', left: 11, top: 0, bottom: 0, width: 1, background: 'linear-gradient(to bottom, #1a1a1a, transparent)' }} />
-          {TIMELINE_STEPS.map((step, i) => (
-            <div key={i} style={{ display: 'flex', gap: 24, marginBottom: 32 }}>
+
+        {/* Separator */}
+        <div style={{ height: 1, background: '#111', marginBottom: 48 }} />
+
+        {/* Grid wrapper */}
+        <div style={{ background: '#111', borderRadius: 12, overflow: 'hidden' }}>
+          {/* 7 cards in 2-column grid */}
+          <div className="hood-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+            {HOOD_CARDS.map((card) => (
+              <HoodCard key={card.n} card={card} />
+            ))}
+
+            {/* Card 8 — full width */}
+            <div
+              className="hood-card-8"
+              onMouseEnter={() => setHovered8(true)}
+              onMouseLeave={() => setHovered8(false)}
+              style={{
+                gridColumn: '1 / -1',
+                background: hovered8 ? '#030303' : '#000',
+                padding: 32, position: 'relative',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32,
+                transition: 'background 150ms',
+              }}
+            >
+              {/* Decorative number */}
               <div style={{
-                width: 23, height: 23, borderRadius: '50%', flexShrink: 0,
-                border: `1px solid ${step.dotBorder}`, background: step.dotBg,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--font-mono, monospace)', fontSize: 9, color: step.dotColor, marginTop: 2,
-              }}>
-                {step.n}
+                position: 'absolute', top: 20, right: 40,
+                fontFamily: 'var(--font-mono, monospace)', fontSize: 96, fontWeight: 700,
+                color: hovered8 ? '#111' : '#0d0d0d', lineHeight: 1,
+                userSelect: 'none', pointerEvents: 'none', transition: 'color 150ms',
+              }}>08</div>
+
+              {/* Left: text */}
+              <div style={{ flex: 1, zIndex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                  <span style={{
+                    display: 'inline-block',
+                    fontFamily: 'var(--font-mono, monospace)', fontSize: 9, color: '#333',
+                    letterSpacing: '0.12em', background: '#0a0a0a', border: '1px solid #1a1a1a',
+                    borderRadius: 3, padding: '3px 8px',
+                  }}>STEP 08</span>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00ff88', display: 'inline-block' }} />
+                </div>
+                <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 500, fontSize: 17, color: '#fff', marginBottom: 8 }}>Access granted</div>
+                <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#555', lineHeight: 1.7, margin: 0, maxWidth: 480 }}>
+                  Your handler executes. The response is returned to the agent. USDC is already in your wallet.
+                </p>
               </div>
-              <div>
-                <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 500, fontSize: 14, color: '#fff', marginBottom: 4 }}>{step.title}</div>
-                <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#888', lineHeight: 1.6, margin: 0 }}>{step.desc}</p>
+
+              {/* Right: badge */}
+              <div style={{
+                flexShrink: 0, zIndex: 1,
+                background: 'rgba(0,255,136,0.06)', border: '1px solid rgba(0,255,136,0.15)',
+                borderRadius: 8, padding: '20px 32px',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+              }}>
+                <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 24, color: '#00ff88', fontWeight: 600 }}>200 OK</span>
+                <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333' }}>handler executed</span>
               </div>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </section>
