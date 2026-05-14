@@ -22,7 +22,8 @@ interface CachedPricing {
 async function getCachedEndpoint(
   fullPath: string,
   shortPath: string,
-  apiKey?: string
+  apiKey?: string,
+  toolPath?: string
 ): Promise<CachedPricing | null> {
   const cacheKey = apiKey
     ? `pricing:apikey:${apiKey}:${fullPath}`
@@ -37,12 +38,15 @@ async function getCachedEndpoint(
   let result: CachedPricing | null = null;
 
   if (apiKey) {
+    // Try fullPath first, then toolPath for MCP calls
+    const pathsToTry = [fullPath, ...(toolPath ? [toolPath] : [])];
     const user = await prisma.user.findUnique({
       where: { apiKey },
-      include: { endpoints: { where: { path: fullPath, active: true } } },
+      include: { endpoints: { where: { path: { in: pathsToTry }, active: true } } },
     });
     if (user && user.endpoints.length > 0 && user.walletAddress) {
-      const ep = user.endpoints[0];
+      // Prefer exact fullPath match, fallback to toolPath
+      const ep = user.endpoints.find(e => e.path === fullPath) ?? user.endpoints[0];
       result = {
         endpointId: ep.id,
         price: ep.priceUsdc,
@@ -58,7 +62,10 @@ async function getCachedEndpoint(
     }) ?? await prisma.endpoint.findFirst({
       where: { path: shortPath, active: true },
       include: { user: true },
-    });
+    }) ?? (toolPath ? await prisma.endpoint.findFirst({
+      where: { path: toolPath, active: true },
+      include: { user: true },
+    }) : null);
 
     if (ep) {
       result = {
@@ -98,8 +105,15 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
     const apiKey = req.headers['x-api-key'] as string | undefined;
     const agentWallet = req.headers['x-agent-wallet'] as string | undefined;
 
+    // MCP tool calls: extract tool name from JSON-RPC body
+    const mcpToolName = (req.body as { method?: string; params?: { name?: string } } | undefined)
+      ?.method?.startsWith('tools/call')
+      ? (req.body as { params?: { name?: string } })?.params?.name
+      : undefined;
+    const toolPath = mcpToolName ? `/tools/${mcpToolName}` : undefined;
+
     // 1. Busca pricing (Redis cache → DB fallback)
-    const pricing = await getCachedEndpoint(fullPath, shortPath, apiKey);
+    const pricing = await getCachedEndpoint(fullPath, shortPath, apiKey, toolPath);
 
     // Endpoint não cadastrado — deixa passar
     if (!pricing) {

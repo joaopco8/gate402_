@@ -1,0 +1,19 @@
+{
+  "name": "create-gate402-mcp",
+  "version": "0.1.0",
+  "description": "Create a Gate402-powered MCP server in seconds",
+  "bin": {
+    "create-gate402-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@types/prompts": "^2.4.9"
+  }
+}
