@@ -52,4 +52,5 @@ export interface SpendingLog {
   amount: number
   txHash: string
   success: boolean
+  meteringCost?: number
 }

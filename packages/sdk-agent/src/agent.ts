@@ -195,6 +195,45 @@ export class Gate402Agent {
     })
   }
 
+  private extractBilling(responseBody: unknown): {
+    hasBilling: boolean
+    totalCost: number
+    type: string
+  } {
+    const body = responseBody as Record<string, any>
+    if (!body?._billing) return { hasBilling: false, totalCost: 0, type: '' }
+    return {
+      hasBilling: true,
+      totalCost: body._billing.totalCost || 0,
+      type: body._billing.type || 'unknown',
+    }
+  }
+
+  async fetchWithMetering(url: string, options: RequestInit = {}): Promise<{
+    response: Response
+    data: unknown
+    meteringCost?: number
+  }> {
+    const response = await this.fetch(url, options)
+    const data = await response.json() as Record<string, unknown>
+
+    const billing = this.extractBilling(data)
+
+    if (billing.hasBilling && billing.totalCost > 0) {
+      this.log(`Post-execution billing: ${billing.totalCost} USDC (${billing.type})`)
+
+      const { _billing, ...cleanData } = data
+
+      // Log metering cost against last spending entry
+      const last = this.spendingLog[this.spendingLog.length - 1]
+      if (last) last.meteringCost = billing.totalCost
+
+      return { response, data: cleanData, meteringCost: billing.totalCost }
+    }
+
+    return { response, data }
+  }
+
   async demoFetch(url: string, options: RequestInit = {}): Promise<Response> {
     this.log('Demo fetch:', url)
 
@@ -225,6 +264,7 @@ export class Gate402Agent {
       totalSpent: successful.reduce((sum, l) => sum + l.amount, 0),
       lastHourSpent: this.getSpentInWindow(3600 * 1000),
       lastDaySpent: this.getSpentInWindow(24 * 3600 * 1000),
+      meteringCosts: successful.reduce((sum, l) => sum + (l.meteringCost || 0), 0),
       walletAddress: this.wallet.publicKey,
       log: this.spendingLog,
     }
