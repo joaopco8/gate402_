@@ -245,31 +245,22 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         console.error('[x402] Failed to log api call:', e);
       }
 
-      // 6d. Transaction + Splits
-      try {
-        // Resolve userId if null from pricing cache (e.g. demo endpoint without owner)
-        let resolvedUserId = userId;
-        if (!resolvedUserId && endpointId) {
-          const ep = await prisma.endpoint.findUnique({
-            where: { id: endpointId },
-            select: { userId: true },
-          });
-          resolvedUserId = ep?.userId ?? null;
-          console.log('[transaction] resolved userId from endpoint:', resolvedUserId);
-        }
+      // 6d. Transaction + Splits — fresh endpoint lookup with user relation
+      console.log('[transaction] creating record...');
+      const endpointForTx = await findEndpointRecord(fullPath, shortPath);
+      console.log('[transaction] endpoint found:', !!endpointForTx);
+      console.log('[transaction] user found:', !!endpointForTx?.user);
+      console.log('[transaction] userId:', endpointForTx?.user?.id ?? null);
+      console.log('[transaction] endpointId:', endpointForTx?.id ?? null);
 
-        console.log('[transaction] creating record...');
-        console.log('[transaction] userId:', resolvedUserId);
-        console.log('[transaction] endpointId:', endpointId);
-        console.log('[transaction] txHashProvider:', txHashProviderToLog);
-
-        if (!resolvedUserId || !endpointId) {
-          console.error('[transaction] skipped — missing userId or endpointId');
-        } else {
+      if (!endpointForTx || !endpointForTx.user) {
+        console.error('[transaction] skipped — endpoint or user not found in DB');
+      } else {
+        try {
           const transaction = await prisma.transaction.create({
             data: {
-              userId: resolvedUserId,
-              endpointId,
+              userId: endpointForTx.user.id,
+              endpointId: endpointForTx.id,
               txHashProvider: txHashProviderToLog,
               txHashPlatform: effectiveTxPlatform !== txHashProviderToLog ? effectiveTxPlatform : null,
               totalAmount,
@@ -300,13 +291,12 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
               },
             },
           });
-          console.log('[transaction] created:', transaction.id);
+          console.log('[transaction] created successfully:', transaction.id);
+        } catch (e: unknown) {
+          const err = e as Error & { code?: string };
+          console.error('[transaction] create failed:', err.message);
+          console.error('[transaction] error code:', err.code);
         }
-      } catch (e: unknown) {
-        const err = e as Error & { code?: string };
-        console.error('[transaction] create failed:', err.message);
-        console.error('[transaction] error code:', err.code);
-        console.error('[transaction] full error:', err);
       }
 
       // 6c. Email alert
