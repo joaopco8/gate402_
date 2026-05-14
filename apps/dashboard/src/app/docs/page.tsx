@@ -579,146 +579,218 @@ app.use(gate402({
             Prices are cached with Redis for 60 seconds. Add endpoints at gate402.dev/dashboard → Endpoints.
           </Callout>
 
-          <H2 id="token-metering">Token metering</H2>
-          <P>For LLM-backed APIs, charge per output token instead of per request. Gate402 reads the response and calculates the charge dynamically.</P>
-          <CodeBlock lang="typescript" code={`app.use(gate402({
-  apiKey: '...',
-  walletAddress: '...',
-  metering: {
-    type: 'tokens',
-    pricePerToken: 0.000001,  // $0.000001 per token
-    tokenField: 'usage.output_tokens',  // path in response JSON
-  }
-}))`} />
+          <H2 id="token-metering">Token Metering</H2>
+          <P>Charge per token consumed. Ideal for LLM-powered APIs.</P>
+          <CodeBlock lang="typescript" code={`import { gate402, tokenMeter } from 'gate402'
 
-          <H2 id="compute-metering">Compute metering</H2>
-          <P>Charge based on wall-clock execution time. Useful for compute-heavy endpoints like video processing or ML inference.</P>
-          <CodeBlock lang="typescript" code={`app.use(gate402({
-  apiKey: '...',
-  walletAddress: '...',
-  metering: {
-    type: 'compute',
-    pricePerSecond: 0.001,   // $0.001 per second
-    minCharge: 0.0001,       // minimum charge
-  }
-}))`} />
-
-          <H2 id="webhooks">Webhooks</H2>
-          <P>Receive a webhook on every successful payment. Useful for logging, analytics, or triggering downstream workflows.</P>
-          <CodeBlock lang="typescript" code={`app.use(gate402({
-  apiKey: '...',
-  walletAddress: '...',
-  endpoints: { '/api/data': 0.001 },
-  webhook: {
-    url: 'https://your-server.com/webhook',
-    secret: process.env.WEBHOOK_SECRET,
-  }
+// 1. Charge minimum entry fee upfront
+app.use('/api/chat', gate402({
+  apiKey: process.env.GATE402_API_KEY,
+  endpoints: { '/api/chat': 0.001 }
 }))
 
-// Webhook payload (POST to your URL):
-// {
-//   event: 'payment.verified',
-//   txHash: '5kWq...',
-//   amount: 0.001,
-//   endpoint: '/api/data',
-//   callerIp: '1.2.3.4',
-//   timestamp: '2026-05-14T12:00:00Z'
-// }`} />
+// 2. Measure actual tokens after execution
+app.use('/api/chat', tokenMeter({
+  pricePerToken: 0.000001,   // $0.000001 per token
+  serverUrl: 'https://api.gate402.dev',
+  apiKey: process.env.GATE402_API_KEY,
+  tokenCounter: (req, res) => res.locals.tokensUsed || 0
+}))
+
+app.post('/api/chat', async (req, res) => {
+  const response = await callOpenAI(req.body.message)
+  res.locals.tokensUsed = response.usage.total_tokens
+  res.json({ reply: response.text })
+  // _billing metadata automatically added to response
+})`} />
+          <H3>Response with billing metadata</H3>
+          <CodeBlock lang="json" code={`{
+  "reply": "Hello! How can I help?",
+  "_billing": {
+    "type": "token",
+    "tokensUsed": 42,
+    "pricePerToken": 0.000001,
+    "totalCost": 0.000042,
+    "currency": "USDC",
+    "settleAt": "https://api.gate402.dev/api/metering/settle"
+  }
+}`} />
+
+          <H2 id="compute-metering">Compute Metering</H2>
+          <P>Charge per millisecond of execution. Ideal for heavy compute APIs.</P>
+          <CodeBlock lang="typescript" code={`import { gate402, computeMeter } from 'gate402'
+
+app.use('/api/process', gate402({
+  apiKey: process.env.GATE402_API_KEY,
+  endpoints: { '/api/process': 0.001 }
+}))
+
+app.use('/api/process', computeMeter({
+  pricePerMs: 0.0000001,   // $0.0000001 per millisecond
+  serverUrl: 'https://api.gate402.dev',
+  apiKey: process.env.GATE402_API_KEY,
+}))
+
+app.post('/api/process', async (req, res) => {
+  const result = await heavyComputation(req.body.data)
+  res.json({ result })
+  // _billing: { computeMs: 342, totalCost: 0.0000342 }
+})`} />
+
+          <H2 id="webhooks">Webhooks</H2>
+          <P>Receive a POST request after each confirmed payment.</P>
+          <H3>Setup</H3>
+          <P>Go to gate402.dev/settings → Webhooks → Add URL</P>
+          <H3>Payload</H3>
+          <CodeBlock lang="json" code={`{
+  "event": "payment.confirmed",
+  "endpoint": "/api/data",
+  "amount": 0.001,
+  "currency": "USDC",
+  "network": "devnet",
+  "txHash": "5kWq9mLP3rTxHJzUvBnCs...",
+  "payerWallet": "DcL4mMaqX4FAHg4Cp1SstvMSMWytoXo93ktWycgGYABE",
+  "timestamp": "2026-05-14T12:00:00Z"
+}`} />
+          <H3>Verifying signatures</H3>
+          <CodeBlock lang="typescript" code={`import crypto from 'crypto'
+
+app.post('/webhook',
+  express.raw({ type: 'application/json' }),
+  (req, res) => {
+    const signature = req.headers['x-gate402-signature'] as string
+    const secret = process.env.GATE402_WEBHOOK_SECRET
+
+    const expected = crypto
+      .createHmac('sha256', secret)
+      .update(JSON.stringify(req.body))
+      .digest('hex')
+
+    if (signature !== \`sha256=\${expected}\`) {
+      return res.status(401).json({ error: 'Invalid signature' })
+    }
+
+    const event = req.body
+    console.log('Payment:', event.amount, 'USDC from', event.payerWallet)
+
+    res.json({ received: true })
+  }
+)`} />
 
           <H2 id="python-sdk">Python SDK</H2>
-          <Callout type="warning">Python SDK is in beta. Install with pip install gate402-py</Callout>
-          <CodeBlock lang="python" code={`from gate402 import Gate402Middleware
+          <H3>Flask</H3>
+          <CodeBlock lang="python" code={`from gate402 import gate402, Gate402Config
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+gw = gate402(Gate402Config(
+    api_key='your-api-key',
+    server_url='https://api.gate402.dev',
+    endpoints={'/api/data': 0.001}
+))
+
+@app.before_request
+def check_payment():
+    return gw.handle_flask(request)
+
+@app.route('/api/data')
+def data():
+    return jsonify({'result': 'you paid!'})`} />
+          <H3>FastAPI</H3>
+          <CodeBlock lang="python" code={`from gate402 import gate402, Gate402Config
 from fastapi import FastAPI
 
 app = FastAPI()
+gw = gate402(Gate402Config(api_key='your-api-key'))
+app.middleware('http')(gw.handle_fastapi)
 
-gate402 = Gate402Middleware(
-    api_key=os.environ["GATE402_API_KEY"],
-    wallet_address=os.environ["SOLANA_WALLET"],
-    endpoints={
-        "/api/data": 0.001,
-        "/api/premium": 0.010,
-    }
-)
-
-app.add_middleware(gate402)
-
-@app.get("/api/data")
-async def get_data():
-    return {"result": "your data here"}`} />
+@app.get('/api/data')
+async def data():
+    return {'result': 'you paid!'}`} />
 
           {/* ══ FOR AGENT OPERATORS ══ */}
-          <H2 id="agent-installation">Agent installation</H2>
-          <P>x402-fetch is a drop-in replacement for the native fetch that automatically handles 402 responses — paying the required amount and retrying the request.</P>
-          <Terminal title="bash" lines={[
-            { type: 'command', text: 'npm install x402-fetch @solana/web3.js' },
-            { type: 'success', text: '+ x402-fetch@0.3.1' },
+          <H2 id="agent-installation">Installation</H2>
+          <Terminal title="install" lines={[
+            { type: 'command', text: 'npm install gate402-agent' },
           ]} />
-          <CodeBlock lang="typescript" code={`import { wrapFetch } from 'x402-fetch'
-import { Keypair } from '@solana/web3.js'
+          <H3>Basic usage</H3>
+          <CodeBlock lang="typescript" code={`import { Gate402Agent } from 'gate402-agent'
 
-// Load agent wallet from env
-const secretKey = Uint8Array.from(JSON.parse(process.env.AGENT_WALLET_KEY!))
-const agentWallet = Keypair.fromSecretKey(secretKey)
-
-// Wrap fetch — payments are automatic
-const fetch = wrapFetch({
-  wallet: agentWallet,
-  network: 'mainnet',
-  maxAutoPayment: 0.01,  // never auto-pay more than $0.01 per call
+const agent = new Gate402Agent({
+  privateKey: process.env.AGENT_WALLET_PRIVATE_KEY,
+  network: 'devnet',
+  debug: true,
 })
 
-// Call any Gate402-protected API
-const res = await fetch('https://weather-api.example.com/api/weather')
+// Pays automatically on HTTP 402 — no extra code needed
+const res = await agent.fetch('https://api.example.com/data')
 const data = await res.json()
-console.log(data)  // { city: 'São Paulo', temp: '28°C' }`} />
 
-          <H2 id="spending-limits">Spending limits</H2>
-          <P>Control how much your agent spends automatically. Exceeding limits requires explicit approval.</P>
-          <CodeBlock lang="typescript" code={`const fetch = wrapFetch({
-  wallet: agentWallet,
-  network: 'mainnet',
+console.log(agent.getStats())
+// {
+//   totalCalls: 1,
+//   successfulPayments: 1,
+//   totalSpent: 0.001,
+//   walletAddress: 'DcL4mMaq...'
+// }`} />
+
+          <H2 id="spending-limits">Spending Limits</H2>
+          <P>Protect your agent from unexpected costs.</P>
+          <CodeBlock lang="typescript" code={`const agent = new Gate402Agent({
+  privateKey: process.env.AGENT_WALLET_PRIVATE_KEY,
+  network: 'devnet',
   limits: {
-    perRequest: 0.01,    // max $0.01 per single call
-    perMinute:  0.10,    // max $0.10 per minute
-    perHour:    1.00,    // max $1.00 per hour
-    perDay:     5.00,    // max $5.00 per day
-  },
-  onLimitExceeded: (limit, amount) => {
-    console.error(\`Limit \${limit} exceeded: \${amount} USDC\`)
-    // throw, notify, or request approval
+    maxPerCall:  0.10,   // Max $0.10 per single call
+    maxPerHour:  5.00,   // Max $5.00 per hour
+    maxPerDay:  50.00,   // Max $50.00 per day
+    blockedEndpoints: ['/api/premium'],
+    allowedEndpoints: ['/api/search', '/api/analyze'],
   }
 })`} />
+          <H3>Handling errors</H3>
+          <CodeBlock lang="typescript" code={`import { Gate402Agent, SpendingLimitError } from 'gate402-agent'
 
-          <H2 id="demo-fetch">Demo fetch</H2>
-          <P>For local development, use demo mode — no real USDC required. Any server running in development mode accepts <code style={{ fontFamily: 'monospace', fontSize: 13, color: '#ccc', background: '#111', padding: '1px 6px', borderRadius: 4 }}>demo_*</code> hashes.</P>
-          <CodeBlock lang="typescript" code={`const fetch = wrapFetch({
-  wallet: agentWallet,
-  network: 'devnet',
-  demoMode: true,       // use demo_ hashes instead of real txs
-})
+try {
+  const res = await agent.fetch('https://api.example.com/expensive')
+} catch (e) {
+  if (e instanceof SpendingLimitError) {
+    console.log('Blocked:', e.message)
+    console.log('Code:', e.code)  // SPENDING_LIMIT_EXCEEDED
+  }
+}`} />
 
-// Works against any Gate402 server in dev mode
-const res = await fetch('http://localhost:3000/api/data')
-`} />
+          <H2 id="demo-fetch">Demo Fetch</H2>
+          <P>Test your integration without real USDC.</P>
+          <CodeBlock lang="typescript" code={`// Uses demo_ hash — bypasses blockchain verification
+const res = await agent.demoFetch('https://api.example.com/data')
+const data = await res.json()`} />
+          <Callout type="warning">
+            demoFetch only works on APIs running in demo mode. Production APIs with NODE_ENV=production reject demo payments.
+          </Callout>
 
           <H2 id="getting-usdc">Getting USDC</H2>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginTop: 8 }}>
-            {[
-              { title: 'Devnet (free)', steps: ['Install Solana CLI', 'solana airdrop 2', 'Use devnet USDC faucet at spl-token-faucet.com'] },
-              { title: 'Mainnet (real)', steps: ['Buy USDC on Coinbase or Kraken', 'Send to your Solana wallet', 'Bridge from Ethereum via Wormhole'] },
-            ].map(c => (
-              <div key={c.title} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 8, padding: 20 }}>
-                <div style={{ fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 12 }}>{c.title}</div>
-                {c.steps.map((s, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#00ff88', flexShrink: 0, marginTop: 2 }}>{i + 1}.</span>
-                    <span style={{ fontSize: 13, color: '#666', lineHeight: 1.5 }}>{s}</span>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
+          <H3>Devnet (free, for testing)</H3>
+          <StepList steps={[
+            { title: 'Go to faucet.circle.com', description: 'Open the Circle USDC faucet in your browser.' },
+            { title: 'Select "Solana Devnet"', description: 'Choose Solana Devnet from the network dropdown.' },
+            { title: 'Paste your agent wallet address and click Send', description: 'Copy your wallet address from agent.getStats().walletAddress and paste it in the faucet.' },
+          ]} />
+          <Terminal title="devnet faucet" lines={[
+            { type: 'comment', text: 'Get your agent wallet address' },
+            { type: 'command', text: 'const agent = new Gate402Agent({ privateKey: "..." })' },
+            { type: 'output', text: 'agent.getStats().walletAddress' },
+            { type: 'success', text: 'DcL4mMaqX4FAHg4Cp1SstvMSMWytoXo93ktWycgGYABE' },
+            { type: 'blank', text: '' },
+            { type: 'comment', text: 'Then go to faucet.circle.com → Solana Devnet → paste address' },
+            { type: 'success', text: 'You receive 10 USDC instantly — free' },
+          ]} />
+          <H3>Mainnet (production)</H3>
+          <Callout type="warning">Mainnet uses real USDC. Always test on devnet first.</Callout>
+          <StepList steps={[
+            { title: 'Buy USDC on Coinbase, Kraken, or Binance', description: 'Purchase USDC on any major exchange.' },
+            { title: 'Withdraw to your Solana wallet address', description: 'Send USDC to the Solana address from your Gate402Agent.' },
+            { title: "Change network to 'mainnet' in agent config", description: "Set network: 'mainnet' in your Gate402Agent constructor." },
+          ]} />
 
           {/* ══ FOR MCP DEVELOPERS ══ */}
           <H2 id="mcp-existing">Add to existing MCP</H2>
