@@ -254,7 +254,9 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       console.log('[transaction] endpointId:', endpointForTx?.id ?? null);
 
       if (!endpointForTx || !endpointForTx.user) {
-        console.error('[transaction] skipped — endpoint or user not found in DB');
+        console.error('[transaction] skipped — endpoint has no owner (userId is null).');
+        console.error('[transaction] endpoint path:', endpointForTx?.path ?? 'not found');
+        console.error('[transaction] endpoint userId field:', (endpointForTx as { userId?: string | null } | null)?.userId ?? 'null');
       } else {
         try {
           const transaction = await prisma.transaction.create({
