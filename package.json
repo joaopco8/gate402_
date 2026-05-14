@@ -11,6 +11,10 @@
     "build": "cd apps/server && npm run build && cd ../dashboard && npm run build",
     "db:studio": "cd packages/db && npx prisma studio"
   },
+  "dependencies": {
+    "ioredis": "^5.10.1",
+    "bullmq": "^5.76.8"
+  },
   "devDependencies": {
     "concurrently": "^9.0.0",
     "typescript": "^5.7.0"
