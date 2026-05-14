@@ -99,6 +99,7 @@ async function findEndpointRecord(fullPath: string, shortPath: string) {
 
 export async function x402Middleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    const requestStart = Date.now();
     const fullPath = req.baseUrl + req.path; // e.g. /api/weather
     const shortPath = req.path;              // e.g. /weather
     const rawPaymentHeader = req.headers['x-payment-payload'] as string | undefined;
@@ -362,6 +363,16 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       // 7. Libera acesso
       req.headers['x-payment-verified'] = 'true';
       req.headers['x-payment-amount'] = confirmedAmount.toString();
+
+      // Track latency after handler finishes
+      res.on('finish', () => {
+        const latencyMs = Date.now() - requestStart;
+        prisma.apiCall.updateMany({
+          where: { txHash: txHashProviderToLog, status: { in: ['confirmed', 'demo'] } },
+          data: { latencyMs },
+        }).catch(() => {});
+      });
+
       console.log('[x402] about to call next()');
       return next();
     }

@@ -183,4 +183,232 @@ router.get('/transactions', async (req, res) => {
   }
 });
 
+// GET /api/analytics/revenue — gross vs net revenue
+router.get('/analytics/revenue', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string;
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const period = (req.query.period as string) || '7d';
+    const days = period === '30d' ? 30 : period === '90d' ? 90 : 7;
+    const since = new Date(Date.now() - days * 24 * 3600 * 1000);
+
+    const [gross, transactions, byDay] = await Promise.all([
+      prisma.transaction.aggregate({
+        where: { userId: user.id, createdAt: { gte: since } },
+        _sum: { totalAmount: true, providerAmount: true, platformFee: true },
+        _count: { id: true },
+      }),
+      prisma.transaction.findMany({
+        where: { userId: user.id, createdAt: { gte: since } },
+        include: { endpoint: { select: { path: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      }),
+      prisma.$queryRaw<Array<{ date: Date; gross: number; net: number; fee: number; count: bigint }>>`
+        SELECT
+          DATE("createdAt") as date,
+          SUM("totalAmount") as gross,
+          SUM("providerAmount") as net,
+          SUM("platformFee") as fee,
+          COUNT(id) as count
+        FROM "Transaction"
+        WHERE "userId" = ${user.id}
+          AND "createdAt" >= ${since}
+        GROUP BY DATE("createdAt")
+        ORDER BY date ASC
+      `,
+    ]);
+
+    const feeRate = gross._sum.totalAmount
+      ? (((gross._sum.platformFee || 0) / gross._sum.totalAmount) * 100).toFixed(2)
+      : '1.00';
+
+    return res.json({
+      summary: {
+        grossRevenue: gross._sum.totalAmount || 0,
+        netRevenue: gross._sum.providerAmount || 0,
+        platformFees: gross._sum.platformFee || 0,
+        feeRate: parseFloat(feeRate),
+        transactionCount: gross._count.id,
+        period,
+      },
+      byDay: byDay.map(r => ({ ...r, count: Number(r.count) })),
+      recentTransactions: transactions.map(t => ({
+        id: t.id,
+        endpoint: t.endpoint?.path,
+        gross: t.totalAmount,
+        net: t.providerAmount,
+        fee: t.platformFee,
+        status: t.status,
+        createdAt: t.createdAt,
+      })),
+    });
+  } catch (err) {
+    console.error('[analytics/revenue]', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/analytics/top-agents — top paying agents by wallet
+router.get('/analytics/top-agents', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string;
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const topAgents = await prisma.transaction.groupBy({
+      by: ['payerWallet'],
+      where: { userId: user.id, payerWallet: { not: null } },
+      _sum: { totalAmount: true, providerAmount: true },
+      _count: { id: true },
+      orderBy: { _sum: { totalAmount: 'desc' } },
+      take: 10,
+    });
+
+    return res.json({
+      agents: topAgents.map(a => ({
+        wallet: a.payerWallet,
+        walletShort: a.payerWallet
+          ? `${a.payerWallet.slice(0, 6)}...${a.payerWallet.slice(-4)}`
+          : 'unknown',
+        totalPaid: a._sum.totalAmount || 0,
+        netReceived: a._sum.providerAmount || 0,
+        callCount: a._count.id,
+      })),
+    });
+  } catch (err) {
+    console.error('[analytics/top-agents]', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/analytics/latency — p50/p95/p99 per endpoint
+router.get('/analytics/latency', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string;
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const calls = await prisma.apiCall.findMany({
+      where: { userId: user.id, latencyMs: { not: null } },
+      include: { endpoint: { select: { path: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 1000,
+    });
+
+    const byEndpoint: Record<string, number[]> = {};
+    for (const call of calls) {
+      const path = call.endpoint?.path || 'unknown';
+      if (!byEndpoint[path]) byEndpoint[path] = [];
+      if (call.latencyMs) byEndpoint[path].push(call.latencyMs);
+    }
+
+    const percentile = (arr: number[], p: number) => {
+      if (!arr.length) return 0;
+      const sorted = [...arr].sort((a, b) => a - b);
+      return sorted[Math.max(0, Math.ceil((p / 100) * sorted.length) - 1)];
+    };
+
+    const latencyStats = Object.entries(byEndpoint).map(([path, latencies]) => ({
+      endpoint: path,
+      p50: percentile(latencies, 50),
+      p95: percentile(latencies, 95),
+      p99: percentile(latencies, 99),
+      avg: Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length),
+      count: latencies.length,
+    }));
+
+    return res.json({ latency: latencyStats });
+  } catch (err) {
+    console.error('[analytics/latency]', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/analytics/success-rate — payment success rate + MRR projection
+router.get('/analytics/success-rate', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string;
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const since = new Date(Date.now() - 7 * 24 * 3600 * 1000);
+
+    const [total, confirmed, failed, weekRevenue] = await Promise.all([
+      prisma.apiCall.count({ where: { userId: user.id, createdAt: { gte: since } } }),
+      prisma.apiCall.count({ where: { userId: user.id, status: 'confirmed', createdAt: { gte: since } } }),
+      prisma.apiCall.count({ where: { userId: user.id, status: 'failed', createdAt: { gte: since } } }),
+      prisma.transaction.aggregate({
+        where: { userId: user.id, createdAt: { gte: since } },
+        _sum: { providerAmount: true },
+      }),
+    ]);
+
+    const weekNet = weekRevenue._sum.providerAmount || 0;
+    const mrrProjected = (weekNet / 7) * 30;
+
+    return res.json({
+      successRate: total > 0 ? parseFloat(((confirmed / total) * 100).toFixed(1)) : 0,
+      failRate: total > 0 ? parseFloat(((failed / total) * 100).toFixed(1)) : 0,
+      totalCalls: total,
+      confirmedCalls: confirmed,
+      failedCalls: failed,
+      mrrProjected: parseFloat(mrrProjected.toFixed(6)),
+      period: '7d',
+    });
+  } catch (err) {
+    console.error('[analytics/success-rate]', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/analytics/export — CSV export of all transactions
+router.get('/analytics/export', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string;
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const transactions = await prisma.transaction.findMany({
+      where: { userId: user.id },
+      include: { endpoint: { select: { path: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const csv = [
+      'Date,Endpoint,Gross (USDC),Net (USDC),Fee (USDC),Status,TxHash',
+      ...transactions.map(t =>
+        [
+          t.createdAt.toISOString(),
+          t.endpoint?.path || '',
+          t.totalAmount,
+          t.providerAmount,
+          t.platformFee,
+          t.status,
+          t.txHashProvider,
+        ].join(',')
+      ),
+    ].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="gate402-transactions.csv"');
+    return res.send(csv);
+  } catch (err) {
+    console.error('[analytics/export]', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

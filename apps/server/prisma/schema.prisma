@@ -132,5 +132,7 @@ model ApiCall {
   amountUsdc  Float
   payerWallet String?
   status      String    @default("confirmed")
+  latencyMs   Int?
+  failReason  String?
   createdAt   DateTime  @default(now())
 }
