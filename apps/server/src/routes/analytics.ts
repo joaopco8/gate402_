@@ -152,7 +152,7 @@ router.get('/transactions', async (req, res) => {
         take: 50,
       }),
       prisma.transaction.aggregate({
-        where: { userId: user.id, status: 'verified' },
+        where: { userId: user.id, status: { in: ['verified', 'demo'] } },
         _sum: { totalAmount: true, providerAmount: true, platformFee: true },
         _count: { id: true },
       }),

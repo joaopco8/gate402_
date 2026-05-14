@@ -268,7 +268,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
               totalAmount,
               providerAmount,
               platformFee,
-              status: isDemo ? 'demo' : 'verified',
+              status: 'verified',
               network,
               payerWallet: payerWallet ?? null,
               splits: {
@@ -278,7 +278,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
                     wallet: providerWallet,
                     amount: providerAmount,
                     txHash: txHashProviderToLog,
-                    status: isDemo ? 'demo' : 'confirmed',
+                    status: 'confirmed',
                     confirmedAt: new Date(),
                   },
                   {
@@ -286,7 +286,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
                     wallet: PLATFORM_WALLET,
                     amount: platformFee,
                     txHash: effectiveTxPlatform,
-                    status: isDemo ? 'demo' : 'confirmed',
+                    status: 'confirmed',
                     confirmedAt: new Date(),
                   },
                 ],
