@@ -134,18 +134,25 @@ router.get('/endpoints/revenue', async (req, res) => {
 // GET /api/transactions
 router.get('/transactions', async (req, res) => {
   try {
-    const internalId = await getInternalUserId(req.headers['x-user-id'] as string | undefined);
-    if (!internalId) return res.status(401).json({ error: 'Unauthorized' });
+    const supabaseId = req.headers['x-user-id'] as string | undefined;
+    if (!supabaseId) {
+      return res.status(401).json({ error: 'x-user-id header required' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found', supabaseId });
+    }
 
     const [transactions, stats] = await Promise.all([
       prisma.transaction.findMany({
-        where: { userId: internalId },
+        where: { userId: user.id },
         include: { splits: true, endpoint: { select: { path: true } } },
         orderBy: { createdAt: 'desc' },
         take: 50,
       }),
       prisma.transaction.aggregate({
-        where: { userId: internalId, status: { in: ['verified', 'demo'] } },
+        where: { userId: user.id, status: 'verified' },
         _sum: { totalAmount: true, providerAmount: true, platformFee: true },
         _count: { id: true },
       }),
@@ -154,7 +161,7 @@ router.get('/transactions', async (req, res) => {
     return res.json({
       transactions: transactions.map(t => ({
         id: t.id,
-        endpoint: t.endpoint.path,
+        endpoint: t.endpoint?.path ?? 'unknown',
         totalAmount: t.totalAmount,
         providerAmount: t.providerAmount,
         platformFee: t.platformFee,
@@ -171,7 +178,7 @@ router.get('/transactions', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
+    console.error('[transactions] error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
