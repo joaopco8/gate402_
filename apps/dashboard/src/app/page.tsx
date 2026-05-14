@@ -1126,7 +1126,7 @@ const DIAGRAM_LINES = [
   { text: '      │   { your data }    │                │',   color: '#666' },
 ]
 
-const HOW_STEPS = [
+const HOW_AGENTS_STEPS = [
   { n: '01', title: 'Agent calls your API',       desc: 'Any HTTP request to your endpoint. No special SDK needed on the agent side.' },
   { n: '02', title: 'Gate402 intercepts',         desc: 'Our Express middleware catches the request before it reaches your handler.' },
   { n: '03', title: 'Returns HTTP 402',           desc: 'The standard Payment Required status code, with USDC amount and your Solana wallet address.' },
@@ -1178,7 +1178,7 @@ function HowAgentsPay() {
             ))}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {HOW_STEPS.map(step => (
+            {HOW_AGENTS_STEPS.map(step => (
               <div key={step.n} style={{ display: 'flex', gap: 16 }}>
                 <div className="mono" style={{ color: '#00ff88', fontSize: 11, fontWeight: 500, minWidth: 24, paddingTop: 2 }}>{step.n}</div>
                 <div>
