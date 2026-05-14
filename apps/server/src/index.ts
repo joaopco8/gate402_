@@ -92,6 +92,7 @@ app.use('/api', billingRouter);
 
 // Metering engine — token/compute/bandwidth billing
 app.use('/api', meteringRouter);
+// Analytics v2 — phase 5
 
 // x402 paywall middleware — runs after all management routes
 app.use('/api', x402Middleware);
