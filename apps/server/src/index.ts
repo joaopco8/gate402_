@@ -5,6 +5,8 @@ import express from 'express';
 import cors from 'cors';
 import { x402Middleware } from './middleware/x402';
 import { requirePro, requireAccount } from './middleware/plan';
+import { globalRateLimit, unpaidRateLimit } from './middleware/rateLimiter';
+import { redis } from './lib/redis';
 import demoRoutes from './routes/demo';
 import analyticsRoutes from './routes/analytics';
 import verifyRouter from './routes/verify';
@@ -35,6 +37,9 @@ app.use(cors({
 app.use('/api/billing/webhook', express.raw({ type: 'application/json' }), billingRouter);
 
 app.use(express.json());
+
+app.use(globalRateLimit);
+app.use(unpaidRateLimit);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -80,9 +85,19 @@ app.use('/api', x402Middleware);
 app.use('/api', demoRoutes);
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Gate402 running on port ${PORT}`);
-  console.log(`Receiving payments at: ${walletAddress}`);
-  console.log(`Network: Solana devnet`);
-  console.log(`Get devnet SOL: https://faucet.solana.com`);
+  console.log('[startup] Gate402 running on port', PORT);
+  console.log(`[startup] Receiving payments at: ${walletAddress}`);
+  console.log('[startup] Network:', process.env.NODE_ENV);
+  console.log('[startup] Redis:', process.env.REDIS_URL ? 'configured' : 'NOT configured (fallback mode)');
+  console.log('[startup] Database:', process.env.DATABASE_URL ? 'configured' : 'MISSING');
+  console.log('[startup] Admin secret:', process.env.ADMIN_SECRET ? 'configured' : 'MISSING');
   console.log(`[startup] RESEND_API_KEY: ${process.env.RESEND_API_KEY ? 'configured' : 'MISSING'}`);
+
+  if (redis) {
+    redis.connect().then(() => {
+      console.log('[startup] Redis connected');
+    }).catch((e: Error) => {
+      console.warn('[startup] Redis connection failed — continuing without cache:', e.message);
+    });
+  }
 });

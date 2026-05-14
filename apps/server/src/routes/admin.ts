@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
+import { getRevenueStats } from '../lib/revenueLog'
 
 const router = Router()
 
@@ -26,6 +27,16 @@ router.post('/admin/set-plan', async (req, res) => {
     plan: user.plan,
     message: `Plan updated to ${plan}`,
   })
+})
+
+router.get('/admin/revenue', async (req, res) => {
+  const adminSecret = req.headers['x-admin-secret'] as string
+  if (adminSecret !== process.env.ADMIN_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
+  const stats = await getRevenueStats()
+  return res.json(stats)
 })
 
 export default router

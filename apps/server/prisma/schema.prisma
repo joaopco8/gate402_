@@ -25,6 +25,7 @@ model User {
   updatedAt     DateTime   @updatedAt
   endpoints     Endpoint[]
   apiCalls      ApiCall[]
+  transactions  Transaction[]
 }
 
 model Endpoint {
@@ -35,11 +36,90 @@ model Endpoint {
   description String?
   userId      String?
   user        User?     @relation(fields: [userId], references: [id])
-  calls       ApiCall[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now()) @updatedAt
+  calls        ApiCall[]
+  transactions Transaction[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
 
   @@unique([path, userId])
+}
+
+model Transaction {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  endpointId      String
+  endpoint        Endpoint @relation(fields: [endpointId], references: [id])
+  txHashProvider  String   @unique
+  txHashPlatform  String?  @unique
+  totalAmount     Float
+  providerAmount  Float
+  platformFee     Float
+  status          String   @default("pending")
+  network         String   @default("devnet")
+  payerWallet     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  splits          Split[]
+}
+
+model Split {
+  id            String      @id @default(uuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  recipient     String
+  wallet        String
+  amount        Float
+  txHash        String
+  status        String      @default("pending")
+  confirmedAt   DateTime?
+  createdAt     DateTime    @default(now())
+}
+
+model IdempotencyKey {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  type      String
+  usedAt    DateTime @default(now())
+  expiresAt DateTime
+  metadata  String?
+}
+
+model RevenueLog {
+  id          String   @id @default(uuid())
+  source      String
+  amount      Float
+  currency    String   @default("USDC")
+  txHash      String?
+  userId      String?
+  description String?
+  createdAt   DateTime @default(now())
+}
+
+model UsageMetric {
+  id           String   @id @default(uuid())
+  userId       String
+  endpointId   String
+  requestId    String?
+  metricType   String
+  metricValue  Float
+  unit         String
+  pricePerUnit Float
+  totalPrice   Float
+  settledAt    DateTime?
+  createdAt    DateTime @default(now())
+}
+
+model RateLimitEntry {
+  id         String   @id @default(uuid())
+  identifier String
+  type       String
+  window     String
+  count      Int      @default(0)
+  resetAt    DateTime
+  createdAt  DateTime @default(now())
+
+  @@unique([identifier, type, window])
 }
 
 model ApiCall {
