@@ -14,7 +14,8 @@ import usersRouter from './routes/users';
 import endpointsRouter from './routes/endpoints';
 import walletRouter from './routes/wallet';
 import adminRouter from './routes/admin';
-import billingRouter from './routes/billing';
+import billingRouter from './routes/billing'
+import meteringRouter from './routes/metering';
 import { walletAddress } from './solana/wallet';
 
 const app = express();
@@ -88,6 +89,9 @@ app.use('/api', verifyRouter);
 
 // Billing routes (checkout + status)
 app.use('/api', billingRouter);
+
+// Metering engine — token/compute/bandwidth billing
+app.use('/api', meteringRouter);
 
 // x402 paywall middleware — runs after all management routes
 app.use('/api', x402Middleware);
