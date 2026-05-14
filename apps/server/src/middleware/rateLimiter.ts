@@ -8,6 +8,8 @@ export async function globalRateLimit(
 ) {
   // Payment requests bypass IP rate limit — verified by x402Middleware
   if (req.headers['x-payment-payload']) return next()
+  // Admin and health routes bypass
+  if (req.path.startsWith('/api/admin') || req.path === '/health') return next()
 
   const ip = req.ip || req.socket.remoteAddress || 'unknown'
   const apiKey = req.headers['x-api-key'] as string
@@ -55,6 +57,8 @@ export async function unpaidRateLimit(
   next: NextFunction
 ) {
   if (req.headers['x-payment-payload']) return next()
+  if (req.path.startsWith('/api/admin') || req.path === '/health') return next()
+  if (req.headers['x-user-id'] || req.headers['x-api-key']) return next()
 
   const ip = req.ip || 'unknown'
 

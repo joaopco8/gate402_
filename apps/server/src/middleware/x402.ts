@@ -165,7 +165,31 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       const isDemo = isDemoMode;
       const effectiveTxPlatform = txHashPlatform || txHashProviderToLog;
 
-      // 6a. Legacy ApiCall (mantém dashboard existente funcionando)
+      // 6a. Anti-replay mark — FIRST, before any DB writes, regardless of userId
+      try {
+        console.log('[idempotency] marking used:', txHashProvider);
+        await markUsed(txHashProvider, 'payment', {
+          endpointPath: fullPath,
+          amount: totalAmount,
+          timestamp: new Date().toISOString(),
+        });
+        console.log('[idempotency] marked successfully');
+      } catch (e) {
+        console.error('[idempotency] markUsed failed:', (e as Error).message);
+      }
+
+      // 6b. Revenue log — independent, runs regardless of userId
+      console.log('[revenue] logging fee:', platformFee);
+      await logRevenue({
+        source: 'platform_fee',
+        amount: platformFee,
+        txHash: effectiveTxPlatform,
+        userId: userId ?? undefined,
+        description: `1% fee from ${fullPath} — total: ${totalAmount} USDC`,
+      }).catch(e => console.error('[revenue] log failed:', e));
+      console.log('[revenue] logged');
+
+      // 6c. Legacy ApiCall (mantém dashboard existente funcionando)
       try {
         await prisma.apiCall.create({
           data: {
@@ -181,10 +205,10 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         console.error('[x402] Failed to log api call:', e);
       }
 
-      // 6b. Transaction + Splits
+      // 6d. Transaction + Splits (requires userId)
       if (userId && endpointId) {
         try {
-          const transaction = await prisma.transaction.create({
+          await prisma.transaction.create({
             data: {
               userId,
               endpointId,
@@ -218,30 +242,9 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
               },
             },
           });
-
-          // Anti-replay mark (demo AND real)
-          console.log('[idempotency] marking used:', txHashProvider);
-          await markUsed(txHashProvider, 'payment', {
-            transactionId: transaction.id,
-            endpointPath: fullPath,
-            amount: totalAmount,
-            timestamp: new Date().toISOString(),
-          });
-          console.log('[idempotency] marked');
         } catch (e) {
           console.error('[x402] Failed to create transaction record:', e);
         }
-
-        // Revenue log — independent of transaction creation
-        console.log('[revenue] logging fee:', platformFee);
-        await logRevenue({
-          source: 'platform_fee',
-          amount: platformFee,
-          txHash: effectiveTxPlatform,
-          userId,
-          description: `1% fee from ${fullPath} — total: ${totalAmount} USDC`,
-        }).catch(e => console.error('[revenue] log failed:', e));
-        console.log('[revenue] logged');
       }
 
       // 6c. Email alert
