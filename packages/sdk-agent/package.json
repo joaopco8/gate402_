@@ -1,0 +1,23 @@
+{
+  "name": "gate402-agent",
+  "version": "0.1.0",
+  "description": "Agent-side SDK for Gate402 — automatic x402 payment handling",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["gate402", "x402", "solana", "usdc", "ai-agents", "payments"],
+  "license": "MIT",
+  "dependencies": {
+    "@solana/web3.js": "^1.98.0",
+    "@solana/spl-token": "^0.4.13"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "node-fetch": ">=3.0.0"
+  }
+}
