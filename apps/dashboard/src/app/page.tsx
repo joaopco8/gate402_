@@ -1913,12 +1913,10 @@ export default function LandingPage() {
       <StatsBar />
       <LiveFeed />
       <HowItWorks />
-      <AgentFlow />
       <Features />
       <CodeSection />
       <ProviderSide />
       <AgentSide />
-      <HowItWorksTimeline />
       <FAQ />
       <Pricing />
       <FinalCTA />
