@@ -41,8 +41,17 @@ app.use(express.json());
 app.use(globalRateLimit);
 app.use(unpaidRateLimit);
 
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/health', async (_req, res) => {
+  let redisStatus = 'not configured';
+  if (redis) {
+    try {
+      await redis.ping();
+      redisStatus = 'connected';
+    } catch {
+      redisStatus = 'error';
+    }
+  }
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), redis: redisStatus, version: '1.0.0' });
 });
 
 // Admin routes (protected by ADMIN_SECRET)
