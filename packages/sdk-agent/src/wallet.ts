@@ -19,25 +19,13 @@ const USDC_MINT = {
 }
 
 export class SolanaWallet {
-  private keypair: Keypair
+  private _keypair: Keypair | null = null
+  private privateKeyStr: string
   private connection: Connection
   private network: 'devnet' | 'mainnet'
 
   constructor(privateKeyBase58: string, network: 'devnet' | 'mainnet' = 'devnet', rpcUrl?: string) {
-    let secretKey: Uint8Array
-
-    try {
-      const bs58 = require('bs58')
-      secretKey = bs58.decode(privateKeyBase58)
-    } catch {
-      try {
-        secretKey = new Uint8Array(JSON.parse(privateKeyBase58))
-      } catch {
-        secretKey = Buffer.from(privateKeyBase58, 'base64')
-      }
-    }
-
-    this.keypair = Keypair.fromSecretKey(secretKey)
+    this.privateKeyStr = privateKeyBase58
     this.network = network
 
     const endpoint = rpcUrl || (
@@ -45,22 +33,45 @@ export class SolanaWallet {
         ? 'https://api.mainnet-beta.solana.com'
         : clusterApiUrl('devnet')
     )
-
     this.connection = new Connection(endpoint, 'confirmed')
   }
 
+  private getKeypair(): Keypair {
+    if (this._keypair) return this._keypair
+
+    let secretKey: Uint8Array
+    try {
+      const bs58 = require('bs58')
+      secretKey = bs58.decode(this.privateKeyStr)
+    } catch {
+      try {
+        secretKey = new Uint8Array(JSON.parse(this.privateKeyStr))
+      } catch {
+        secretKey = Buffer.from(this.privateKeyStr, 'base64')
+      }
+    }
+
+    this._keypair = Keypair.fromSecretKey(secretKey)
+    return this._keypair
+  }
+
   get publicKey(): string {
-    return this.keypair.publicKey.toBase58()
+    try {
+      return this.getKeypair().publicKey.toBase58()
+    } catch {
+      return 'invalid-key'
+    }
   }
 
   async getUsdcBalance(): Promise<number> {
     try {
+      const keypair = this.getKeypair()
       const mintAddress = new PublicKey(USDC_MINT[this.network])
       const tokenAccount = await getOrCreateAssociatedTokenAccount(
         this.connection,
-        this.keypair,
+        keypair,
         mintAddress,
-        this.keypair.publicKey
+        keypair.publicKey
       )
       const accountInfo = await getAccount(this.connection, tokenAccount.address)
       const mint = await getMint(this.connection, mintAddress)
@@ -71,6 +82,7 @@ export class SolanaWallet {
   }
 
   async sendUsdc(toAddress: string, amount: number): Promise<string> {
+    const keypair = this.getKeypair()
     const mintAddress = new PublicKey(USDC_MINT[this.network])
     const toPublicKey = new PublicKey(toAddress)
 
@@ -79,14 +91,14 @@ export class SolanaWallet {
 
     const fromTokenAccount = await getOrCreateAssociatedTokenAccount(
       this.connection,
-      this.keypair,
+      keypair,
       mintAddress,
-      this.keypair.publicKey
+      keypair.publicKey
     )
 
     const toTokenAccount = await getOrCreateAssociatedTokenAccount(
       this.connection,
-      this.keypair,
+      keypair,
       mintAddress,
       toPublicKey
     )
@@ -95,7 +107,7 @@ export class SolanaWallet {
       createTransferInstruction(
         fromTokenAccount.address,
         toTokenAccount.address,
-        this.keypair.publicKey,
+        keypair.publicKey,
         amountLamports
       )
     )
@@ -103,7 +115,7 @@ export class SolanaWallet {
     const txHash = await sendAndConfirmTransaction(
       this.connection,
       transaction,
-      [this.keypair],
+      [keypair],
       { commitment: 'confirmed' }
     )
 
