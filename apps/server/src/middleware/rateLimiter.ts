@@ -6,6 +6,9 @@ export async function globalRateLimit(
   res: Response,
   next: NextFunction
 ) {
+  // Payment requests bypass IP rate limit — verified by x402Middleware
+  if (req.headers['x-payment-payload']) return next()
+
   const ip = req.ip || req.socket.remoteAddress || 'unknown'
   const apiKey = req.headers['x-api-key'] as string
 

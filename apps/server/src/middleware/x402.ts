@@ -95,16 +95,16 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
     const [txHashProvider, txHashPlatform] = rawPaymentHeader.split(',').map(h => h.trim());
     const isDemoMode = txHashProvider?.startsWith('demo_');
 
-    // 4. Anti-replay check (only for real payments)
-    if (!isDemoMode) {
-      const { isDuplicate } = await checkIdempotency(txHashProvider, 'payment');
-      if (isDuplicate) {
-        res.status(402).json({
-          error: 'Payment already used',
-          details: 'This transaction hash has already been used to access this endpoint.',
-        });
-        return;
-      }
+    // 4. Anti-replay check (demo AND real payments)
+    console.log('[idempotency] checking:', txHashProvider);
+    const { isDuplicate } = await checkIdempotency(txHashProvider, 'payment');
+    console.log('[idempotency] isDuplicate:', isDuplicate);
+    if (isDuplicate) {
+      res.status(402).json({
+        error: 'Payment already used',
+        details: 'This transaction hash has already been used to access this endpoint.',
+      });
+      return;
     }
 
     // 5. Demo mode OU verificação real na blockchain
@@ -219,26 +219,29 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
             },
           });
 
-          // Anti-replay mark
-          if (!isDemo) {
-            await markUsed(txHashProvider, 'payment', {
-              transactionId: transaction.id,
-              endpointId,
-              amount: totalAmount,
-            });
-          }
-
-          // Revenue log
-          await logRevenue({
-            source: 'platform_fee',
-            amount: platformFee,
-            txHash: effectiveTxPlatform,
-            userId,
-            description: `1% fee from ${fullPath} — total: ${totalAmount} USDC`,
+          // Anti-replay mark (demo AND real)
+          console.log('[idempotency] marking used:', txHashProvider);
+          await markUsed(txHashProvider, 'payment', {
+            transactionId: transaction.id,
+            endpointPath: fullPath,
+            amount: totalAmount,
+            timestamp: new Date().toISOString(),
           });
+          console.log('[idempotency] marked');
         } catch (e) {
           console.error('[x402] Failed to create transaction record:', e);
         }
+
+        // Revenue log — independent of transaction creation
+        console.log('[revenue] logging fee:', platformFee);
+        await logRevenue({
+          source: 'platform_fee',
+          amount: platformFee,
+          txHash: effectiveTxPlatform,
+          userId,
+          description: `1% fee from ${fullPath} — total: ${totalAmount} USDC`,
+        }).catch(e => console.error('[revenue] log failed:', e));
+        console.log('[revenue] logged');
       }
 
       // 6c. Email alert
