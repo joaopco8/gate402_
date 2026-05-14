@@ -203,6 +203,8 @@ const CSS = `
     .provider-sticky { position: static !important; }
     .provider-title { font-size: 36px !important; }
     .timeline-grid-7 { grid-template-columns: repeat(2, 1fr) !important; }
+    .provider-steps-grid { grid-template-columns: 1fr !important; }
+    .stats-bar-grid { grid-template-columns: repeat(2, 1fr) !important; }
   }
 `
 
@@ -1144,111 +1146,96 @@ function CodeBlock({ lang, lines }: { lang: string; lines: CodeLine[] }) {
   )
 }
 
-function StepCard({ n, title, visible, delay, children }: { n: string; title: string; visible: boolean; delay: number; children: React.ReactNode }) {
-  const [hovered, setHovered] = useState(false)
+function StatsBar() {
+  const stats = [
+    { value: '< 1s', label: 'SETTLEMENT' },
+    { value: '0%', label: 'CUSTODY' },
+    { value: '$0.001', label: 'MINIMUM' },
+    { value: 'x402', label: 'STANDARD' },
+  ]
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: '#0d0d0d',
-        borderLeft: `2px solid ${hovered ? '#00ff88' : '#1a1a1a'}`,
-        borderTop: '1px solid #1a1a1a',
-        borderRight: '1px solid #1a1a1a',
-        borderBottom: '1px solid #1a1a1a',
-        borderRadius: '0 6px 6px 0',
-        padding: '28px 32px',
-        marginBottom: 16,
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(10px)',
-        transition: `opacity 400ms ease ${delay}ms, transform 400ms ease ${delay}ms, border-left-color 200ms ease`,
-      }}
-    >
-      <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 10 }}>{n}</div>
-      <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 500, fontSize: 15, color: '#fff', marginBottom: 12 }}>{title}</div>
-      {children}
+    <div style={{ borderTop: '1px solid #1a1a1a', borderBottom: '1px solid #1a1a1a', padding: '20px 0' }}>
+      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
+        {stats.map((s, i) => (
+          <div key={i} style={{ textAlign: 'center', borderRight: i < 3 ? '1px solid #1a1a1a' : 'none', padding: '8px 0' }}>
+            <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 600, fontSize: 22, color: '#fff' }}>{s.value}</div>
+            <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', letterSpacing: '0.08em', marginTop: 4 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
 function ProviderSide() {
-  const [visible, setVisible] = useState(false)
-  const [npmCopied, setNpmCopied] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null)
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true) },
-      { threshold: 0.1 }
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [])
-
-  function copyNpm() {
-    navigator.clipboard.writeText('npm install gate402')
-    setNpmCopied(true)
-    setTimeout(() => setNpmCopied(false), 2000)
-  }
+  const steps = [
+    {
+      n: '01', title: 'Install',
+      content: (
+        <div style={{ background: '#000', border: '1px solid #1a1a1a', borderRadius: 4, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, color: '#00ff88' }}>
+          npm install gate402
+        </div>
+      ),
+    },
+    {
+      n: '02', title: 'Add middleware',
+      content: (
+        <div style={{ background: '#000', border: '1px solid #1a1a1a', borderRadius: 4, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.7 }}>
+          <span style={{ color: '#9945FF' }}>app</span><span style={{ color: '#ccc' }}>.use(gate402({'{'}</span><br />
+          <span style={{ color: '#ccc' }}>{'  '}apiKey: </span><span style={{ color: '#00ff88' }}>&apos;key&apos;</span><span style={{ color: '#ccc' }}>, price: </span><span style={{ color: '#f59e0b' }}>0.001</span><br />
+          <span style={{ color: '#ccc' }}>{'}))'}</span>
+        </div>
+      ),
+    },
+    {
+      n: '03', title: 'Set your wallet',
+      content: (
+        <div>
+          <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', lineHeight: 1.6, marginBottom: 12 }}>Payments go directly to your Solana wallet.</p>
+          <span style={{ display: 'inline-block', background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.2)', color: '#00ff88', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, padding: '4px 10px', borderRadius: 4 }}>Non-custodial</span>
+        </div>
+      ),
+    },
+    {
+      n: '04', title: 'Deploy',
+      content: (
+        <div>
+          <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', lineHeight: 1.6, marginBottom: 12 }}>Agents receive HTTP 402 and pay automatically.</p>
+          <span style={{ display: 'inline-block', background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.2)', color: '#00ff88', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, padding: '4px 10px', borderRadius: 4 }}>✓ Done</span>
+        </div>
+      ),
+    },
+  ]
 
   return (
-    <section style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
-      <div ref={ref} style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
-        <div className="provider-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'start' }}>
-
-          {/* LEFT — sticky */}
-          <div className="provider-sticky" style={{ position: 'sticky', top: 100 }}>
-            <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#333', letterSpacing: '0.15em', marginBottom: 24 }}>FOR API DEVELOPERS</div>
-            <h2 className="provider-title" style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 400, fontSize: 48, color: '#fff', lineHeight: 1.1, marginBottom: 20 }}>
-              Your API.<br />Your price.<br />Your wallet.
-            </h2>
-            <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#555', lineHeight: 1.6, marginBottom: 28 }}>
-              Three lines of code. Agents pay you directly on-chain. No intermediary holds your funds.
-            </p>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 6, padding: '10px 18px' }}>
-              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 13, color: '#ccc' }}>npm install gate402</span>
-              <button onClick={copyNpm} style={{ background: 'none', border: 'none', cursor: 'pointer', color: npmCopied ? '#00ff88' : '#333', padding: 0, fontSize: 14, transition: 'color 0.15s' }}>
-                {npmCopied ? '✓' : '⧉'}
-              </button>
+    <section style={{ background: '#000', padding: '96px 0', borderTop: '1px solid #1a1a1a' }}>
+      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ marginBottom: 56 }}>
+          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', letterSpacing: '0.12em', marginBottom: 16 }}>FOR API DEVELOPERS</div>
+          <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 40, color: '#fff', lineHeight: 1.1, marginBottom: 12 }}>Three lines. Agents pay you.</h2>
+          <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#888', maxWidth: 480 }}>Drop-in Express middleware. No custody. No intermediary.</p>
+        </div>
+        <div className="provider-steps-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+          {steps.map((step, i) => (
+            <div
+              key={i}
+              onMouseEnter={() => setHoveredCard(i)}
+              onMouseLeave={() => setHoveredCard(null)}
+              style={{
+                background: hoveredCard === i ? '#0f0f0f' : '#0a0a0a',
+                border: `1px solid ${hoveredCard === i ? '#2a2a2a' : '#1a1a1a'}`,
+                borderRadius: 8,
+                padding: 28,
+                transition: 'background 150ms, border-color 150ms',
+              }}
+            >
+              <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', marginBottom: 16 }}>{step.n}</div>
+              <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 500, fontSize: 15, color: '#fff', marginBottom: 12 }}>{step.title}</div>
+              {step.content}
             </div>
-          </div>
-
-          {/* RIGHT — steps */}
-          <div>
-            <StepCard n="01" title="Install the middleware" visible={visible} delay={0}>
-              <CodeBlock lang="bash" lines={[
-                [{ text: 'npm install gate402', color: '#ccc' }],
-              ]} />
-            </StepCard>
-
-            <StepCard n="02" title="Wrap your Express app" visible={visible} delay={100}>
-              <CodeBlock lang="typescript" lines={[
-                [{ text: 'import', color: '#9945FF' }, { text: ' { gate402 } ', color: '#ccc' }, { text: 'from', color: '#9945FF' }, { text: " 'gate402'", color: '#00ff88' }],
-                [{ text: '', color: '' }],
-                [{ text: 'app.use(gate402({', color: '#ccc' }],
-                [{ text: '  apiKey: ', color: '#ccc' }, { text: "'your-key'", color: '#00ff88' }, { text: ',', color: '#ccc' }],
-                [{ text: '  endpoints: {', color: '#ccc' }],
-                [{ text: "    '/api/data'", color: '#00ff88' }, { text: ': ', color: '#ccc' }, { text: '0.001', color: '#f59e0b' }],
-                [{ text: '  }', color: '#ccc' }],
-                [{ text: '}))', color: '#ccc' }],
-              ]} />
-            </StepCard>
-
-            <StepCard n="03" title="Set your Solana wallet" visible={visible} delay={200}>
-              <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', lineHeight: 1.6, marginBottom: 12 }}>
-                Configure your receiving wallet in the dashboard. Payments go directly there — we never touch your funds.
-              </p>
-              <a href="/dashboard" style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 13, color: '#00ff88' }}>Open Settings →</a>
-            </StepCard>
-
-            <StepCard n="04" title="Ship it" visible={visible} delay={300}>
-              <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', lineHeight: 1.6, marginBottom: 12 }}>
-                Deploy normally. Agents calling your API will automatically receive HTTP 402 and pay before getting access.
-              </p>
-              <span style={{ display: 'inline-block', background: 'rgba(0,255,136,0.06)', border: '1px solid rgba(0,255,136,0.15)', borderRadius: 4, padding: '8px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#00ff88' }}>✓ You&apos;re done</span>
-            </StepCard>
-          </div>
-
+          ))}
         </div>
       </div>
     </section>
@@ -1256,86 +1243,52 @@ function ProviderSide() {
 }
 
 function AgentSide() {
-  const [visible, setVisible] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true) },
-      { threshold: 0.1 }
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [])
-
   return (
-    <section style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
-      <div ref={ref} style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
-        <div className="provider-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'start' }}>
+    <section style={{ background: '#0a0a0a', borderTop: '1px solid #1a1a1a', borderBottom: '1px solid #1a1a1a', padding: '80px 0' }}>
+      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ maxWidth: 720, marginBottom: 48 }}>
+          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', letterSpacing: '0.12em', marginBottom: 16 }}>FOR AGENT OPERATORS</div>
+          <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 40, color: '#fff', lineHeight: 1.1, marginBottom: 12 }}>Any HTTP client. Pays itself.</h2>
+          <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#888' }}>Fund your agent wallet with USDC. The agent handles the rest.</p>
+        </div>
 
-          {/* LEFT — steps */}
-          <div>
-            <StepCard n="01" title="Fund the agent wallet" visible={visible} delay={0}>
-              <CodeBlock lang="bash" lines={[
-                [{ text: '# Get USDC on Solana devnet', color: '#333' }],
-                [{ text: '# faucet.circle.com → Solana Devnet', color: '#333' }],
-                [{ text: '# paste: your-agent-wallet-address', color: '#333' }],
-              ]} />
-            </StepCard>
-
-            <StepCard n="02" title="Use x402-fetch (or plain fetch)" visible={visible} delay={100}>
-              <CodeBlock lang="typescript" lines={[
-                [{ text: 'import', color: '#9945FF' }, { text: ' { wrapFetch } ', color: '#ccc' }, { text: 'from', color: '#9945FF' }, { text: " 'x402-fetch'", color: '#00ff88' }],
-                [{ text: 'import', color: '#9945FF' }, { text: ' { Keypair } ', color: '#ccc' }, { text: 'from', color: '#9945FF' }, { text: " '@solana/web3.js'", color: '#00ff88' }],
-                [{ text: '', color: '' }],
-                [{ text: 'const', color: '#9945FF' }, { text: ' agentWallet = Keypair.', color: '#ccc' }, { text: 'fromSecretKey', color: '#3b82f6' }, { text: '(key)', color: '#ccc' }],
-                [{ text: 'const', color: '#9945FF' }, { text: ' fetch = ', color: '#ccc' }, { text: 'wrapFetch', color: '#3b82f6' }, { text: '({ wallet: agentWallet })', color: '#ccc' }],
-                [{ text: '', color: '' }],
-                [{ text: '// Pays automatically on HTTP 402', color: '#333' }],
-                [{ text: 'const', color: '#9945FF' }, { text: ' data = ', color: '#ccc' }, { text: 'await', color: '#9945FF' }, { text: ' fetch(', color: '#ccc' }, { text: "'https://api.dev/data'", color: '#00ff88' }, { text: ')', color: '#ccc' }],
-              ]} />
-            </StepCard>
-
-            <StepCard n="03" title="Or use plain fetch — manual payment" visible={visible} delay={200}>
-              <CodeBlock lang="typescript" lines={[
-                [{ text: '// 1. Call the API — get 402', color: '#333' }],
-                [{ text: 'const', color: '#9945FF' }, { text: ' res = ', color: '#ccc' }, { text: 'await', color: '#9945FF' }, { text: ' fetch(', color: '#ccc' }, { text: "'https://api.dev/data'", color: '#00ff88' }, { text: ')', color: '#ccc' }],
-                [{ text: "// { price: 0.001, payTo: '7UQct...' }", color: '#333' }],
-                [{ text: '', color: '' }],
-                [{ text: '// 2. Send USDC on Solana', color: '#333' }],
-                [{ text: 'const', color: '#9945FF' }, { text: ' txHash = ', color: '#ccc' }, { text: 'await', color: '#9945FF' }, { text: ' sendUsdc(res.payTo, res.price)', color: '#ccc' }],
-                [{ text: '', color: '' }],
-                [{ text: '// 3. Retry with proof', color: '#333' }],
-                [{ text: 'const', color: '#9945FF' }, { text: ' data = ', color: '#ccc' }, { text: 'await', color: '#9945FF' }, { text: ' fetch(', color: '#ccc' }, { text: "'https://api.dev/data'", color: '#00ff88' }, { text: ', {', color: '#ccc' }],
-                [{ text: "  headers: { 'X-Payment-Payload': txHash }", color: '#ccc' }],
-                [{ text: '})', color: '#ccc' }],
-              ]} />
-            </StepCard>
-          </div>
-
-          {/* RIGHT — sticky */}
-          <div className="provider-sticky" style={{ position: 'sticky', top: 100 }}>
-            <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#333', letterSpacing: '0.15em', marginBottom: 24 }}>FOR AGENT OPERATORS</div>
-            <h2 className="provider-title" style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 400, fontSize: 48, color: '#fff', lineHeight: 1.1, marginBottom: 20 }}>
-              Your agent.<br />Any HTTP client.<br />Pays itself.
-            </h2>
-            <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#555', lineHeight: 1.6, marginBottom: 24 }}>
-              Fund your agent&apos;s Solana wallet with USDC. The agent handles everything else automatically.
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333' }}>Works with</span>
-              {['x402-fetch', 'any HTTP client'].map(b => (
-                <span key={b} style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 4, padding: '4px 10px', fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#666' }}>{b}</span>
-              ))}
+        <div className="code-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 32 }}>
+          <div style={{ background: '#000', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+            <div style={{ padding: '10px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444' }}>with x402-fetch</span>
+              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#00ff88' }}>RECOMMENDED</span>
             </div>
-            <div style={{ background: 'rgba(153,69,255,0.06)', borderLeft: '2px solid rgba(153,69,255,0.4)', borderRadius: '0 6px 6px 0', padding: '16px 20px' }}>
-              <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#9945FF', marginBottom: 6 }}>Coming soon —</div>
-              <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', lineHeight: 1.6, margin: 0 }}>
-                Anthropic, OpenAI, and Google haven&apos;t shipped native agent wallets yet. When they do, Gate402 is already the infrastructure layer waiting.
-              </p>
+            <div style={{ padding: '16px 20px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.7 }}>
+              <div><span style={{ color: '#9945FF' }}>import</span><span style={{ color: '#ccc' }}> {'{ wrapFetch }'} </span><span style={{ color: '#9945FF' }}>from</span><span style={{ color: '#00ff88' }}> &apos;x402-fetch&apos;</span></div>
+              <div style={{ height: 8 }} />
+              <div><span style={{ color: '#9945FF' }}>const</span><span style={{ color: '#ccc' }}> fetch = </span><span style={{ color: '#3b82f6' }}>wrapFetch</span><span style={{ color: '#ccc' }}>{'({ wallet: agentWallet })'}</span></div>
+              <div><span style={{ color: '#9945FF' }}>const</span><span style={{ color: '#ccc' }}> data = </span><span style={{ color: '#9945FF' }}>await</span><span style={{ color: '#ccc' }}> fetch(</span><span style={{ color: '#00ff88' }}>&apos;https://api.dev/data&apos;</span><span style={{ color: '#ccc' }}>)</span></div>
+              <div style={{ height: 4 }} />
+              <div><span style={{ color: '#444' }}>{'// Pays automatically on HTTP 402'}</span></div>
             </div>
           </div>
 
+          <div style={{ background: '#000', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+            <div style={{ padding: '10px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444' }}>with any HTTP client</span>
+              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#444' }}>MANUAL</span>
+            </div>
+            <div style={{ padding: '16px 20px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.7 }}>
+              <div><span style={{ color: '#9945FF' }}>const</span><span style={{ color: '#ccc' }}> res = </span><span style={{ color: '#9945FF' }}>await</span><span style={{ color: '#ccc' }}> fetch(url)</span></div>
+              <div><span style={{ color: '#444' }}>{'// → HTTP 402: pay 0.001 USDC to 7UQct...'}</span></div>
+              <div style={{ height: 8 }} />
+              <div><span style={{ color: '#9945FF' }}>const</span><span style={{ color: '#ccc' }}> txHash = </span><span style={{ color: '#9945FF' }}>await</span><span style={{ color: '#ccc' }}> sendUsdc(res.payTo, res.price)</span></div>
+              <div><span style={{ color: '#9945FF' }}>const</span><span style={{ color: '#ccc' }}> data = </span><span style={{ color: '#9945FF' }}>await</span><span style={{ color: '#ccc' }}>{" fetch(url, {"}</span></div>
+              <div><span style={{ color: '#ccc' }}>{"  headers: { 'X-Payment-Payload': txHash }"}</span></div>
+              <div><span style={{ color: '#ccc' }}>{"}"}</span><span style={{ color: '#ccc' }}>)</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ background: 'rgba(153,69,255,0.05)', borderLeft: '2px solid #9945FF', padding: '16px 20px', borderRadius: '0 8px 8px 0' }}>
+          <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 14, color: '#888', lineHeight: 1.6, margin: 0 }}>
+            Anthropic, OpenAI, and Google haven&apos;t shipped native agent wallets yet. Gate402 is the infrastructure layer ready when they do.
+          </p>
         </div>
       </div>
     </section>
@@ -1343,59 +1296,39 @@ function AgentSide() {
 }
 
 const TIMELINE_STEPS = [
-  { n: '01', title: 'Request arrives',      desc: 'Agent calls your API endpoint. Any HTTP method, any payload.',                                             dot: '#333' },
-  { n: '02', title: 'Middleware intercepts', desc: 'gate402 catches the request before your handler executes. Zero code change needed.',                      dot: '#333' },
-  { n: '03', title: 'HTTP 402 returned',    desc: 'Price, currency, and your wallet address. Standard HTTP, not crypto-specific.',                            dot: '#333' },
-  { n: '04', title: 'Agent pays on Solana', desc: 'USDC sent directly to your wallet. Gate402 never holds your funds.',                                       dot: '#333' },
-  { n: '05', title: 'Proof sent',           desc: 'Transaction hash included in X-Payment-Payload header on retry.',                                          dot: '#333' },
-  { n: '06', title: 'Verified on-chain',    desc: 'Solana RPC confirms amount, recipient, and recency. Replay attacks blocked.',                               dot: '#f59e0b' },
-  { n: '07', title: 'Handler executes',     desc: 'Your code runs normally. USDC already in your wallet.',                                                    dot: '#00ff88' },
+  { n: '01', title: 'Request arrives',  desc: 'Agent makes HTTP request to your endpoint',           dotBg: '#000',                 dotBorder: '#1a1a1a',             dotColor: '#444' },
+  { n: '02', title: 'Intercepted',      desc: 'gate402 middleware catches it before your handler',   dotBg: '#000',                 dotBorder: '#1a1a1a',             dotColor: '#444' },
+  { n: '03', title: 'HTTP 402',         desc: 'Returns price, currency, and your wallet address',    dotBg: '#000',                 dotBorder: '#1a1a1a',             dotColor: '#444' },
+  { n: '04', title: 'Agent pays',       desc: 'USDC sent directly to your wallet on Solana',         dotBg: '#000',                 dotBorder: '#1a1a1a',             dotColor: '#444' },
+  { n: '05', title: 'Proof sent',       desc: 'Transaction hash in X-Payment-Payload header',        dotBg: '#000',                 dotBorder: '#1a1a1a',             dotColor: '#444' },
+  { n: '06', title: 'Verified',         desc: 'Solana RPC confirms amount and recipient on-chain',   dotBg: 'rgba(245,158,11,0.1)', dotBorder: 'rgba(245,158,11,0.3)', dotColor: '#f59e0b' },
+  { n: '07', title: 'Access granted',   desc: 'Handler executes. USDC already in your wallet.',      dotBg: 'rgba(0,255,136,0.1)',  dotBorder: 'rgba(0,255,136,0.3)',  dotColor: '#00ff88' },
 ]
 
 function HowItWorksTimeline() {
-  const [visible, setVisible] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true) },
-      { threshold: 0.1 }
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [])
-
   return (
-    <section style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 72 }}>
-          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>WHAT HAPPENS UNDER THE HOOD</div>
-          <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 40, letterSpacing: '-0.03em', color: '#fff', marginBottom: 12 }}>
-            Seven steps. Under one second.
-          </h2>
-          <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#555', maxWidth: 520, margin: '0 auto' }}>
-            From agent request to data response — here&apos;s exactly what Gate402 does.
-          </p>
+    <section style={{ background: '#000', padding: '96px 0', borderTop: '1px solid #1a1a1a' }}>
+      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ marginBottom: 64 }}>
+          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', letterSpacing: '0.12em', marginBottom: 16 }}>UNDER THE HOOD</div>
+          <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 40, color: '#fff', lineHeight: 1.1 }}>Seven steps. Under one second.</h2>
         </div>
-
-        <div ref={ref} className="timeline-grid-7" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, background: '#1a1a1a', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+        <div style={{ position: 'relative' }}>
+          <div style={{ position: 'absolute', left: 11, top: 0, bottom: 0, width: 1, background: 'linear-gradient(to bottom, #1a1a1a, transparent)' }} />
           {TIMELINE_STEPS.map((step, i) => (
-            <div
-              key={step.n}
-              style={{
-                background: '#000',
-                padding: 20,
-                opacity: visible ? 1 : 0,
-                transform: visible ? 'translateX(0)' : 'translateX(-10px)',
-                transition: `opacity 400ms ease ${i * 80}ms, transform 400ms ease ${i * 80}ms`,
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#222', letterSpacing: '0.1em' }}>{step.n}</div>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: step.dot, flexShrink: 0 }} />
+            <div key={i} style={{ display: 'flex', gap: 24, marginBottom: 32 }}>
+              <div style={{
+                width: 23, height: 23, borderRadius: '50%', flexShrink: 0,
+                border: `1px solid ${step.dotBorder}`, background: step.dotBg,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'var(--font-mono, monospace)', fontSize: 9, color: step.dotColor, marginTop: 2,
+              }}>
+                {step.n}
               </div>
-              <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 500, fontSize: 13, color: '#fff', marginBottom: 8 }}>{step.title}</div>
-              <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 12, color: '#555', lineHeight: 1.6, margin: 0 }}>{step.desc}</p>
+              <div>
+                <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 500, fontSize: 14, color: '#fff', marginBottom: 4 }}>{step.title}</div>
+                <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#888', lineHeight: 1.6, margin: 0 }}>{step.desc}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -1838,6 +1771,7 @@ export default function LandingPage() {
       <style>{CSS}</style>
       <Nav />
       <Hero />
+      <StatsBar />
       <LiveFeed />
       <HowItWorks />
       <AgentFlow />
