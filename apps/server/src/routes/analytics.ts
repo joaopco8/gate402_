@@ -411,5 +411,56 @@ router.get('/analytics/export', async (req, res) => {
   }
 });
 
+// GET /api/analytics/failed — failed & replayed requests (last 7d)
+router.get('/analytics/failed', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string;
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const since = new Date(Date.now() - 7 * 24 * 3600 * 1000);
+
+    const [failed, replayedCount, byStatus] = await Promise.all([
+      prisma.apiCall.findMany({
+        where: {
+          userId: user.id,
+          status: { in: ['failed', 'replayed'] },
+          createdAt: { gte: since },
+        },
+        include: { endpoint: { select: { path: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }),
+      prisma.apiCall.count({
+        where: { userId: user.id, status: 'replayed', createdAt: { gte: since } },
+      }),
+      prisma.apiCall.groupBy({
+        by: ['status'],
+        where: { userId: user.id, createdAt: { gte: since } },
+        _count: { id: true },
+      }),
+    ]);
+
+    return res.json({
+      failed: failed.map(f => ({
+        id: f.id,
+        endpoint: f.endpoint?.path || 'unknown',
+        status: f.status,
+        txHash: f.txHash,
+        payerWallet: f.payerWallet,
+        createdAt: f.createdAt,
+      })),
+      replayedCount,
+      byStatus,
+      period: '7d',
+    });
+  } catch (err) {
+    console.error('[analytics/failed]', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // v1.1.0 — phase 5 analytics
 export default router;

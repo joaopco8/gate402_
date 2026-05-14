@@ -10,7 +10,7 @@ import DashboardLayout from '../components/DashboardLayout';
 import PageContainer from '../components/PageContainer';
 import PageHeader from '../components/PageHeader';
 import Card from '../components/Card';
-import { getMetrics, getCallsPerDay, getRecentCalls, getEndpoints, getEndpointRevenue, getTransactions, getAnalyticsRevenue, getSuccessRate, getTopAgents, getLatencyStats, getMeteringStats, type Metrics, type DayData, type RecentCall, type Transaction, type TransactionStats, type AnalyticsRevenueSummary, type SuccessRateData, type TopAgent, type LatencyStatRow, type MeteringStatsData } from '../lib/api';
+import { getMetrics, getCallsPerDay, getRecentCalls, getEndpoints, getEndpointRevenue, getTransactions, getAnalyticsRevenue, getSuccessRate, getTopAgents, getLatencyStats, getMeteringStats, getFailedRequests, type Metrics, type DayData, type RecentCall, type Transaction, type TransactionStats, type AnalyticsRevenueSummary, type SuccessRateData, type TopAgent, type LatencyStatRow, type MeteringStatsData, type FailedRequestsData } from '../lib/api';
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -66,9 +66,10 @@ export default function DashboardPage() {
   const [topAgents, setTopAgents] = useState<TopAgent[]>([]);
   const [latencyStats, setLatencyStats] = useState<LatencyStatRow[]>([]);
   const [meteringStats, setMeteringStats] = useState<MeteringStatsData | null>(null);
+  const [failedRequests, setFailedRequests] = useState<FailedRequestsData | null>(null);
 
   async function fetchAll() {
-    const [m, c, r, endpointList, rev, txData, sr, agents, latency, metering] = await Promise.all([
+    const [m, c, r, endpointList, rev, txData, sr, agents, latency, metering, failed] = await Promise.all([
       getMetrics(),
       getCallsPerDay(7, selectedEndpoint),
       getRecentCalls(),
@@ -79,6 +80,7 @@ export default function DashboardPage() {
       getTopAgents(),
       getLatencyStats(),
       getMeteringStats(),
+      getFailedRequests(),
     ]);
     setMetrics(m);
     setChartData(c);
@@ -90,6 +92,7 @@ export default function DashboardPage() {
     setTopAgents(agents);
     setLatencyStats(latency);
     setMeteringStats(metering);
+    setFailedRequests(failed);
     const paths = Array.isArray(endpointList)
       ? endpointList.map((e: { path: string }) => e.path)
       : [];
@@ -508,6 +511,57 @@ export default function DashboardPage() {
             <div style={{ fontSize: 12, color: '#444', fontFamily: 'var(--font-code)', marginTop: 16 }}>
               Pending settlement: <span style={{ color: '#f59e0b' }}>${meteringStats.totalPending.toFixed(6)}</span>
             </div>
+          </Card>
+        )}
+
+        {/* Failed Requests */}
+        {!loading && (
+          <Card style={{ overflow: 'hidden', padding: 0, marginBottom: 24 }}>
+            <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-code)', letterSpacing: '0.08em' }}>FAILED REQUESTS</div>
+              <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)' }}>last 7 days</div>
+            </div>
+            {!failedRequests || failedRequests.failed.length === 0 ? (
+              <div style={{ padding: '32px 0', textAlign: 'center', fontFamily: 'var(--font-code)', fontSize: 13, color: '#00ff88' }}>
+                No failed requests in the last 7 days ✓
+              </div>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                    {['Time', 'Endpoint', 'Status', 'Tx Hash'].map(h => (
+                      <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontWeight: 400, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-code)', letterSpacing: '0.05em' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {failedRequests.failed.map(f => (
+                    <tr key={f.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 150ms' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-muted)' }}>{timeAgo(f.createdAt)}</td>
+                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-code)', fontSize: 12, color: '#fff' }}>{f.endpoint}</td>
+                      <td style={{ padding: '12px 20px' }}>
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          fontSize: 11,
+                          fontFamily: 'var(--font-code)',
+                          background: f.status === 'replayed' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
+                          color: f.status === 'replayed' ? '#f59e0b' : '#ef4444',
+                          border: `1px solid ${f.status === 'replayed' ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                        }}>
+                          {f.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-code)', fontSize: 11, color: '#444' }}>{f.txHash.slice(0, 16)}...</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </Card>
         )}
 

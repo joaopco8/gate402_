@@ -156,6 +156,18 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
     const { isDuplicate } = await checkIdempotency(txHashProvider, 'payment');
     console.log('[idempotency] isDuplicate:', isDuplicate);
     if (isDuplicate) {
+      try {
+        await prisma.apiCall.create({
+          data: {
+            endpointId,
+            userId,
+            txHash: txHashProvider || 'replayed',
+            amountUsdc: 0,
+            status: 'replayed',
+            payerWallet: agentWallet || null,
+          },
+        });
+      } catch {}
       res.status(402).json({
         error: 'Payment already used',
         details: 'This transaction hash has already been used to access this endpoint.',
@@ -183,6 +195,18 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       });
 
       if (!providerResult.valid) {
+        try {
+          await prisma.apiCall.create({
+            data: {
+              endpointId,
+              userId,
+              txHash: txHashProvider || 'invalid',
+              amountUsdc: 0,
+              status: 'failed',
+              payerWallet: agentWallet || null,
+            },
+          });
+        } catch {}
         res.status(402).json({
           error: 'Provider payment invalid',
           details: providerResult.reason,
@@ -204,6 +228,18 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         });
 
         if (!platformResult.valid) {
+          try {
+            await prisma.apiCall.create({
+              data: {
+                endpointId,
+                userId,
+                txHash: txHashProvider || 'invalid',
+                amountUsdc: 0,
+                status: 'failed',
+                payerWallet: agentWallet || null,
+              },
+            });
+          } catch {}
           res.status(402).json({
             error: 'Platform fee payment invalid',
             details: platformResult.reason,

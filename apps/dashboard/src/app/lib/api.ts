@@ -252,6 +252,35 @@ export async function getLatencyStats(): Promise<LatencyStatRow[]> {
   }
 }
 
+export interface FailedRequest {
+  id: string;
+  endpoint: string;
+  status: string;
+  txHash: string;
+  payerWallet: string | null;
+  createdAt: string;
+}
+
+export interface FailedRequestsData {
+  failed: FailedRequest[];
+  replayedCount: number;
+  byStatus: { status: string; _count: { id: number } }[];
+  period: string;
+}
+
+export async function getFailedRequests(): Promise<FailedRequestsData | null> {
+  try {
+    const userId = await getUserId();
+    if (!userId) return null;
+    const { data } = await axios.get(`${SERVER_URL}/api/analytics/failed`, {
+      headers: { 'x-user-id': userId },
+    });
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 export async function getMeteringStats(): Promise<MeteringStatsData | null> {
   try {
     const userId = await getUserId();
