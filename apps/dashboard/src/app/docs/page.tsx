@@ -354,151 +354,204 @@ export default function DocsPage() {
             </div>
 
             <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 300, fontSize: isMobile ? 32 : 42, color: '#fff', marginBottom: 12, lineHeight: 1.1 }}>
-              Gate402 Docs
+              Gate402
             </h1>
-            <P>Billing infrastructure for AI agents. Drop-in middleware that puts a paywall on any API using the HTTP 402 / x402 protocol. Agents pay in USDC on Solana. Settlement in ~400ms. No banks, no Stripe, no human in the loop.</P>
+            <P>Billing infrastructure for AI agents. Drop-in middleware that adds a paywall to any HTTP API or MCP server. Agents pay in USDC on Solana — no banks, no credit cards, no human intervention.</P>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 12, marginTop: 28 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 12, margin: '32px 0' }}>
               {[
-                { icon: '→', title: 'API Developers', desc: 'Protect endpoints with per-call USDC pricing' },
-                { icon: '→', title: 'Agent Operators', desc: 'Run AI agents that pay APIs automatically' },
-                { icon: '→', title: 'MCP Developers', desc: 'Gate MCP tools behind micropayments' },
-              ].map(c => (
-                <div key={c.title} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 8, padding: 20 }}>
-                  <div style={{ color: '#00ff88', fontFamily: 'monospace', fontSize: 18, marginBottom: 8 }}>{c.icon}</div>
-                  <div style={{ color: '#fff', fontSize: 14, fontWeight: 500, marginBottom: 6 }}>{c.title}</div>
-                  <div style={{ color: '#555', fontSize: 13, lineHeight: 1.6 }}>{c.desc}</div>
+                { pkg: 'gate402', label: 'For API Developers', desc: 'Add a paywall to any Express API' },
+                { pkg: 'gate402-agent', label: 'For Agent Operators', desc: 'Pay APIs automatically on HTTP 402' },
+                { pkg: 'create-gate402-mcp', label: 'For MCP Developers', desc: 'Monetize any MCP tool call' },
+              ].map(card => (
+                <div key={card.pkg} style={{ border: '1px solid #1a1a1a', borderRadius: 8, padding: 20, background: '#0a0a0a' }}>
+                  <code style={{ fontSize: 12, color: '#00ff88', fontFamily: 'monospace' }}>npm install {card.pkg}</code>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginTop: 12 }}>{card.label}</div>
+                  <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{card.desc}</div>
                 </div>
               ))}
             </div>
+
+            <Callout type="success">
+              Gate402 is MIT licensed. The npm packages are free forever. The hosted platform at gate402.dev is the commercial offering.
+            </Callout>
           </section>
 
           {/* ══ HOW IT WORKS ══ */}
           <H2 id="how-it-works">How it works</H2>
-          <P>Gate402 sits between the caller (an AI agent) and your API. It intercepts every request, checks for a valid payment, and either grants access or returns an HTTP 402 with payment instructions.</P>
+          <P>Every payment goes through 5 steps. Total time: under one second.</P>
 
-          <Terminal title="request flow" lines={[
-            { type: 'comment', text: 'Agent calls your API without payment' },
-            { type: 'command', text: 'GET /api/weather  →  HTTP 402 Payment Required' },
-            { type: 'output', text: '{ price: "0.001 USDC", payTo: "7UQc...939D" }' },
+          <Terminal title="payment flow" lines={[
+            { type: 'comment', text: 'Step 1 — Agent calls your API' },
+            { type: 'command', text: 'GET https://your-api.dev/api/data' },
             { type: 'blank', text: '' },
-            { type: 'comment', text: 'Agent sends USDC on Solana, gets tx hash' },
-            { type: 'command', text: 'send 0.001 USDC  →  tx: 5kWq9mLP...' },
+            { type: 'comment', text: 'Step 2 — Gate402 returns HTTP 402' },
+            { type: 'output', text: 'HTTP/1.1 402 Payment Required' },
+            { type: 'output', text: '{ "price": { "total": 0.001, "currency": "USDC" },' },
+            { type: 'output', text: '  "splits": { "provider": "0.00099", "platform": "0.00001" },' },
+            { type: 'output', text: '  "payTo": "DcL4mMaqX4FAHg4Cp1SstvMSMWytoXo93ktWycgGYABE" }' },
             { type: 'blank', text: '' },
-            { type: 'comment', text: 'Agent retries with payment proof' },
-            { type: 'command', text: 'GET /api/weather  X-Payment-Payload: 5kWq9mLP...' },
-            { type: 'success', text: 'Payment verified on-chain in 412ms' },
-            { type: 'success', text: 'HTTP 200 — { city: "São Paulo", temp: "28°C" }' },
+            { type: 'comment', text: 'Step 3 — Agent sends USDC on Solana (~400ms)' },
+            { type: 'success', text: 'Transaction confirmed: 5kWq9mLP3rTxHJzUvBnCs...' },
+            { type: 'blank', text: '' },
+            { type: 'comment', text: 'Step 4 — Agent retries with payment proof' },
+            { type: 'command', text: 'GET https://your-api.dev/api/data' },
+            { type: 'output', text: 'X-Payment-Payload: 5kWq9mLP3rTxHJzUvBnCs...' },
+            { type: 'blank', text: '' },
+            { type: 'comment', text: 'Step 5 — Gate402 verifies on-chain and releases' },
+            { type: 'success', text: 'Payment verified ✓ — handler executing' },
+            { type: 'output', text: 'HTTP/1.1 200 OK' },
+            { type: 'output', text: '{ "data": "your response here" }' },
           ]} />
-
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 10, marginTop: 8 }}>
-            {[
-              { n: '01', t: 'Intercept', d: 'Middleware catches every request' },
-              { n: '02', t: 'Challenge', d: 'Returns 402 with price + wallet' },
-              { n: '03', t: 'Verify', d: 'Checks tx on Solana blockchain' },
-              { n: '04', t: 'Release', d: 'Grants access, logs the call' },
-            ].map(c => (
-              <div key={c.n} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 8, padding: 16 }}>
-                <div style={{ fontFamily: 'monospace', fontSize: 10, color: '#333', marginBottom: 6 }}>{c.n}</div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#fff', marginBottom: 4 }}>{c.t}</div>
-                <div style={{ fontSize: 12, color: '#555', lineHeight: 1.5 }}>{c.d}</div>
-              </div>
-            ))}
-          </div>
 
           {/* ══ QUICK START ══ */}
           <H2 id="quick-start">Quick start</H2>
-          <Callout type="success">Prerequisites: Node.js 18+, Express, a Solana wallet address, Gate402 API key from gate402.dev/settings</Callout>
+          <P>5 minutes to your first paid API call.</P>
 
           <StepList steps={[
             {
-              title: 'Install gate402',
+              title: 'Create your account',
+              description: <>
+                <span>Sign in at gate402.dev with GitHub. Copy your API key from Settings.</span>
+                <Terminal title="credentials" lines={[
+                  { type: 'comment', text: 'Your API key looks like this:' },
+                  { type: 'output', text: 'GATE402_API_KEY=7d40dc5a-c0a9-49ac-b87c-89af2267ba32' },
+                ]} />
+              </>,
+            },
+            {
+              title: 'Install',
               description: <CodeBlock lang="bash" code="npm install gate402" />,
             },
             {
-              title: 'Add the middleware',
-              description: <CodeBlock lang="typescript" code={`import express from 'express'
-import { gate402 } from 'gate402'
+              title: 'Add middleware',
+              description: <CodeBlock lang="typescript" code={`import { gate402 } from 'gate402'
+import express from 'express'
 
 const app = express()
 
 app.use(gate402({
-  apiKey:        process.env.GATE402_API_KEY!,
-  walletAddress: process.env.SOLANA_WALLET!,
+  apiKey: process.env.GATE402_API_KEY,
+  serverUrl: 'https://api.gate402.dev',
   endpoints: {
-    '/api/weather':  0.001,   // 0.001 USDC per call
-    '/api/analysis': 0.050,
+    '/api/data': 0.001  // $0.001 per call
   }
 }))
 
-app.get('/api/weather', (_req, res) => {
-  res.json({ city: 'São Paulo', temp: '28°C' })
+app.get('/api/data', (req, res) => {
+  res.json({ message: 'You paid 0.001 USDC!' })
 })
 
-app.listen(3000, () => console.log('Gate402 running on :3000'))`} />,
+app.listen(3000)`} />,
             },
             {
-              title: 'Set environment variables',
-              description: <CodeBlock lang="bash" code={`GATE402_API_KEY=gk_live_...   # from gate402.dev/settings
-SOLANA_WALLET=7UQc...939D    # your Solana wallet
-NODE_ENV=development          # enables demo mode`} />,
-            },
-            {
-              title: 'Test it',
-              description: <Terminal title="bash" lines={[
-                { type: 'comment', text: 'No payment — blocked' },
-                { type: 'command', text: 'curl http://localhost:3000/api/weather' },
-                { type: 'output', text: '{"error":"Payment Required","price":{"amount":"0.001","currency":"USDC"}}' },
+              title: 'Test',
+              description: <Terminal title="terminal" lines={[
+                { type: 'comment', text: 'Without payment — returns 402' },
+                { type: 'command', text: 'curl http://localhost:3000/api/data' },
+                { type: 'error', text: '402 Payment Required' },
                 { type: 'blank', text: '' },
-                { type: 'comment', text: 'Demo mode — passes' },
-                { type: 'command', text: 'curl http://localhost:3000/api/weather -H "X-Payment-Payload: demo_test"' },
-                { type: 'success', text: '{"city":"São Paulo","temp":"28°C"}' },
+                { type: 'comment', text: 'With demo payment — bypasses blockchain' },
+                { type: 'command', text: 'curl http://localhost:3000/api/data \\' },
+                { type: 'output', text: '  -H "X-Payment-Payload: demo_test_001"' },
+                { type: 'success', text: '200 OK — { "message": "You paid 0.001 USDC!" }' },
               ]} />,
+            },
+            {
+              title: 'Open dashboard',
+              description: 'Go to gate402.dev/dashboard to see your calls in real time.',
             },
           ]} />
 
           {/* ══ CORE CONCEPTS ══ */}
           <H2 id="core-concepts">Core concepts</H2>
 
-          <H3>HTTP 402 — Payment Required</H3>
-          <P>HTTP 402 has existed since 1991, reserved for digital payments. The x402 protocol finally standardizes it. Gate402 implements x402 on Solana with USDC as the payment rail.</P>
-
           <H3>x402 Protocol</H3>
-          <P>An open standard backed by Coinbase, Google, and Stripe. When a server returns 402, it includes a machine-readable payment requirement. Compliant clients (like x402-fetch) pay automatically.</P>
-          <CodeBlock lang="json" code={`// HTTP 402 body from Gate402
-{
-  "error": "Payment Required",
-  "price": { "total": 0.001, "currency": "USDC", "network": "solana-devnet" },
-  "splits": {
-    "provider": { "wallet": "7UQc...939D", "amount": 0.00099 },
-    "platform":  { "wallet": "Gate...402",  "amount": 0.00001 }
-  },
-  "endpoint": "/api/weather",
-  "instructions": "Send USDC on Solana devnet and include tx hash in X-Payment-Payload header"
-}`} />
+          <P>HTTP 402 Payment Required is a status code defined in 1991. The x402 protocol defines how to use it for machine-to-machine payments. Backed by Google, Microsoft, Stripe, Coinbase, and Cloudflare.</P>
 
-          <H3>Anti-replay protection</H3>
-          <P>Each transaction hash is stored in Redis with a 24h TTL. Replaying the same tx hash returns a 402 error immediately, before any upstream call is made.</P>
+          <H3>Fee split</H3>
+          <P>Every payment is automatically split. Gate402 never holds your funds.</P>
+          <div style={{ border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden', margin: '16px 0' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: '#0d0d0d', borderBottom: '1px solid #1a1a1a', padding: '8px 16px', gap: 16 }}>
+              {['Payment', 'You receive (99%)', 'Gate402 (1%)'].map(h => (
+                <span key={h} style={{ fontFamily: 'monospace', fontSize: 10, color: '#333', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>
+              ))}
+            </div>
+            {[
+              { pay: '0.001 USDC', you: '0.00099 USDC', fee: '0.00001 USDC' },
+              { pay: '0.010 USDC', you: '0.00990 USDC', fee: '0.00010 USDC' },
+              { pay: '1.000 USDC', you: '0.99000 USDC', fee: '0.01000 USDC' },
+            ].map((r, i) => (
+              <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: '10px 16px', gap: 16, borderBottom: i < 2 ? '1px solid #111' : 'none', background: i % 2 === 0 ? '#0a0a0a' : '#0d0d0d' }}>
+                <code style={{ fontFamily: 'monospace', fontSize: 12, color: '#ccc' }}>{r.pay}</code>
+                <code style={{ fontFamily: 'monospace', fontSize: 12, color: '#00ff88' }}>{r.you}</code>
+                <code style={{ fontFamily: 'monospace', fontSize: 12, color: '#444' }}>{r.fee}</code>
+              </div>
+            ))}
+          </div>
 
           <H3>Demo mode</H3>
-          <P>When <code style={{ fontFamily: 'monospace', fontSize: 13, color: '#ccc', background: '#111', padding: '1px 6px', borderRadius: 4 }}>NODE_ENV !== production</code>, any payment hash starting with <code style={{ fontFamily: 'monospace', fontSize: 13, color: '#ccc', background: '#111', padding: '1px 6px', borderRadius: 4 }}>demo_</code> bypasses blockchain verification. Useful for local development without a funded wallet.</P>
+          <Terminal title="demo mode" lines={[
+            { type: 'comment', text: 'Any hash starting with demo_ bypasses blockchain' },
+            { type: 'command', text: 'curl /api/data -H "X-Payment-Payload: demo_any_string"' },
+            { type: 'success', text: 'Works in development — blocked in production' },
+          ]} />
+          <Callout type="warning">
+            Set NODE_ENV=production in your deployment to disable demo mode automatically.
+          </Callout>
 
           {/* ══ FOR API DEVELOPERS ══ */}
           <H2 id="api-installation">Installation</H2>
-          <Terminal title="bash" lines={[
+          <H3>Requirements</H3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+            {['Node.js 18+', 'Express 4+ (or Flask/FastAPI)', 'Gate402 account at gate402.dev', 'Solana wallet (Phantom, Backpack, or any)'].map(item => (
+              <div key={item} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <span style={{ color: '#00ff88', fontFamily: 'monospace', fontSize: 12 }}>→</span>
+                <span style={{ color: '#666', fontSize: 14 }}>{item}</span>
+              </div>
+            ))}
+          </div>
+          <Terminal title="install" lines={[
+            { type: 'comment', text: 'npm' },
             { type: 'command', text: 'npm install gate402' },
-            { type: 'success', text: '+ gate402@0.1.0' },
             { type: 'blank', text: '' },
-            { type: 'comment', text: 'TypeScript types included' },
+            { type: 'comment', text: 'yarn' },
+            { type: 'command', text: 'yarn add gate402' },
+            { type: 'blank', text: '' },
+            { type: 'comment', text: 'pnpm' },
+            { type: 'command', text: 'pnpm add gate402' },
           ]} />
 
           <H2 id="api-basic-setup">Basic setup</H2>
+          <CodeBlock lang="typescript" code={`import { gate402 } from 'gate402'
+import express from 'express'
+
+const app = express()
+
+app.use(gate402({
+  apiKey: process.env.GATE402_API_KEY,
+  walletAddress: process.env.SOLANA_WALLET,  // optional — uses dashboard setting
+  serverUrl: 'https://api.gate402.dev',
+  network: 'devnet',   // 'devnet' | 'mainnet'
+  endpoints: {
+    '/api/search':    0.001,   // $0.001 per call
+    '/api/analyze':   0.010,   // $0.010 per call
+    '/api/generate':  0.050,   // $0.050 per call
+  }
+}))
+
+// Your handlers don't change at all
+app.get('/api/search', (req, res) => {
+  res.json({ results: ['...'] })
+})
+
+app.listen(3000)`} />
           <PropTable rows={[
             { prop: 'apiKey', type: 'string', required: true, description: 'API key from gate402.dev/settings' },
-            { prop: 'walletAddress', type: 'string', required: true, description: 'Solana wallet address to receive USDC payments' },
-            { prop: 'endpoints', type: 'Record<string, number>', required: true, description: 'Map of URL paths to prices in USDC' },
-            { prop: 'network', type: "'devnet' | 'mainnet'", required: false, default: "'devnet'", description: 'Solana network for payment verification' },
-            { prop: 'serverUrl', type: 'string', required: false, default: 'auto', description: 'Gate402 API URL for verification' },
+            { prop: 'walletAddress', type: 'string', required: false, description: 'Solana wallet to receive USDC. Falls back to dashboard setting.' },
+            { prop: 'serverUrl', type: 'string', required: true, description: 'Gate402 API URL for payment verification' },
+            { prop: 'network', type: "'devnet' | 'mainnet'", required: false, default: "'devnet'", description: 'Solana network for on-chain verification' },
+            { prop: 'endpoints', type: 'Record<string, number>', required: false, description: 'Map of URL paths to prices in USDC. Omit to use managed mode.' },
           ]} />
 
           <H2 id="endpoint-pricing">Endpoint pricing</H2>
@@ -516,16 +569,15 @@ NODE_ENV=development          # enables demo mode`} />,
           <Callout type="info">Gate402 takes a 1% platform fee on each payment. The remaining 99% goes directly to your wallet. No monthly fees on the free tier.</Callout>
 
           <H2 id="managed-mode">Managed mode</H2>
-          <P>In managed mode, Gate402 also handles the proxy — forwarding the request to your origin only after payment is verified. Your origin never receives unpaid requests.</P>
-          <CodeBlock lang="typescript" code={`app.use(gate402({
-  apiKey: '...',
-  walletAddress: '...',
-  managed: true,          // enable managed proxy mode
-  originUrl: 'http://internal-api:8080',
-  endpoints: {
-    '/api/data': 0.001,
-  }
+          <P>Fetch prices from the dashboard automatically. Change prices without redeploying your API.</P>
+          <CodeBlock lang="typescript" code={`// No endpoints config — everything fetched from dashboard
+app.use(gate402({
+  apiKey: process.env.GATE402_API_KEY,
+  serverUrl: 'https://api.gate402.dev'
 }))`} />
+          <Callout type="info">
+            Prices are cached with Redis for 60 seconds. Add endpoints at gate402.dev/dashboard → Endpoints.
+          </Callout>
 
           <H2 id="token-metering">Token metering</H2>
           <P>For LLM-backed APIs, charge per output token instead of per request. Gate402 reads the response and calculates the charge dynamically.</P>
