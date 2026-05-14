@@ -58,6 +58,16 @@ const IconSettings = () => (
   </svg>
 )
 
+const IconChevron = ({ collapsed }: { collapsed: boolean }) => (
+  <svg
+    width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor"
+    strokeWidth="1.5" strokeLinecap="round"
+    style={{ transform: collapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms ease' }}
+  >
+    <path d="M8 3L5 6.5 8 10"/>
+  </svg>
+)
+
 const NAV_ITEMS = [
   { label: 'Overview',   href: '/dashboard',  Icon: IconOverview },
   { label: 'Wallet',     href: '/wallet',     Icon: IconWallet },
@@ -66,6 +76,9 @@ const NAV_ITEMS = [
   { label: 'Docs',       href: '/docs',       Icon: IconDocs },
   { label: 'Settings',   href: '/settings',   Icon: IconSettings },
 ]
+
+const SIDEBAR_EXPANDED = 220
+const SIDEBAR_COLLAPSED = 56
 
 interface SidebarProps {
   mobileOpen?: boolean
@@ -76,6 +89,8 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname()
   const router   = useRouter()
   const [email, setEmail] = useState<string | null>(null)
+  const [collapsed, setCollapsed] = useState(false)
+  const [tooltip, setTooltip] = useState<string | null>(null)
   const { userData } = useUser()
   const isPro = userData?.plan === 'pro' || userData?.plan === 'enterprise'
 
@@ -95,130 +110,165 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   }
 
   const initial = email ? email[0].toUpperCase() : '?'
+  const width = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED
 
   return (
     <aside style={{
-      width: 220,
+      width,
       height: '100vh',
       position: 'fixed',
       top: 0,
       left: mobileOpen ? 0 : undefined,
-      background: 'var(--surface)',
-      borderRight: '1px solid var(--border)',
+      background: '#000',
+      borderRight: '1px solid #1a1a1a',
       display: 'flex',
       flexDirection: 'column',
       zIndex: 50,
-      transform: mobileOpen !== undefined ? undefined : undefined,
+      transition: 'width 200ms ease',
+      overflow: 'hidden',
     }}>
-      {/* Logo */}
-      <div style={{ padding: '24px 20px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        {onClose && (
-          <button
-            onClick={onClose}
-            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 18, padding: '0 8px 0 0', lineHeight: 1 }}
-          >
-            ✕
-          </button>
+
+      {/* Logo + collapse toggle */}
+      <div style={{
+        padding: '20px 0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: collapsed ? 'center' : 'space-between',
+        paddingLeft: collapsed ? 0 : 20,
+        paddingRight: collapsed ? 0 : 12,
+        minHeight: 64,
+        borderBottom: '1px solid #1a1a1a',
+      }}>
+        {!collapsed && (
+          <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+            <img src="/logo-gate.png" alt="Gate402" style={{ height: 22, width: 'auto', display: 'block' }} />
+            <span style={{
+              background: 'rgba(0,255,136,0.08)',
+              color: '#00ff88',
+              border: '1px solid rgba(0,255,136,0.2)',
+              borderRadius: 4,
+              padding: '1px 6px',
+              fontSize: 9,
+              fontFamily: 'JetBrains Mono, monospace',
+              letterSpacing: '0.08em',
+            }}>LIVE</span>
+          </a>
         )}
-        <a href="/dashboard">
-          <img src="/logo-gate.png" alt="Gate402" style={{ height: 24, width: 'auto', display: 'block' }} />
-        </a>
-        <span style={{
-          background: 'rgba(0,255,136,0.1)',
-          color: '#00ff88',
-          border: '1px solid rgba(0,255,136,0.25)',
-          borderRadius: 4,
-          padding: '1px 6px',
-          fontSize: 9,
-          fontFamily: 'var(--font-code)',
-          fontWeight: 500,
-          letterSpacing: '0.08em',
-          animation: 'liveBlink 2s ease-in-out infinite',
-        }}>
-          LIVE
-        </span>
+        <button
+          onClick={() => setCollapsed(c => !c)}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#444',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 28,
+            height: 28,
+            borderRadius: 6,
+            flexShrink: 0,
+            transition: 'color 150ms, background 150ms',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = '#111' }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#444'; e.currentTarget.style.background = 'transparent' }}
+        >
+          <IconChevron collapsed={collapsed} />
+        </button>
       </div>
 
-      {/* Divider */}
-      <div style={{ height: 1, background: 'var(--border)', margin: '0 0 8px' }} />
-
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '8px 0' }}>
+      <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto', overflowX: 'hidden' }}>
         {NAV_ITEMS.map(({ label, href, Icon }) => {
           const active = pathname === href
           return (
-            <a
-              key={href}
-              href={href}
-              onClick={onClose}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '10px 20px',
-                fontSize: 14,
-                fontFamily: 'var(--font-display)',
-                fontWeight: 400,
-                color: active ? 'var(--green)' : 'var(--text-secondary)',
-                background: active ? 'rgba(0,255,136,0.06)' : 'transparent',
-                borderLeft: active ? '2px solid var(--green)' : '2px solid transparent',
-                transition: 'all 150ms ease',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={e => {
-                if (!active) {
-                  e.currentTarget.style.color = '#fff'
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                }
-              }}
-              onMouseLeave={e => {
-                if (!active) {
-                  e.currentTarget.style.color = 'var(--text-secondary)'
-                  e.currentTarget.style.background = 'transparent'
-                }
-              }}
-            >
-              <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, opacity: active ? 1 : 0.6 }}>
-                <Icon />
-              </span>
-              {label}
-            </a>
+            <div key={href} style={{ position: 'relative' }}>
+              <a
+                href={href}
+                onClick={onClose}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '9px 12px',
+                  margin: '1px 8px',
+                  fontSize: 13,
+                  fontFamily: 'Space Grotesk, sans-serif',
+                  fontWeight: 400,
+                  color: active ? '#fff' : '#888',
+                  background: active ? '#0a0a0a' : 'transparent',
+                  borderLeft: active ? '2px solid #00ff88' : '2px solid transparent',
+                  borderRadius: 6,
+                  transition: 'all 150ms ease',
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  justifyContent: collapsed ? 'center' : 'flex-start',
+                }}
+                onMouseEnter={e => {
+                  if (!active) {
+                    e.currentTarget.style.color = '#fff'
+                    e.currentTarget.style.background = '#0f0f0f'
+                  }
+                  if (collapsed) setTooltip(label)
+                }}
+                onMouseLeave={e => {
+                  if (!active) {
+                    e.currentTarget.style.color = '#888'
+                    e.currentTarget.style.background = 'transparent'
+                  }
+                  setTooltip(null)
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: active ? '#00ff88' : 'currentColor' }}>
+                  <Icon />
+                </span>
+                {!collapsed && <span>{label}</span>}
+              </a>
+
+              {/* Tooltip when collapsed */}
+              {collapsed && tooltip === label && (
+                <div style={{
+                  position: 'fixed',
+                  left: SIDEBAR_COLLAPSED + 8,
+                  transform: 'translateY(-50%)',
+                  background: '#111',
+                  border: '1px solid #1a1a1a',
+                  borderRadius: 6,
+                  padding: '6px 10px',
+                  fontSize: 12,
+                  fontFamily: 'Space Grotesk, sans-serif',
+                  color: '#fff',
+                  whiteSpace: 'nowrap',
+                  pointerEvents: 'none',
+                  zIndex: 200,
+                }}>
+                  {label}
+                </div>
+              )}
+            </div>
           )
         })}
       </nav>
 
       {/* Bottom user section */}
-      <div style={{ borderTop: '1px solid var(--border)', padding: '16px 20px' }}>
-        {/* Plan badge / upgrade link */}
-        {userData && (
+      <div style={{ borderTop: '1px solid #1a1a1a', padding: collapsed ? '12px 0' : '14px 16px' }}>
+        {!collapsed && userData && (
           <div style={{ marginBottom: 10 }}>
             {isPro ? (
               <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-                background: 'rgba(0,255,136,0.08)',
-                color: '#00ff88',
-                border: '1px solid rgba(0,255,136,0.2)',
-                borderRadius: 4,
-                padding: '2px 8px',
-                fontSize: 10,
-                fontFamily: 'var(--font-code)',
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-              }}>
-                ✦ PRO
-              </span>
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                background: 'rgba(0,255,136,0.08)', color: '#00ff88',
+                border: '1px solid rgba(0,255,136,0.2)', borderRadius: 4,
+                padding: '2px 8px', fontSize: 10,
+                fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em',
+              }}>✦ PRO</span>
             ) : (
               <a
                 href="/checkout"
-                style={{
-                  fontSize: 11,
-                  fontFamily: 'var(--font-code)',
-                  color: '#333',
-                  textDecoration: 'none',
-                  transition: 'color 150ms',
-                }}
+                style={{ fontSize: 11, fontFamily: 'JetBrains Mono, monospace', color: '#333', textDecoration: 'none', transition: 'color 150ms' }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#00ff88')}
                 onMouseLeave={e => (e.currentTarget.style.color = '#333')}
               >
@@ -228,58 +278,47 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: collapsed ? 0 : 10,
+          justifyContent: collapsed ? 'center' : 'flex-start',
+        }}>
           {/* Avatar */}
-          <div style={{
-            width: 28,
-            height: 28,
-            borderRadius: '50%',
-            background: '#1a1a1a',
-            border: '1px solid #333',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 11,
-            fontFamily: 'var(--font-code)',
-            color: '#888',
-            flexShrink: 0,
-          }}>
+          <div
+            title={collapsed ? (email ?? undefined) : undefined}
+            style={{
+              width: 28, height: 28, borderRadius: '50%',
+              background: '#111', border: '1px solid #1a1a1a',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 11, fontFamily: 'JetBrains Mono, monospace',
+              color: '#666', flexShrink: 0, cursor: 'default',
+            }}>
             {initial}
           </div>
 
-          {/* Email */}
-          <span style={{
-            fontSize: 12,
-            color: 'var(--text-secondary)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            flex: 1,
-            maxWidth: 120,
-          }}>
-            {email ?? '...'}
-          </span>
-
-          {/* Logout */}
-          <button
-            onClick={handleLogout}
-            title="Logout"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#333',
-              cursor: 'pointer',
-              fontSize: 14,
-              padding: '2px 4px',
-              borderRadius: 4,
-              transition: 'color 150ms',
-              flexShrink: 0,
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#ff4444')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#333')}
-          >
-            →
-          </button>
+          {!collapsed && (
+            <>
+              <span style={{
+                fontSize: 12, color: '#666',
+                overflow: 'hidden', textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap', flex: 1, maxWidth: 108,
+              }}>
+                {email ?? '...'}
+              </span>
+              <button
+                onClick={handleLogout}
+                title="Sign out"
+                style={{
+                  background: 'transparent', border: 'none', color: '#333',
+                  cursor: 'pointer', fontSize: 14, padding: '2px 4px',
+                  borderRadius: 4, transition: 'color 150ms', flexShrink: 0,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#ff4444')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#333')}
+              >→</button>
+            </>
+          )}
         </div>
       </div>
     </aside>

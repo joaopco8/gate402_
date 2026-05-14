@@ -66,11 +66,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main content */}
       <main style={{
-        marginLeft: isMobile ? 0 : 'var(--sidebar-width)',
+        marginLeft: isMobile ? 0 : 220,
         flex: 1,
         minHeight: '100vh',
         position: 'relative',
         zIndex: 1,
+        transition: 'margin-left 200ms ease',
       }}>
         {isMobile && (
           <div style={{ padding: '16px 20px 0' }}>
