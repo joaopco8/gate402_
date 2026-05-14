@@ -245,12 +245,30 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         console.error('[x402] Failed to log api call:', e);
       }
 
-      // 6d. Transaction + Splits (requires userId)
-      if (userId && endpointId) {
-        try {
-          await prisma.transaction.create({
+      // 6d. Transaction + Splits
+      try {
+        // Resolve userId if null from pricing cache (e.g. demo endpoint without owner)
+        let resolvedUserId = userId;
+        if (!resolvedUserId && endpointId) {
+          const ep = await prisma.endpoint.findUnique({
+            where: { id: endpointId },
+            select: { userId: true },
+          });
+          resolvedUserId = ep?.userId ?? null;
+          console.log('[transaction] resolved userId from endpoint:', resolvedUserId);
+        }
+
+        console.log('[transaction] creating record...');
+        console.log('[transaction] userId:', resolvedUserId);
+        console.log('[transaction] endpointId:', endpointId);
+        console.log('[transaction] txHashProvider:', txHashProviderToLog);
+
+        if (!resolvedUserId || !endpointId) {
+          console.error('[transaction] skipped — missing userId or endpointId');
+        } else {
+          const transaction = await prisma.transaction.create({
             data: {
-              userId,
+              userId: resolvedUserId,
               endpointId,
               txHashProvider: txHashProviderToLog,
               txHashPlatform: effectiveTxPlatform !== txHashProviderToLog ? effectiveTxPlatform : null,
@@ -282,9 +300,13 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
               },
             },
           });
-        } catch (e) {
-          console.error('[x402] Failed to create transaction record:', e);
+          console.log('[transaction] created:', transaction.id);
         }
+      } catch (e: unknown) {
+        const err = e as Error & { code?: string };
+        console.error('[transaction] create failed:', err.message);
+        console.error('[transaction] error code:', err.code);
+        console.error('[transaction] full error:', err);
       }
 
       // 6c. Email alert
