@@ -355,6 +355,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       // 7. Libera acesso
       req.headers['x-payment-verified'] = 'true';
       req.headers['x-payment-amount'] = confirmedAmount.toString();
+      console.log('[x402] about to call next()');
       return next();
     }
 
