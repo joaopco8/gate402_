@@ -10,7 +10,7 @@ import DashboardLayout from '../components/DashboardLayout';
 import PageContainer from '../components/PageContainer';
 import PageHeader from '../components/PageHeader';
 import Card from '../components/Card';
-import { getMetrics, getCallsPerDay, getRecentCalls, getEndpoints, getEndpointRevenue, getTransactions, type Metrics, type DayData, type RecentCall, type Transaction, type TransactionStats } from '../lib/api';
+import { getMetrics, getCallsPerDay, getRecentCalls, getEndpoints, getEndpointRevenue, getTransactions, getAnalyticsRevenue, getSuccessRate, getTopAgents, getLatencyStats, getMeteringStats, type Metrics, type DayData, type RecentCall, type Transaction, type TransactionStats, type AnalyticsRevenueSummary, type SuccessRateData, type TopAgent, type LatencyStatRow, type MeteringStatsData } from '../lib/api';
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -60,15 +60,25 @@ export default function DashboardPage() {
   const [animated, setAnimated] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [txStats, setTxStats] = useState<TransactionStats>({ totalGross: 0, totalNet: 0, totalFeesPaid: 0, transactionCount: 0 });
+  const [analyticsRevenue, setAnalyticsRevenue] = useState<AnalyticsRevenueSummary | null>(null);
+  const [revenuePeriod, setRevenuePeriod] = useState<'7d' | '30d' | '90d'>('7d');
+  const [successRate, setSuccessRate] = useState<SuccessRateData | null>(null);
+  const [topAgents, setTopAgents] = useState<TopAgent[]>([]);
+  const [latencyStats, setLatencyStats] = useState<LatencyStatRow[]>([]);
+  const [meteringStats, setMeteringStats] = useState<MeteringStatsData | null>(null);
 
   async function fetchAll() {
-    const [m, c, r, endpointList, rev, txData] = await Promise.all([
+    const [m, c, r, endpointList, rev, txData, sr, agents, latency, metering] = await Promise.all([
       getMetrics(),
       getCallsPerDay(7, selectedEndpoint),
       getRecentCalls(),
       getEndpoints(),
       getEndpointRevenue(),
       getTransactions(),
+      getSuccessRate(),
+      getTopAgents(),
+      getLatencyStats(),
+      getMeteringStats(),
     ]);
     setMetrics(m);
     setChartData(c);
@@ -76,6 +86,10 @@ export default function DashboardPage() {
     setEndpointRevenue(Array.isArray(rev) ? rev : []);
     setTransactions(txData.transactions ?? []);
     setTxStats(txData.stats ?? { totalGross: 0, totalNet: 0, totalFeesPaid: 0, transactionCount: 0 });
+    setSuccessRate(sr);
+    setTopAgents(agents);
+    setLatencyStats(latency);
+    setMeteringStats(metering);
     const paths = Array.isArray(endpointList)
       ? endpointList.map((e: { path: string }) => e.path)
       : [];
@@ -96,6 +110,10 @@ export default function DashboardPage() {
   useEffect(() => {
     getCallsPerDay(7, selectedEndpoint).then(setChartData);
   }, [selectedEndpoint]);
+
+  useEffect(() => {
+    getAnalyticsRevenue(revenuePeriod).then(data => { if (data) setAnalyticsRevenue(data); });
+  }, [revenuePeriod]);
 
   useEffect(() => {
     const t = setTimeout(() => setAnimated(true), 100);
@@ -321,18 +339,38 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        {/* Revenue Breakdown */}
+        {/* Revenue Breakdown — pro analytics */}
         {!loading && (
           <Card style={{ padding: '24px 28px', marginBottom: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.1em' }}>REVENUE BREAKDOWN</div>
-              <div style={{ fontSize: 10, color: '#333', fontFamily: 'var(--font-code)' }}>1% platform fee on each transaction</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {(['7d', '30d', '90d'] as const).map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setRevenuePeriod(p)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: 4,
+                      border: '1px solid',
+                      borderColor: revenuePeriod === p ? 'var(--green)' : 'var(--border)',
+                      background: revenuePeriod === p ? 'rgba(0,255,136,0.08)' : 'transparent',
+                      color: revenuePeriod === p ? 'var(--green)' : '#444',
+                      fontSize: 11,
+                      fontFamily: 'var(--font-code)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
               {[
-                { label: 'Gross Revenue', value: txStats.totalGross, color: '#fff' },
-                { label: 'Net Revenue', value: txStats.totalNet, color: '#00ff88' },
-                { label: 'Platform Fees', value: txStats.totalFeesPaid, color: '#666' },
+                { label: 'Gross Revenue', value: analyticsRevenue?.grossRevenue ?? txStats.totalGross, color: '#fff' },
+                { label: 'Net Revenue', value: analyticsRevenue?.netRevenue ?? txStats.totalNet, color: '#00ff88' },
+                { label: 'Platform Fees', value: analyticsRevenue?.platformFees ?? txStats.totalFeesPaid, color: '#444' },
               ].map(({ label, value, color }) => (
                 <div key={label} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '16px 20px' }}>
                   <div style={{ fontSize: 10, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.08em', marginBottom: 10 }}>{label.toUpperCase()}</div>
@@ -342,6 +380,133 @@ export default function DashboardPage() {
                   <div style={{ fontSize: 10, color: '#333', fontFamily: 'var(--font-code)', marginTop: 4 }}>USDC</div>
                 </div>
               ))}
+            </div>
+            <div style={{ fontSize: 10, color: '#333', fontFamily: 'var(--font-code)', marginTop: 12 }}>
+              1% platform fee per transaction
+            </div>
+          </Card>
+        )}
+
+        {/* Success Rate */}
+        {!loading && successRate !== null && (
+          <Card style={{ padding: '24px 28px', marginBottom: 24 }}>
+            <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.1em', marginBottom: 20 }}>SUCCESS RATE</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '16px 20px' }}>
+                <div style={{ fontSize: 10, color: '#333', fontFamily: 'var(--font-code)', marginBottom: 8 }}>SUCCESS RATE</div>
+                <div style={{ fontSize: 28, fontWeight: 300, fontFamily: 'var(--font-code)', color: successRate.successRate > 95 ? '#00ff88' : successRate.successRate > 80 ? '#f59e0b' : '#ef4444' }}>
+                  {successRate.successRate.toFixed(1)}%
+                </div>
+              </div>
+              <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '16px 20px' }}>
+                <div style={{ fontSize: 10, color: '#333', fontFamily: 'var(--font-code)', marginBottom: 8 }}>TOTAL CALLS (7D)</div>
+                <div style={{ fontSize: 28, fontWeight: 300, fontFamily: 'var(--font-code)', color: '#fff' }}>
+                  {successRate.totalCalls}
+                </div>
+              </div>
+              <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '16px 20px' }}>
+                <div style={{ fontSize: 10, color: '#333', fontFamily: 'var(--font-code)', marginBottom: 8 }}>MRR PROJECTED</div>
+                <div style={{ fontSize: 28, fontWeight: 300, fontFamily: 'var(--font-code)', color: '#00ff88' }}>
+                  ${successRate.mrrProjected.toFixed(2)}
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Top Paying Agents */}
+        {!loading && (
+          <Card style={{ overflow: 'hidden', padding: 0, marginBottom: 24 }}>
+            <div style={{ padding: '16px 28px', borderBottom: '1px solid #1a1a1a' }}>
+              <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.1em' }}>TOP PAYING AGENTS</div>
+            </div>
+            {topAgents.length === 0 ? (
+              <div style={{ padding: '32px 0', textAlign: 'center', fontFamily: 'var(--font-code)', fontSize: 13, color: '#444' }}>
+                No paying agents yet
+              </div>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #1a1a1a' }}>
+                    {['Agent Wallet', 'Calls', 'Total Paid', 'Net Received'].map(h => (
+                      <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontWeight: 400, fontSize: 11, color: '#444', fontFamily: 'var(--font-code)', letterSpacing: '0.05em' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {topAgents.map((agent, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid #0d0d0d', transition: 'background 150ms' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-code)', fontSize: 13, color: '#fff' }}>{agent.walletShort}</td>
+                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-code)', fontSize: 12, color: '#888' }}>{agent.callCount}</td>
+                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-code)', fontSize: 12, color: '#fff' }}>${agent.totalPaid.toFixed(4)}</td>
+                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-code)', fontSize: 12, color: '#00ff88' }}>${agent.netReceived.toFixed(4)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Card>
+        )}
+
+        {/* Latency Stats */}
+        {!loading && latencyStats.length > 0 && (
+          <Card style={{ overflow: 'hidden', padding: 0, marginBottom: 24 }}>
+            <div style={{ padding: '16px 28px', borderBottom: '1px solid #1a1a1a' }}>
+              <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.1em' }}>LATENCY STATS</div>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #1a1a1a' }}>
+                  {['Endpoint', 'p50', 'p95', 'p99', 'Avg'].map(h => (
+                    <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontWeight: 400, fontSize: 11, color: '#444', fontFamily: 'var(--font-code)', letterSpacing: '0.05em' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {latencyStats.map((row, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid #0d0d0d' }}>
+                    <td style={{ padding: '12px 20px', fontFamily: 'var(--font-code)', fontSize: 12, color: '#fff' }}>{row.endpoint}</td>
+                    {[row.p50, row.p95, row.p99, row.avg].map((val, vi) => (
+                      <td key={vi} style={{ padding: '12px 20px', fontFamily: 'var(--font-code)', fontSize: 12, color: val < 200 ? '#00ff88' : val < 500 ? '#f59e0b' : '#ef4444' }}>
+                        {val}ms
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        )}
+
+        {/* Usage Metering */}
+        {!loading && meteringStats && meteringStats.byType.length > 0 && (
+          <Card style={{ padding: '24px 28px', marginBottom: 24 }}>
+            <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.1em', marginBottom: 20 }}>USAGE METERING</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              {meteringStats.byType.map(m => {
+                const typeInfo: Record<string, { icon: string; label: string; unit: string }> = {
+                  token: { icon: '🔤', label: 'Tokens', unit: 'tokens' },
+                  compute: { icon: '⚡', label: 'Compute', unit: 'ms' },
+                  bandwidth: { icon: '📡', label: 'Bandwidth', unit: 'kb' },
+                };
+                const info = typeInfo[m.type] ?? { icon: '📊', label: m.type, unit: '' };
+                return (
+                  <div key={m.type} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '16px 20px' }}>
+                    <div style={{ fontSize: 13, marginBottom: 8 }}>{info.icon} {info.label}</div>
+                    <div style={{ fontSize: 20, fontWeight: 300, color: '#fff', fontFamily: 'var(--font-code)', marginBottom: 4 }}>
+                      {m.totalUsage.toLocaleString()} {info.unit}
+                    </div>
+                    <div style={{ fontSize: 13, color: '#00ff88', fontFamily: 'var(--font-code)', marginBottom: 4 }}>${m.totalCost.toFixed(6)}</div>
+                    <div style={{ fontSize: 10, color: '#444', fontFamily: 'var(--font-code)' }}>{m.count} records</div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: 12, color: '#444', fontFamily: 'var(--font-code)', marginTop: 16 }}>
+              Pending settlement: <span style={{ color: '#f59e0b' }}>${meteringStats.totalPending.toFixed(6)}</span>
             </div>
           </Card>
         )}

@@ -54,6 +54,24 @@ export default function WalletPage() {
     load()
   }, [router])
 
+  async function handleExport() {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const res = await fetch(`${SERVER_URL}/api/analytics/export`, {
+      headers: { 'x-user-id': user.id },
+    })
+
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'gate402-transactions.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   function handleCopyAddress() {
     const addr = userData?.walletAddress
     if (!addr) return
@@ -169,6 +187,28 @@ export default function WalletPage() {
             </button>
           </div>
         </Card>
+
+        {/* Export CSV */}
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            onClick={handleExport}
+            style={{
+              padding: '8px 16px',
+              background: '#0a0a0a',
+              border: '1px solid #1a1a1a',
+              borderRadius: 6,
+              fontSize: 12,
+              fontFamily: 'var(--font-code)',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              transition: 'all 150ms',
+            }}
+            onMouseOver={e => { e.currentTarget.style.borderColor = '#00ff88'; e.currentTarget.style.color = '#00ff88'; }}
+            onMouseOut={e => { e.currentTarget.style.borderColor = '#1a1a1a'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+          >
+            Export CSV ↓
+          </button>
+        </div>
 
         {/* Wallet address card */}
         {receivingAddress && (

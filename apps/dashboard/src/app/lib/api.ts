@@ -150,3 +150,117 @@ export async function toggleEndpoint(id: string, active: boolean) {
   const { data } = await axios.patch(`${SERVER_URL}/api/endpoints/${id}`, { active }, { headers });
   return data;
 }
+
+export interface AnalyticsRevenueSummary {
+  grossRevenue: number;
+  netRevenue: number;
+  platformFees: number;
+  feeRate: number;
+  transactionCount: number;
+  period: string;
+}
+
+export interface SuccessRateData {
+  successRate: number;
+  failRate: number;
+  totalCalls: number;
+  confirmedCalls: number;
+  failedCalls: number;
+  mrrProjected: number;
+  period: string;
+}
+
+export interface TopAgent {
+  wallet: string | null;
+  walletShort: string;
+  totalPaid: number;
+  netReceived: number;
+  callCount: number;
+}
+
+export interface LatencyStatRow {
+  endpoint: string;
+  p50: number;
+  p95: number;
+  p99: number;
+  avg: number;
+  count: number;
+}
+
+export interface MeteringTypeStats {
+  type: string;
+  totalUsage: number;
+  totalCost: number;
+  count: number;
+}
+
+export interface MeteringStatsData {
+  byType: MeteringTypeStats[];
+  totalSettled: number;
+  totalPending: number;
+}
+
+export async function getAnalyticsRevenue(period = '7d'): Promise<AnalyticsRevenueSummary | null> {
+  try {
+    const userId = await getUserId();
+    if (!userId) return null;
+    const { data } = await axios.get(`${SERVER_URL}/api/analytics/revenue?period=${period}`, {
+      headers: { 'x-user-id': userId },
+    });
+    return data.summary ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getSuccessRate(): Promise<SuccessRateData | null> {
+  try {
+    const userId = await getUserId();
+    if (!userId) return null;
+    const { data } = await axios.get(`${SERVER_URL}/api/analytics/success-rate`, {
+      headers: { 'x-user-id': userId },
+    });
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export async function getTopAgents(): Promise<TopAgent[]> {
+  try {
+    const userId = await getUserId();
+    if (!userId) return [];
+    const { data } = await axios.get(`${SERVER_URL}/api/analytics/top-agents`, {
+      headers: { 'x-user-id': userId },
+    });
+    return data.agents ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getLatencyStats(): Promise<LatencyStatRow[]> {
+  try {
+    const userId = await getUserId();
+    if (!userId) return [];
+    const { data } = await axios.get(`${SERVER_URL}/api/analytics/latency`, {
+      headers: { 'x-user-id': userId },
+    });
+    return data.latency ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getMeteringStats(): Promise<MeteringStatsData | null> {
+  try {
+    const userId = await getUserId();
+    if (!userId) return null;
+    const { data } = await axios.get(`${SERVER_URL}/api/metering/stats`, {
+      headers: { 'x-user-id': userId },
+    });
+    return data;
+  } catch {
+    return null;
+  }
+}
