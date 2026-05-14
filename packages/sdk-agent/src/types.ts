@@ -1,8 +1,16 @@
+export interface SpendingPolicy {
+  name: string
+  condition: (endpoint: string, amount: number) => boolean
+  action: 'allow' | 'block'
+  limit?: number
+}
+
 export interface Gate402AgentConfig {
   privateKey: string
   network?: 'devnet' | 'mainnet'
   rpcUrl?: string
   limits?: SpendingLimits
+  policies?: SpendingPolicy[]
   paymentTimeout?: number
   debug?: boolean
 }

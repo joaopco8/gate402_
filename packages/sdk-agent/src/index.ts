@@ -3,6 +3,7 @@ export { SolanaWallet } from './wallet'
 export type {
   Gate402AgentConfig,
   SpendingLimits,
+  SpendingPolicy,
   PaymentRequired402,
   PaymentResult,
   SpendingLog,

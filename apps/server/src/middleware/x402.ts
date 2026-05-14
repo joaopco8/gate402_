@@ -96,6 +96,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
     const shortPath = req.path;              // e.g. /weather
     const rawPaymentHeader = req.headers['x-payment-payload'] as string | undefined;
     const apiKey = req.headers['x-api-key'] as string | undefined;
+    const agentWallet = req.headers['x-agent-wallet'] as string | undefined;
 
     // 1. Busca pricing (Redis cache → DB fallback)
     const pricing = await getCachedEndpoint(fullPath, shortPath, apiKey);
@@ -236,7 +237,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
             endpointId,
             txHash: txHashProviderToLog,
             amountUsdc: confirmedAmount,
-            payerWallet: payerWallet ?? null,
+            payerWallet: agentWallet || payerWallet || null,
             status: isDemo ? 'demo' : 'confirmed',
             userId,
           },
@@ -270,7 +271,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
               platformFee,
               status: 'verified',
               network,
-              payerWallet: payerWallet ?? null,
+              payerWallet: agentWallet || payerWallet || null,
               splits: {
                 create: [
                   {

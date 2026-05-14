@@ -3,6 +3,7 @@ import {
   PaymentRequired402,
   PaymentResult,
   SpendingLog,
+  SpendingPolicy,
 } from './types'
 import {
   SpendingLimitError,
@@ -79,6 +80,18 @@ export class Gate402Agent {
     if (limits.allowedEndpoints &&
         !limits.allowedEndpoints.some(e => endpoint.includes(e))) {
       throw new SpendingLimitError(`Endpoint ${endpoint} is not in allowedEndpoints`)
+    }
+
+    if (this.config.policies) {
+      for (const policy of this.config.policies) {
+        if (policy.condition(endpoint, amount)) {
+          if (policy.action === 'block') {
+            throw new SpendingLimitError(
+              `Policy "${policy.name}" blocked payment of ${amount} USDC to ${endpoint}`
+            )
+          }
+        }
+      }
     }
   }
 
@@ -177,6 +190,29 @@ export class Gate402Agent {
       headers: {
         ...options.headers,
         'X-Payment-Payload': paymentHeader,
+        'X-Agent-Wallet': this.wallet.publicKey,
+      },
+    })
+  }
+
+  async demoFetch(url: string, options: RequestInit = {}): Promise<Response> {
+    this.log('Demo fetch:', url)
+
+    const response = await fetch(url, options)
+
+    if (response.status !== 402) {
+      return response
+    }
+
+    const demoHash = `demo_agent_${Date.now()}_${Math.random().toString(36).slice(2)}`
+    this.log('Demo payment hash:', demoHash)
+
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        'X-Payment-Payload': demoHash,
+        'X-Agent-Wallet': this.wallet.publicKey,
       },
     })
   }
