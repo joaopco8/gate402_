@@ -9,10 +9,12 @@ import DashboardLayout from '../components/DashboardLayout';
 import PageContainer from '../components/PageContainer';
 import PageHeader from '../components/PageHeader';
 import Card from '../components/Card';
+import { usePlan } from '../hooks/usePlan';
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3001';
 
 export default function EndpointsPage() {
+  const { isPro } = usePlan();
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ path: '', priceUsdc: '', description: '' });
@@ -62,6 +64,26 @@ export default function EndpointsPage() {
       <PageContainer>
         <PageHeader eyebrow="ENDPOINTS" title="Endpoints" subtitle="Manage paywalled API routes" />
 
+        {/* Free plan limit indicator */}
+        {!isPro && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <div style={{
+              fontFamily: 'monospace', fontSize: 11,
+              color: endpoints.length >= 3 ? '#ef4444' : '#888',
+            }}>
+              {endpoints.length}/3 endpoints used
+            </div>
+            {endpoints.length >= 3 && (
+              <a href="/billing" style={{
+                fontFamily: 'monospace', fontSize: 11,
+                color: '#9945FF', textDecoration: 'none',
+              }}>
+                Upgrade for unlimited →
+              </a>
+            )}
+          </div>
+        )}
+
         {/* Add Form */}
         <Card style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-code)', letterSpacing: '0.1em', marginBottom: 20 }}>ADD ENDPOINT</div>
@@ -98,13 +120,27 @@ export default function EndpointsPage() {
               onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
             />
             {error && <div style={{ color: '#ff4444', fontSize: 12, fontFamily: 'var(--font-code)' }}>{error}</div>}
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', color: 'var(--green)', borderRadius: 6, padding: '10px 20px', fontFamily: 'var(--font-code)', fontSize: 13, cursor: submitting ? 'not-allowed' : 'pointer', alignSelf: 'flex-start', opacity: submitting ? 0.6 : 1, transition: 'all 150ms' }}
-            >
-              {submitting ? 'Adding...' : 'Add Endpoint →'}
-            </button>
+            {!isPro && endpoints.length >= 3 ? (
+              <a href="/billing" style={{
+                padding: '10px 20px',
+                background: 'rgba(153,69,255,0.1)',
+                border: '1px solid rgba(153,69,255,0.2)',
+                borderRadius: 6, color: '#9945FF',
+                fontSize: 12, textDecoration: 'none',
+                fontFamily: 'monospace',
+                alignSelf: 'flex-start',
+              }}>
+                Upgrade to add more endpoints →
+              </a>
+            ) : (
+              <button
+                type="submit"
+                disabled={submitting}
+                style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', color: 'var(--green)', borderRadius: 6, padding: '10px 20px', fontFamily: 'var(--font-code)', fontSize: 13, cursor: submitting ? 'not-allowed' : 'pointer', alignSelf: 'flex-start', opacity: submitting ? 0.6 : 1, transition: 'all 150ms' }}
+              >
+                {submitting ? 'Adding...' : 'Add Endpoint →'}
+              </button>
+            )}
           </form>
         </Card>
 

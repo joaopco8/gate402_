@@ -77,7 +77,7 @@ const NAV_ITEMS = [
   { label: 'Settings',   href: '/settings',   Icon: IconSettings },
 ]
 
-const SIDEBAR_EXPANDED = 220
+const SIDEBAR_EXPANDED = 280
 const SIDEBAR_COLLAPSED = 56
 
 interface SidebarProps {
@@ -91,6 +91,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const [email, setEmail] = useState<string | null>(null)
   const [collapsed, setCollapsed] = useState(false)
   const [tooltip, setTooltip] = useState<string | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
   const { userData } = useUser()
   const isPro = userData?.plan === 'pro' || userData?.plan === 'enterprise'
 
@@ -119,7 +120,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
       position: 'fixed',
       top: 0,
       left: mobileOpen ? 0 : undefined,
-      background: '#000',
+      background: '#0A0A0A',
       borderRight: '1px solid #1a1a1a',
       display: 'flex',
       flexDirection: 'column',
@@ -142,16 +143,6 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
         {!collapsed && (
           <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
             <img src="/logo-gate.png" alt="Gate402" style={{ height: 22, width: 'auto', display: 'block' }} />
-            <span style={{
-              background: 'rgba(0,255,136,0.08)',
-              color: '#00ff88',
-              border: '1px solid rgba(0,255,136,0.2)',
-              borderRadius: 4,
-              padding: '1px 6px',
-              fontSize: 9,
-              fontFamily: 'JetBrains Mono, monospace',
-              letterSpacing: '0.08em',
-            }}>LIVE</span>
           </a>
         )}
         <button
@@ -193,7 +184,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   gap: 10,
                   padding: '9px 12px',
                   margin: '1px 8px',
-                  fontSize: 13,
+                  fontSize: 15,
                   fontFamily: 'Space Grotesk, sans-serif',
                   fontWeight: 400,
                   color: active ? '#fff' : '#888',
@@ -254,37 +245,128 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
       </nav>
 
       {/* Bottom user section */}
-      <div style={{ borderTop: '1px solid #1a1a1a', padding: collapsed ? '12px 0' : '14px 16px' }}>
-        {!collapsed && userData && (
-          <div style={{ marginBottom: 10 }}>
-            {isPro ? (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 5,
-                background: 'rgba(0,255,136,0.08)', color: '#00ff88',
-                border: '1px solid rgba(0,255,136,0.2)', borderRadius: 4,
-                padding: '2px 8px', fontSize: 10,
-                fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em',
-              }}>✦ PRO</span>
-            ) : (
-              <a
-                href="/checkout"
-                style={{ fontSize: 11, fontFamily: 'JetBrains Mono, monospace', color: '#333', textDecoration: 'none', transition: 'color 150ms' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#00ff88')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#333')}
-              >
-                Upgrade to Pro →
-              </a>
-            )}
-          </div>
+      <div style={{ borderTop: '1px solid #1a1a1a', padding: collapsed ? '12px 0' : '14px 16px', position: 'relative' }}>
+
+        {/* User popup menu */}
+        {menuOpen && !collapsed && (
+          <>
+            <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 49 }} />
+            <div style={{
+              position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, right: 0,
+              background: '#0A0A0A', border: '1px solid #1a1a1a', borderRadius: 8,
+              zIndex: 50, overflow: 'hidden',
+            }}>
+              {/* Account header */}
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a' }}>
+                <div style={{
+                  fontSize: 12, color: '#fff', fontFamily: 'Space Grotesk, sans-serif',
+                  fontWeight: 500, marginBottom: 6,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {email ?? '...'}
+                </div>
+                {isPro ? (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    background: 'rgba(0,255,136,0.08)', color: '#00ff88',
+                    border: '1px solid rgba(0,255,136,0.2)', borderRadius: 4,
+                    padding: '2px 8px', fontSize: 10,
+                    fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em',
+                  }}>✦ PRO</span>
+                ) : (
+                  <span style={{ fontSize: 10, color: '#444', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.06em' }}>FREE PLAN</span>
+                )}
+              </div>
+
+              {/* Items */}
+              <div style={{ padding: '4px 0' }}>
+                {!isPro && (
+                  <a href="/checkout" onClick={() => setMenuOpen(false)} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '9px 12px', margin: '1px 8px', borderRadius: 6,
+                    fontSize: 14, fontFamily: 'Space Grotesk, sans-serif', fontWeight: 400,
+                    color: '#00ff88', textDecoration: 'none',
+                    borderLeft: '2px solid transparent', transition: 'all 150ms ease',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.borderLeftColor = '#00ff88' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderLeftColor = 'transparent' }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7.5 1v13M1 7.5h13"/>
+                    </svg>
+                    Upgrade to Pro
+                  </a>
+                )}
+                {isPro && (
+                  <a href="/checkout" onClick={() => setMenuOpen(false)} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '9px 12px', margin: '1px 8px', borderRadius: 6,
+                    fontSize: 14, fontFamily: 'Space Grotesk, sans-serif', fontWeight: 400,
+                    color: '#888', textDecoration: 'none',
+                    borderLeft: '2px solid transparent', transition: 'all 150ms ease',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.color = '#fff' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888' }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="1" y="3" width="13" height="9" rx="1.5"/><path d="M1 6h13"/>
+                    </svg>
+                    Manage plan
+                  </a>
+                )}
+                <a href="/settings" onClick={() => setMenuOpen(false)} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '9px 12px', margin: '1px 8px', borderRadius: 6,
+                  fontSize: 14, fontFamily: 'Space Grotesk, sans-serif', fontWeight: 400,
+                  color: '#888', textDecoration: 'none',
+                  borderLeft: '2px solid transparent', transition: 'all 150ms ease',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888' }}
+                >
+                  <IconSettings />
+                  Settings
+                </a>
+              </div>
+
+              {/* Sign out */}
+              <div style={{ borderTop: '1px solid #1a1a1a', padding: '4px 0' }}>
+                <button onClick={() => { setMenuOpen(false); handleLogout() }} style={{
+                  display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                  padding: '9px 12px', margin: '1px 8px', borderRadius: 6,
+                  fontSize: 14, fontFamily: 'Space Grotesk, sans-serif', fontWeight: 400,
+                  color: '#888', background: 'transparent', border: 'none', cursor: 'pointer',
+                  borderLeft: '2px solid transparent', transition: 'all 150ms ease',
+                  boxSizing: 'border-box',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.color = '#ff4444'; e.currentTarget.style.borderLeftColor = '#ff4444' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888'; e.currentTarget.style.borderLeftColor = 'transparent' }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 7.5H2m0 0l3-3M2 7.5l3 3"/><path d="M6 3.5H12a1 1 0 011 1v6a1 1 0 01-1 1H6"/>
+                  </svg>
+                  Sign out
+                </button>
+              </div>
+            </div>
+          </>
         )}
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: collapsed ? 0 : 10,
-          justifyContent: collapsed ? 'center' : 'flex-start',
-        }}>
-          {/* Avatar */}
+        {/* Clickable user row */}
+        <div
+          onClick={() => !collapsed && setMenuOpen(o => !o)}
+          style={{
+            display: 'flex', alignItems: 'center',
+            gap: collapsed ? 0 : 10,
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            cursor: collapsed ? 'default' : 'pointer',
+            borderRadius: 6, padding: '4px 4px',
+            transition: 'background 150ms',
+            background: menuOpen ? '#111' : 'transparent',
+          }}
+          onMouseEnter={e => { if (!collapsed) e.currentTarget.style.background = '#111' }}
+          onMouseLeave={e => { if (!menuOpen) e.currentTarget.style.background = 'transparent' }}
+        >
           <div
             title={collapsed ? (email ?? undefined) : undefined}
             style={{
@@ -292,7 +374,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
               background: '#111', border: '1px solid #1a1a1a',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 11, fontFamily: 'JetBrains Mono, monospace',
-              color: '#666', flexShrink: 0, cursor: 'default',
+              color: '#666', flexShrink: 0,
             }}>
             {initial}
           </div>
@@ -302,21 +384,11 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
               <span style={{
                 fontSize: 12, color: '#666',
                 overflow: 'hidden', textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap', flex: 1, maxWidth: 108,
+                whiteSpace: 'nowrap', flex: 1,
               }}>
                 {email ?? '...'}
               </span>
-              <button
-                onClick={handleLogout}
-                title="Sign out"
-                style={{
-                  background: 'transparent', border: 'none', color: '#333',
-                  cursor: 'pointer', fontSize: 14, padding: '2px 4px',
-                  borderRadius: 4, transition: 'color 150ms', flexShrink: 0,
-                }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#ff4444')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#333')}
-              >→</button>
+              <span style={{ color: '#333', fontSize: 12, flexShrink: 0 }}>⋯</span>
             </>
           )}
         </div>

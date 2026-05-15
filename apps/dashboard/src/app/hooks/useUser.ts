@@ -2,15 +2,29 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '../../../lib/supabase/client'
 
-interface UserData {
+export interface PlanLimits {
+  maxEndpoints: number
+  recentCallsLimit: number
+  chartDays: number
+  hasAnalytics: boolean
+  hasMetering: boolean
+  hasExport: boolean
+  hasLatency: boolean
+  hasWallet: boolean
+  hasMRR: boolean
+}
+
+export interface UserData {
   id: string
   apiKey: string
   walletAddress: string | null
-  plan: string
+  plan: 'free' | 'pro' | 'enterprise'
   network: string
   totalCalls: number
   totalEndpoints: number
   emailAlerts: boolean
+  limits: PlanLimits
+  createdAt: string
 }
 
 export function useUser() {

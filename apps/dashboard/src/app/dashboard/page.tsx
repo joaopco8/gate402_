@@ -10,6 +10,9 @@ import DashboardLayout from '../components/DashboardLayout';
 import PageContainer from '../components/PageContainer';
 import PageHeader from '../components/PageHeader';
 import Card from '../components/Card';
+import { ProGate } from '../components/ProGate';
+import { ProBanner } from '../components/ProBanner';
+import { usePlan } from '../hooks/usePlan';
 import { getMetrics, getCallsPerDay, getRecentCalls, getEndpoints, getEndpointRevenue, getTransactions, getAnalyticsRevenue, getSuccessRate, getTopAgents, getLatencyStats, getMeteringStats, getFailedRequests, type Metrics, type DayData, type RecentCall, type Transaction, type TransactionStats, type AnalyticsRevenueSummary, type SuccessRateData, type TopAgent, type LatencyStatRow, type MeteringStatsData, type FailedRequestsData } from '../lib/api';
 
 function timeAgo(dateStr: string): string {
@@ -49,6 +52,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 };
 
 export default function DashboardPage() {
+  const { isPro } = usePlan();
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [chartData, setChartData] = useState<DayData[]>([]);
   const [recentCalls, setRecentCalls] = useState<RecentCall[]>([]);
@@ -67,6 +71,7 @@ export default function DashboardPage() {
   const [latencyStats, setLatencyStats] = useState<LatencyStatRow[]>([]);
   const [meteringStats, setMeteringStats] = useState<MeteringStatsData | null>(null);
   const [failedRequests, setFailedRequests] = useState<FailedRequestsData | null>(null);
+  const [selectedMetricLabel, setSelectedMetricLabel] = useState<string>('API Calls');
 
   async function fetchAll() {
     const [m, c, r, endpointList, rev, txData, sr, agents, latency, metering, failed] = await Promise.all([
@@ -148,104 +153,152 @@ export default function DashboardPage() {
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
       <PageContainer>
         <PageHeader eyebrow="OVERVIEW" title="Dashboard" subtitle="Real-time billing analytics for your APIs" />
+        <ProBanner isPro={isPro} />
 
-        {/* Metric Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
-          {loading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} style={i === 4 ? { gridColumn: '1 / -1' } : undefined}>
-                <Skeleton height={110} />
-              </div>
-            ))
-          ) : (
-            <>
-              <MetricCard title="Total Calls" value={metrics?.totalCalls ?? 0} icon={<Activity size={18} />} subtitle="All time API calls" />
-              <MetricCard title="Total USDC" value={`$${(metrics?.totalUsdc ?? 0).toFixed(4)}`} icon={<DollarSign size={18} />} subtitle="All time revenue" positive />
-              <MetricCard title="Calls Today" value={metrics?.todayCalls ?? 0} icon={<Zap size={18} />} subtitle="Since 00:00 UTC" />
-              <MetricCard title="USDC Today" value={`$${(metrics?.todayUsdc ?? 0).toFixed(4)}`} icon={<TrendingUp size={18} />} subtitle={metrics?.topEndpoint ? `Top: ${metrics.topEndpoint}` : 'No calls yet'} positive />
-              <div style={{ gridColumn: '1 / -1' }}>
-                <Card accent style={{ padding: '20px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-code)', letterSpacing: '0.08em', marginBottom: 6 }}>
-                      MONTHLY PROJECTION
-                    </div>
-                    <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                      Based on last 7 days average
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 36, fontWeight: 300, color: 'var(--green)', letterSpacing: '-0.03em' }}>
-                      ${projection.toFixed(2)}
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-code)', marginTop: 4 }}>
-                      USDC / MONTH
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            </>
-          )}
-        </div>
+        {/* LineChart6-style metrics + chart card */}
+        {(() => {
+          const MOCK: DayData[] = [
+            { date: 'May 9',  calls: 12,  usdc: 0.048 },
+            { date: 'May 10', calls: 34,  usdc: 0.136 },
+            { date: 'May 11', calls: 21,  usdc: 0.084 },
+            { date: 'May 12', calls: 58,  usdc: 0.232 },
+            { date: 'May 13', calls: 47,  usdc: 0.188 },
+            { date: 'May 14', calls: 73,  usdc: 0.292 },
+            { date: 'May 15', calls: 89,  usdc: 0.356 },
+          ];
+          const displayData = chartData.length > 0 && chartData.some(d => d.calls > 0 || d.usdc > 0) ? chartData : MOCK;
 
-        {/* Chart */}
-        <Card style={{ padding: '24px 28px', marginBottom: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-            <div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-code)', letterSpacing: '0.08em' }}>
-                LAST 7 DAYS
+          const last7calls = displayData.reduce((s, d) => s + (d.calls ?? 0), 0);
+          const last7usdc  = displayData.reduce((s, d) => s + (d.usdc  ?? 0), 0);
+          const mid = Math.floor(displayData.length / 2);
+          const prevCalls = displayData.slice(0, mid).reduce((s, d) => s + (d.calls ?? 0), 0);
+          const prevUsdc  = displayData.slice(0, mid).reduce((s, d) => s + (d.usdc  ?? 0), 0);
+          const currCalls = displayData.slice(mid).reduce((s, d) => s + (d.calls ?? 0), 0);
+          const currUsdc  = displayData.slice(mid).reduce((s, d) => s + (d.usdc  ?? 0), 0);
+
+          const dashMetrics = [
+            { key: 'calls', label: 'API Calls',       value: last7calls,                   prev: prevCalls, format: (v: number) => v.toLocaleString(),         color: '#00ff88' },
+            { key: 'usdc',  label: 'Revenue',          value: last7usdc,                    prev: prevUsdc,  format: (v: number) => `$${v.toFixed(4)}`,         color: '#3b82f6' },
+            { key: 'calls', label: 'Calls Today',      value: metrics?.todayCalls ?? 0,     prev: currCalls, format: (v: number) => v.toLocaleString(),         color: '#a855f7' },
+            { key: 'usdc',  label: 'Projection / mo',  value: projection > 0 ? projection : (last7usdc / 7) * 30, prev: prevUsdc,  format: (v: number) => `$${v.toFixed(2)}`,         color: '#f59e0b' },
+          ];
+
+          const activeColor = dashMetrics.find(m => m.label === selectedMetricLabel)?.color ?? '#00ff88';
+          const activeKey   = dashMetrics.find(m => m.label === selectedMetricLabel)?.key   ?? 'calls';
+
+          return (
+            <div style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 12, marginBottom: 24, overflow: 'hidden' }}>
+              {/* Metrics grid header */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderBottom: '1px solid #1a1a1a' }}>
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} style={{ padding: 16, borderRight: i < 3 ? '1px solid #1a1a1a' : 'none' }}>
+                      <Skeleton height={80} />
+                    </div>
+                  ))
+                ) : dashMetrics.map((m, i) => {
+                  const change = m.prev > 0 ? ((m.value - m.prev) / m.prev) * 100 : 0;
+                  const isSelected = selectedMetricLabel === m.label;
+                  const isPositive = change >= 0;
+                  return (
+                    <button
+                      key={m.label}
+                      onClick={() => setSelectedMetricLabel(m.label)}
+                      style={{
+                        textAlign: 'left',
+                        padding: 16,
+                        borderRight: i < 3 ? '1px solid #1a1a1a' : 'none',
+                        background: isSelected ? 'rgba(255,255,255,0.04)' : 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'background 150ms',
+                      }}
+                    >
+                      {/* label + badge */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>{m.label}</span>
+                        {m.prev > 0 && (
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                            fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 6,
+                            background: isPositive ? 'rgba(0,255,136,0.1)' : 'rgba(239,68,68,0.1)',
+                            color: isPositive ? '#00ff88' : '#ef4444',
+                            border: `1px solid ${isPositive ? 'rgba(0,255,136,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                          }}>
+                            {isPositive ? '↑' : '↓'}{Math.abs(change).toFixed(1)}%
+                          </span>
+                        )}
+                      </div>
+                      {/* value */}
+                      <div style={{ fontSize: 22, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                        {m.format(m.value)}
+                      </div>
+                      {/* prev */}
+                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 6 }}>
+                        from {m.format(m.prev)}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Chart */}
+              <div style={{ padding: '24px 10px 24px 10px' }}>
+                {loading ? <Skeleton height={320} /> : (
+                  <ResponsiveContainer width="100%" height={320}>
+                    <LineChart data={displayData} margin={{ top: 20, right: 20, left: 5, bottom: 20 }} style={{ overflow: 'visible' }}>
+                      <defs>
+                        <pattern id="dotGrid2" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                          <circle cx="10" cy="10" r="1" fill="#222" fillOpacity="1" />
+                        </pattern>
+                        <filter id="lineShadow2" x="-100%" y="-100%" width="300%" height="300%">
+                          <feDropShadow dx="4" dy="6" stdDeviation="25" floodColor={`${activeColor}60`} />
+                        </filter>
+                        <filter id="dotShadow2" x="-50%" y="-50%" width="200%" height="200%">
+                          <feDropShadow dx="2" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,0.5)" />
+                        </filter>
+                      </defs>
+
+                      <XAxis
+                        dataKey="date"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 11, fill: '#555' }}
+                        tickMargin={10}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 11, fill: '#555' }}
+                        tickMargin={10}
+                        tickCount={6}
+                        tickFormatter={(v) => activeKey === 'usdc' ? `$${v.toFixed(2)}` : v.toString()}
+                      />
+
+                      <Tooltip
+                        content={<CustomTooltip />}
+                        cursor={{ strokeDasharray: '3 3', stroke: '#444' }}
+                      />
+
+                      <rect x="55px" y="-20px" width="calc(100% - 70px)" height="calc(100% - 10px)" fill="url(#dotGrid2)" style={{ pointerEvents: 'none' }} />
+
+                      <Line
+                        type="monotone"
+                        dataKey={activeKey}
+                        stroke={activeColor}
+                        strokeWidth={2}
+                        filter="url(#lineShadow2)"
+                        dot={false}
+                        name={activeKey}
+                        activeDot={{ r: 6, fill: activeColor, stroke: '#fff', strokeWidth: 2, filter: 'url(#dotShadow2)' }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              {endpoints.map((ep) => (
-                <button
-                  key={ep}
-                  onClick={() => setSelectedEndpoint(ep)}
-                  style={{
-                    padding: '6px 16px',
-                    borderRadius: 6,
-                    border: '1px solid',
-                    borderColor: selectedEndpoint === ep ? 'var(--green)' : 'var(--border)',
-                    background: selectedEndpoint === ep ? 'rgba(0,255,136,0.08)' : 'transparent',
-                    color: selectedEndpoint === ep ? 'var(--green)' : 'var(--text-secondary)',
-                    fontSize: 12,
-                    fontFamily: 'var(--font-code)',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                    fontWeight: selectedEndpoint === ep ? 500 : 400,
-                  }}
-                  onMouseOver={e => {
-                    if (selectedEndpoint !== ep) {
-                      e.currentTarget.style.borderColor = 'var(--border-hover)';
-                      e.currentTarget.style.color = 'var(--text-primary)';
-                    }
-                  }}
-                  onMouseOut={e => {
-                    if (selectedEndpoint !== ep) {
-                      e.currentTarget.style.borderColor = 'var(--border)';
-                      e.currentTarget.style.color = 'var(--text-secondary)';
-                    }
-                  }}
-                >
-                  {ep === 'all' ? 'All endpoints' : ep}
-                </button>
-              ))}
-            </div>
-          </div>
-          {loading ? (
-            <Skeleton height={200} />
-          ) : (
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-                <XAxis dataKey="date" stroke="#444" tick={{ fill: '#666', fontSize: 11, fontFamily: 'monospace' }} />
-                <YAxis stroke="#444" tick={{ fill: '#666', fontSize: 11, fontFamily: 'monospace' }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Line type="monotone" dataKey="calls" stroke="#00ff88" strokeWidth={2} dot={false} name="calls" />
-                <Line type="monotone" dataKey="usdc" stroke="#3b82f6" strokeWidth={2} dot={false} name="usdc" />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </Card>
+          );
+        })()}
 
         {/* Revenue by Endpoint */}
         {!loading && (
@@ -344,6 +397,7 @@ export default function DashboardPage() {
 
         {/* Revenue Breakdown — pro analytics */}
         {!loading && (
+          <ProGate isPro={isPro} feature="Revenue Analytics">
           <Card style={{ padding: '24px 28px', marginBottom: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.1em' }}>REVENUE BREAKDOWN</div>
@@ -388,6 +442,7 @@ export default function DashboardPage() {
               1% platform fee per transaction
             </div>
           </Card>
+          </ProGate>
         )}
 
         {/* Success Rate */}
@@ -419,6 +474,7 @@ export default function DashboardPage() {
 
         {/* Top Paying Agents */}
         {!loading && (
+          <ProGate isPro={isPro} feature="Top Paying Agents">
           <Card style={{ overflow: 'hidden', padding: 0, marginBottom: 24 }}>
             <div style={{ padding: '16px 28px', borderBottom: '1px solid #1a1a1a' }}>
               <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.1em' }}>TOP PAYING AGENTS</div>
@@ -452,10 +508,12 @@ export default function DashboardPage() {
               </table>
             )}
           </Card>
+          </ProGate>
         )}
 
         {/* Latency Stats */}
         {!loading && latencyStats.length > 0 && (
+          <ProGate isPro={isPro} feature="Latency Analytics">
           <Card style={{ overflow: 'hidden', padding: 0, marginBottom: 24 }}>
             <div style={{ padding: '16px 28px', borderBottom: '1px solid #1a1a1a' }}>
               <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.1em' }}>LATENCY STATS</div>
@@ -482,10 +540,12 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </Card>
+          </ProGate>
         )}
 
         {/* Usage Metering */}
         {!loading && meteringStats && meteringStats.byType.length > 0 && (
+          <ProGate isPro={isPro} feature="Usage Metering">
           <Card style={{ padding: '24px 28px', marginBottom: 24 }}>
             <div style={{ fontSize: 11, color: '#333', fontFamily: 'var(--font-code)', letterSpacing: '0.1em', marginBottom: 20 }}>USAGE METERING</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
@@ -512,6 +572,7 @@ export default function DashboardPage() {
               Pending settlement: <span style={{ color: '#f59e0b' }}>${meteringStats.totalPending.toFixed(6)}</span>
             </div>
           </Card>
+          </ProGate>
         )}
 
         {/* Failed Requests */}
@@ -620,24 +681,40 @@ export default function DashboardPage() {
             <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-code)', letterSpacing: '0.08em' }}>
               RECENT CALLS
             </div>
-            <button
-              onClick={exportCSV}
-              style={{
+            {isPro ? (
+              <button
+                onClick={exportCSV}
+                style={{
+                  padding: '6px 14px',
+                  background: 'transparent',
+                  border: '1px solid var(--border)',
+                  borderRadius: 6,
+                  color: 'var(--text-secondary)',
+                  fontSize: 12,
+                  fontFamily: 'var(--font-code)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.color = 'var(--green)'; }}
+                onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              >
+                Export CSV ↓
+              </button>
+            ) : (
+              <a href="/billing" style={{
                 padding: '6px 14px',
                 background: 'transparent',
-                border: '1px solid var(--border)',
+                border: '1px solid rgba(153,69,255,0.3)',
                 borderRadius: 6,
-                color: 'var(--text-secondary)',
+                color: '#9945FF',
                 fontSize: 12,
                 fontFamily: 'var(--font-code)',
                 cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.color = 'var(--green)'; }}
-              onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-            >
-              Export CSV ↓
-            </button>
+                textDecoration: 'none',
+              }}>
+                Export CSV ↑ Pro
+              </a>
+            )}
           </div>
           {loading ? (
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>

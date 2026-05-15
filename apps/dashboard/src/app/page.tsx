@@ -30,7 +30,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 const CSS = `
   :root {
-    --bg:           #000000;
+    --bg:           #0F0F0F;
     --surface:      #0a0a0a;
     --card:         #0d0d0d;
     --border:       #1a1a1a;
@@ -334,7 +334,7 @@ function LiveFeed() {
   ]
 
   return (
-    <section style={{ background: '#000', padding: '80px 32px', borderTop: '1px solid #1a1a1a' }}>
+    <section style={{ background: '#0F0F0F', padding: '80px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
         {/* header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -431,7 +431,7 @@ function HowItWorks() {
   const [hovered, setHovered] = useState<number | null>(null)
 
   return (
-    <section id="how-it-works" style={{ background: '#000', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
+    <section id="how-it-works" style={{ background: '#0F0F0F', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 16 }}>
@@ -620,7 +620,7 @@ function AgentFlow() {
   if (currentRow.length) codeRows.push({ segments: currentRow })
 
   return (
-    <section style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+    <section style={{ background: '#0F0F0F', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
 
         {/* Eyebrow */}
@@ -791,7 +791,7 @@ function Features() {
   ]
 
   return (
-    <section id="features" style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+    <section id="features" style={{ background: '#0F0F0F', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
       <div ref={ref} style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
         <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>
           INFRASTRUCTURE
@@ -890,7 +890,7 @@ function CodeSection() {
   }, [codeVisible])
 
   return (
-    <section style={{ background: '#000', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
+    <section style={{ background: '#0F0F0F', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div className="code-grid" style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
 
         {/* Left */}
@@ -1011,7 +1011,7 @@ function ProviderSide() {
     {
       n: '01', title: 'Install',
       content: (
-        <div style={{ background: '#000', border: '1px solid #1a1a1a', borderRadius: 4, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, color: '#00ff88' }}>
+        <div style={{ background: '#0F0F0F', border: '1px solid #1a1a1a', borderRadius: 4, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, color: '#00ff88' }}>
           npm install gate402
         </div>
       ),
@@ -1019,7 +1019,7 @@ function ProviderSide() {
     {
       n: '02', title: 'Add middleware',
       content: (
-        <div style={{ background: '#000', border: '1px solid #1a1a1a', borderRadius: 4, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.7 }}>
+        <div style={{ background: '#0F0F0F', border: '1px solid #1a1a1a', borderRadius: 4, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.7 }}>
           <span style={{ color: '#9945FF' }}>app</span><span style={{ color: '#ccc' }}>.use(gate402({'{'}</span><br />
           <span style={{ color: '#ccc' }}>{'  '}apiKey: </span><span style={{ color: '#00ff88' }}>&apos;key&apos;</span><span style={{ color: '#ccc' }}>, price: </span><span style={{ color: '#f59e0b' }}>0.001</span><br />
           <span style={{ color: '#ccc' }}>{'}))'}</span>
@@ -1047,7 +1047,7 @@ function ProviderSide() {
   ]
 
   return (
-    <section style={{ background: '#000', padding: '96px 0', borderTop: '1px solid #1a1a1a' }}>
+    <section style={{ background: '#0F0F0F', padding: '96px 0', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ marginBottom: 56 }}>
           <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', letterSpacing: '0.12em', marginBottom: 16 }}>FOR API DEVELOPERS</div>
@@ -1090,7 +1090,7 @@ function AgentSide() {
         </div>
 
         <div className="code-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 32 }}>
-          <div style={{ background: '#000', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ background: '#0F0F0F', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444' }}>with x402-fetch</span>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#00ff88' }}>RECOMMENDED</span>
@@ -1105,7 +1105,7 @@ function AgentSide() {
             </div>
           </div>
 
-          <div style={{ background: '#000', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ background: '#0F0F0F', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444' }}>with any HTTP client</span>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#444' }}>MANUAL</span>
@@ -1229,7 +1229,7 @@ function HoodCard({ card }: { card: typeof HOOD_CARDS[number] }) {
 function HowItWorksTimeline() {
   const [hovered8, setHovered8] = useState(false)
   return (
-    <section style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+    <section style={{ background: '#0F0F0F', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px' }}>
 
         {/* Header */}
@@ -1330,7 +1330,7 @@ function FAQ() {
   const [open, setOpen] = useState<number | null>(null)
 
   return (
-    <section style={{ background: '#000', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+    <section style={{ background: '#0F0F0F', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 32px' }}>
         <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>FAQ</div>
         <h2 style={{ fontSize: 40, fontWeight: 300, marginBottom: 64, lineHeight: 1.2 }}>Common questions</h2>
@@ -1416,7 +1416,7 @@ function Pricing() {
   const delays = ['0s', '0.15s', '0.3s']
 
   return (
-    <section id="pricing" style={{ background: '#000', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
+    <section id="pricing" style={{ background: '#0F0F0F', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Header */}
@@ -1611,7 +1611,7 @@ function FinalCTA() {
   }
 
   return (
-    <section style={{ background: '#000', padding: '160px 32px', borderTop: '1px solid #1a1a1a', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+    <section style={{ background: '#0F0F0F', padding: '160px 32px', borderTop: '1px solid #1a1a1a', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
       {/* animated grid background */}
       <div style={{
         position: 'absolute',
@@ -1691,7 +1691,7 @@ function FinalCTA() {
 /* SECTION: Footer */
 function Footer() {
   return (
-    <footer style={{ borderTop: '1px solid #1a1a1a', background: '#000', padding: '40px 32px 0' }}>
+    <footer style={{ borderTop: '1px solid #1a1a1a', background: '#0F0F0F', padding: '40px 32px 0' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div className="footer-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: 32, borderBottom: '1px solid #1a1a1a' }}>
           {/* Left */}
@@ -1782,7 +1782,7 @@ function MacTerminal() {
     return () => clearTimeout(t)
   }, [visibleLines])
 
-  function renderLine(line: { type: string; text: string }, i: number) {
+  function renderLine(line: { type: string; text?: string }, i: number) {
     if (line.type === 'blank') return <div key={i} style={{ height: 10 }} />
     const styles: Record<string, { color: string; prefix?: string }> = {
       prompt:  { color: '#00ff88',               prefix: '$ ' },
@@ -1803,12 +1803,6 @@ function MacTerminal() {
 
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: 720, margin: '0 auto', marginTop: 64 }}>
-      {/* glow */}
-      <div style={{
-        position: 'absolute', inset: -1,
-        background: 'linear-gradient(135deg, rgba(0,255,136,0.15) 0%, rgba(153,69,255,0.15) 50%, rgba(0,255,136,0.08) 100%)',
-        borderRadius: 14, filter: 'blur(20px)', zIndex: 0,
-      }} />
 
       {/* window */}
       <div style={{
@@ -1838,23 +1832,25 @@ function MacTerminal() {
         </div>
 
         {/* content */}
-        <div style={{
-          padding: '24px 28px', minHeight: 340,
-          fontFamily: "'JetBrains Mono', 'Courier New', monospace",
-          fontSize: 13, lineHeight: 1.8,
-        }}>
-          <style>{`
-            @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-            @keyframes termPulse { 0%,100%{opacity:1;box-shadow:0 0 4px #00ff88} 50%{opacity:.4;box-shadow:none} }
-          `}</style>
-          {terminalLines.slice(0, visibleLines).map((line, i) => renderLine(line, i))}
-          {visibleLines < terminalLines.length && (
-            <span style={{
-              display: 'inline-block', width: 8, height: 14,
-              background: '#00ff88', verticalAlign: 'middle', marginLeft: 2,
-              animation: 'blink 1s step-end infinite',
-            }} />
-          )}
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            padding: '24px 28px', height: 560, overflow: 'hidden',
+            fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+            fontSize: 13, lineHeight: 1.8,
+          }}>
+            <style>{`
+              @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+              @keyframes termPulse { 0%,100%{opacity:1;box-shadow:0 0 4px #00ff88} 50%{opacity:.4;box-shadow:none} }
+            `}</style>
+            {terminalLines.slice(0, visibleLines).map((line, i) => renderLine(line, i))}
+            {visibleLines < terminalLines.length && (
+              <span style={{
+                display: 'inline-block', width: 8, height: 14,
+                background: '#00ff88', verticalAlign: 'middle', marginLeft: 2,
+                animation: 'blink 1s step-end infinite',
+              }} />
+            )}
+          </div>
         </div>
 
         {/* status bar */}
@@ -1863,6 +1859,7 @@ function MacTerminal() {
           padding: '8px 18px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: 'rgba(0,0,0,0.2)',
+          borderBottomLeftRadius: 12, borderBottomRightRadius: 12,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00ff88', animation: 'termPulse 2s ease-in-out infinite' }} />
@@ -1889,23 +1886,22 @@ export default function LandingPage() {
   return (
     <div
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
-      style={{ background: '#000', minHeight: '100vh', fontFamily: 'var(--font-space), sans-serif', overflowX: 'hidden' }}
+      style={{ background: '#0F0F0F', minHeight: '100vh', fontFamily: 'var(--font-space), sans-serif', overflowX: 'hidden' }}
     >
       <style>{CSS}</style>
       <InteractiveHero><MacTerminal /></InteractiveHero>
+      <FeaturedSectionStats />
       <FeaturesGrid />
-      <RuixenSection />
-      <BentoGrid />
-      <div className="min-h-[500px] w-full flex items-center justify-center bg-black p-4 sm:p-10">
+      <div className="min-h-[500px] w-full flex items-center justify-center p-4 sm:p-10" style={{ background: '#0F0F0F' }}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3 max-w-5xl w-full">
           <SpotlightCard className="p-6 h-full flex flex-col gap-4">
             <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700">
               <Layers className="text-white h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white mb-1">Seamless UX</h3>
+              <h3 className="text-lg font-semibold text-white mb-1">Drop-in middleware</h3>
               <p className="text-sm text-neutral-400">
-                Smooth, mouse-responsive interactions that elevate the user experience to the next level.
+                Add a paywall to any Express, Flask, or FastAPI endpoint in under five minutes. Your handlers don't change. Zero refactoring required.
               </p>
             </div>
           </SpotlightCard>
@@ -1914,9 +1910,9 @@ export default function LandingPage() {
               <ShieldCheck className="text-sky-400 h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white mb-1">Secure By Design</h3>
+              <h3 className="text-lg font-semibold text-white mb-1">Verified on-chain</h3>
               <p className="text-sm text-neutral-400">
-                Built with modern security standards, ensuring your data is protected with end-to-end encryption.
+                Every payment is verified against the Solana blockchain. Amount, recipient, and recency — all confirmed before your handler executes.
               </p>
             </div>
           </SpotlightCard>
@@ -1925,9 +1921,9 @@ export default function LandingPage() {
               <Zap className="text-purple-400 h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white mb-1">Lightning Fast</h3>
+              <h3 className="text-lg font-semibold text-white mb-1">Built for micropayments</h3>
               <p className="text-sm text-neutral-400">
-                Optimized for performance. Import the component and start building without configuration overhead.
+                $0.001 per call is viable on Solana. On Ethereum it would cost more in gas than the payment itself. The economics only work here.
               </p>
             </div>
           </SpotlightCard>
@@ -1936,16 +1932,8 @@ export default function LandingPage() {
       <div className="dark">
         <Features7 />
       </div>
-      <FeaturedSectionStats />
-      <StatsBar />
-      <LiveFeed />
-      <HowItWorks />
-      <Features />
-      <CodeSection />
-      <ProviderSide />
-      <AgentSide />
-      <FAQ />
-      <Pricing />
+      <BentoGrid />
+      <RuixenSection />
       <FinalCTA />
       <FlickeringFooter />
     </div>
