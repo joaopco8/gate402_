@@ -32,7 +32,8 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/landing') ||
     request.nextUrl.pathname.startsWith('/docs') ||
     request.nextUrl.pathname.startsWith('/privacy') ||
-    request.nextUrl.pathname.startsWith('/terms')
+    request.nextUrl.pathname.startsWith('/terms') ||
+    request.nextUrl.pathname.startsWith('/pricing')
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()

@@ -3,6 +3,16 @@
 import { useEffect, useState, useRef } from 'react'
 import { Space_Grotesk, JetBrains_Mono } from 'next/font/google'
 import { createClient } from '../../lib/supabase/client'
+import InteractiveHero from '@/components/ui/hero-section-nexus'
+import { Features as FeaturesGrid } from '@/components/ui/features-4'
+import RuixenSection from '@/components/ui/ruixen-feature-section'
+import { BentoGrid } from '@/components/ui/bento-grid'
+import { Component as FlickeringFooter } from '@/components/ui/flickering-footer'
+import { Features as Features8 } from '@/components/blocks/features-8'
+import { Features as Features7 } from '@/components/blocks/features-7'
+import FeaturedSectionStats from '@/components/ui/featured-section-stats'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
+import { Layers, ShieldCheck, Zap } from 'lucide-react'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -32,7 +42,7 @@ const CSS = `
     --purple:       #9945FF;
   }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; }
 
   body {
     background: var(--bg);
@@ -247,7 +257,7 @@ function Nav() {
         {[
           { label: 'How it works', onClick: () => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' }) },
           { label: 'Docs',         href: '/docs' },
-          { label: 'Pricing',      onClick: () => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' }) },
+          { label: 'Pricing',      href: '/pricing' },
           { label: 'GitHub',       href: 'https://github.com/joaopco8/gate402_', target: '_blank' },
         ].map(({ label, href, target, onClick }) => (
           <a
@@ -284,181 +294,6 @@ function Nav() {
 
 /* ─── HERO ───────────────────────────────────────────────────────────────── */
 
-/* SECTION: Hero */
-function useCounter(target: number, duration: number) {
-  const [count, setCount] = useState(0)
-  useEffect(() => {
-    let start = 0
-    const step = target / (duration / 16)
-    const timer = setInterval(() => {
-      start += step
-      if (start >= target) { setCount(target); clearInterval(timer) }
-      else setCount(Math.floor(start))
-    }, 16)
-    return () => clearInterval(timer)
-  }, [target, duration])
-  return count
-}
-
-function Hero() {
-  const count = useCounter(24187, 2000)
-  const [liveCount, setLiveCount] = useState(24187)
-
-  useEffect(() => {
-    const t = setInterval(() => setLiveCount(n => n + 1), 3000)
-    return () => clearInterval(t)
-  }, [])
-
-  const displayed = count < 24187 ? count : liveCount
-
-  return (
-    <section style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '120px 24px 80px',
-      textAlign: 'center',
-      background: '#000',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      {/* Dot grid */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        backgroundImage: 'radial-gradient(circle, #1a1a1a 1px, transparent 1px)',
-        backgroundSize: '40px 40px',
-        opacity: 0.6,
-        zIndex: 0,
-      }} />
-
-      {/* Green orbe */}
-      <div style={{
-        position: 'absolute',
-        top: '20%',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: 600,
-        height: 600,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%)',
-        zIndex: 0,
-        animation: 'orbePulse 4s ease-in-out infinite',
-      }} />
-
-      {/* Purple orbe */}
-      <div style={{
-        position: 'absolute',
-        top: '30%',
-        right: '-10%',
-        width: 400,
-        height: 400,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(153,69,255,0.08) 0%, transparent 70%)',
-        zIndex: 0,
-        animation: 'orbePulse 6s ease-in-out infinite reverse',
-      }} />
-
-      {/* Badge */}
-      <div className="badge fade-in-up" style={{ marginBottom: 40, position: 'relative', zIndex: 1 }}>
-        <span className="live-dot-purple" style={{ width: 6, height: 6, borderRadius: '50%', background: '#9945FF', display: 'inline-block', flexShrink: 0 }} />
-        Built on x402 Protocol · Solana
-      </div>
-
-      {/* Headline */}
-      <div style={{ marginBottom: 28, position: 'relative', zIndex: 1 }}>
-        {[
-          { text: 'Your API.', delay: '0.2s', gradient: false },
-          { text: 'Paid per call.', delay: '0.4s', gradient: false },
-          { text: 'By AI agents.', delay: '0.6s', gradient: true },
-        ].map(({ text, delay, gradient }) => (
-          <div
-            key={text}
-            className={`fade-in-up hero-headline${gradient ? ' gradient-animated' : ''}`}
-            style={{
-              fontFamily: 'var(--font-space, sans-serif)',
-              fontWeight: 300,
-              fontSize: 88,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.05,
-              animationDelay: delay,
-              ...(gradient ? {} : { color: '#fff' }),
-            }}
-          >
-            {text}
-          </div>
-        ))}
-      </div>
-
-      {/* Subheadline */}
-      <p className="fade-in-up" style={{
-        fontFamily: 'var(--font-space, sans-serif)',
-        fontWeight: 400,
-        fontSize: 18,
-        color: '#666',
-        maxWidth: 480,
-        lineHeight: 1.65,
-        marginBottom: 40,
-        animationDelay: '0.8s',
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        Gate402 puts a paywall on any API endpoint. Agents pay in USDC.
-        Settlement in 400ms. You keep everything.
-      </p>
-
-      {/* CTAs */}
-      <div className="fade-in-up hero-ctas" style={{ display: 'flex', gap: 12, marginBottom: 28, animationDelay: '1.0s', position: 'relative', zIndex: 1 }}>
-        <a href="/login" className="btn-primary" style={{ fontSize: 15, padding: '13px 28px' }}>Start free →</a>
-        <a href="#how" className="btn-ghost" style={{ fontSize: 15, padding: '13px 28px' }}>View live demo</a>
-      </div>
-
-      {/* Social proof */}
-      <div className="fade-in-up mono" style={{ fontSize: 12, color: '#333', letterSpacing: '0.04em', marginBottom: 56, animationDelay: '1.2s', position: 'relative', zIndex: 1 }}>
-        npm install gate402&nbsp;&nbsp;·&nbsp;&nbsp;v0.1.0&nbsp;&nbsp;·&nbsp;&nbsp;MIT&nbsp;&nbsp;·&nbsp;&nbsp;Open source
-      </div>
-
-      {/* Live counter */}
-      <div className="fade-in-up" style={{ animationDelay: '1.4s', position: 'relative', zIndex: 1 }}>
-        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 12 }}>
-          API CALLS PROCESSED
-        </div>
-        <div style={{
-          fontFamily: 'var(--font-space, sans-serif)',
-          fontWeight: 300,
-          fontSize: 48,
-          color: '#fff',
-          letterSpacing: '-0.02em',
-        }}>
-          {displayed.toLocaleString()}
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div style={{
-        position: 'absolute',
-        bottom: 12,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 8,
-        zIndex: 1,
-      }}>
-        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em' }}>SCROLL</div>
-        <div style={{
-          width: 1,
-          height: 40,
-          background: 'linear-gradient(to bottom, #333, transparent)',
-          animation: 'scrollLine 2s ease-in-out infinite',
-        }} />
-      </div>
-    </section>
-  )
-}
 
 /* ─── LIVE FEED ──────────────────────────────────────────────────────────── */
 
@@ -1899,6 +1734,155 @@ function Footer() {
   )
 }
 
+/* ─── MAC TERMINAL ───────────────────────────────────────────────────────── */
+
+const terminalLines = [
+  { type: 'comment', text: 'calling a Gate402-protected API' },
+  { type: 'blank' },
+  { type: 'prompt',  text: 'curl https://api.meuservico.dev/api/analyze' },
+  { type: 'blank' },
+  { type: 'output',  text: '  HTTP/1.1 402 Payment Required' },
+  { type: 'json',    text: '  {' },
+  { type: 'json',    text: '    "price": { "total": 0.005, "currency": "USDC" },' },
+  { type: 'json',    text: '    "payTo": "DcL4mMaq...YABE",' },
+  { type: 'json',    text: '    "network": "solana-devnet"' },
+  { type: 'json',    text: '  }' },
+  { type: 'blank' },
+  { type: 'info',    text: 'Received HTTP 402 — processing payment...' },
+  { type: 'info',    text: 'Sending 0.00495 USDC → DcL4mMaq...YABE' },
+  { type: 'info',    text: 'Sending 0.00005 USDC → Gate402 (1% fee)' },
+  { type: 'blank' },
+  { type: 'success', text: 'Transaction confirmed in 412ms' },
+  { type: 'success', text: 'txHash: 5kWq9mLP3rTxHJzUvBn...' },
+  { type: 'blank' },
+  { type: 'info',    text: 'Retrying with X-Payment-Payload header...' },
+  { type: 'blank' },
+  { type: 'output',  text: '  HTTP/1.1 200 OK' },
+  { type: 'json',    text: '  { "resultado": "análise completa", "status": "ok" }' },
+  { type: 'blank' },
+  { type: 'money',   text: 'You received 0.00495 USDC — directly to your wallet' },
+  { type: 'blank' },
+]
+
+const lineDelays: Record<string, number> = {
+  prompt: 600, output: 300, json: 80, info: 400,
+  success: 300, money: 500, blank: 150, comment: 200,
+}
+
+function MacTerminal() {
+  const [visibleLines, setVisibleLines] = useState(0)
+
+  useEffect(() => {
+    if (visibleLines >= terminalLines.length) {
+      const t = setTimeout(() => setVisibleLines(0), 3000)
+      return () => clearTimeout(t)
+    }
+    const delay = lineDelays[terminalLines[visibleLines]?.type] ?? 200
+    const t = setTimeout(() => setVisibleLines(v => v + 1), delay)
+    return () => clearTimeout(t)
+  }, [visibleLines])
+
+  function renderLine(line: { type: string; text: string }, i: number) {
+    if (line.type === 'blank') return <div key={i} style={{ height: 10 }} />
+    const styles: Record<string, { color: string; prefix?: string }> = {
+      prompt:  { color: '#00ff88',               prefix: '$ ' },
+      output:  { color: 'rgba(255,255,255,0.5)' },
+      json:    { color: 'rgba(255,255,255,0.4)' },
+      info:    { color: '#3b82f6',               prefix: '  [agent] ' },
+      success: { color: '#00ff88',               prefix: '  ✓ ' },
+      money:   { color: '#f59e0b',               prefix: '  💰 ' },
+      comment: { color: 'rgba(255,255,255,0.2)', prefix: '  # ' },
+    }
+    const s = styles[line.type] || { color: 'rgba(255,255,255,0.5)' }
+    return (
+      <div key={i} style={{ color: s.color, whiteSpace: 'pre' }}>
+        {s.prefix ?? ''}{line.text}
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ position: 'relative', width: '100%', maxWidth: 720, margin: '0 auto', marginTop: 64 }}>
+      {/* glow */}
+      <div style={{
+        position: 'absolute', inset: -1,
+        background: 'linear-gradient(135deg, rgba(0,255,136,0.15) 0%, rgba(153,69,255,0.15) 50%, rgba(0,255,136,0.08) 100%)',
+        borderRadius: 14, filter: 'blur(20px)', zIndex: 0,
+      }} />
+
+      {/* window */}
+      <div style={{
+        position: 'relative', zIndex: 1,
+        background: 'rgba(10,10,10,0.75)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 12, overflow: 'hidden',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.06)',
+      }}>
+        {/* titlebar */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '14px 18px',
+          background: 'rgba(255,255,255,0.03)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          position: 'relative',
+        }}>
+          <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ff5f57' }} />
+          <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#febc2e' }} />
+          <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#28c840' }} />
+          <span style={{
+            position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+            fontFamily: 'monospace', fontSize: 12, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.05em',
+          }}>gate402 — payment flow</span>
+        </div>
+
+        {/* content */}
+        <div style={{
+          padding: '24px 28px', minHeight: 340,
+          fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+          fontSize: 13, lineHeight: 1.8,
+        }}>
+          <style>{`
+            @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+            @keyframes termPulse { 0%,100%{opacity:1;box-shadow:0 0 4px #00ff88} 50%{opacity:.4;box-shadow:none} }
+          `}</style>
+          {terminalLines.slice(0, visibleLines).map((line, i) => renderLine(line, i))}
+          {visibleLines < terminalLines.length && (
+            <span style={{
+              display: 'inline-block', width: 8, height: 14,
+              background: '#00ff88', verticalAlign: 'middle', marginLeft: 2,
+              animation: 'blink 1s step-end infinite',
+            }} />
+          )}
+        </div>
+
+        {/* status bar */}
+        <div style={{
+          borderTop: '1px solid rgba(255,255,255,0.05)',
+          padding: '8px 18px',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          background: 'rgba(0,0,0,0.2)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00ff88', animation: 'termPulse 2s ease-in-out infinite' }} />
+            <span style={{ fontFamily: 'monospace', fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>gate402 connected</span>
+          </div>
+          <span style={{ fontFamily: 'monospace', fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>solana devnet</span>
+          <span style={{ fontFamily: 'monospace', fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>x402 protocol</span>
+        </div>
+      </div>
+
+      {/* bottom fade */}
+      <div style={{
+        height: 120,
+        background: 'linear-gradient(to bottom, transparent, #000)',
+        marginTop: -120, position: 'relative', zIndex: 2, pointerEvents: 'none',
+      }} />
+    </div>
+  )
+}
+
 /* ─── PAGE ROOT ──────────────────────────────────────────────────────────── */
 
 export default function LandingPage() {
@@ -1908,8 +1892,51 @@ export default function LandingPage() {
       style={{ background: '#000', minHeight: '100vh', fontFamily: 'var(--font-space), sans-serif', overflowX: 'hidden' }}
     >
       <style>{CSS}</style>
-      <Nav />
-      <Hero />
+      <InteractiveHero><MacTerminal /></InteractiveHero>
+      <FeaturesGrid />
+      <RuixenSection />
+      <BentoGrid />
+      <div className="min-h-[500px] w-full flex items-center justify-center bg-black p-4 sm:p-10">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 max-w-5xl w-full">
+          <SpotlightCard className="p-6 h-full flex flex-col gap-4">
+            <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700">
+              <Layers className="text-white h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-1">Seamless UX</h3>
+              <p className="text-sm text-neutral-400">
+                Smooth, mouse-responsive interactions that elevate the user experience to the next level.
+              </p>
+            </div>
+          </SpotlightCard>
+          <SpotlightCard className="p-6 h-full flex flex-col gap-4" spotlightColor="rgba(14, 165, 233, 0.25)">
+            <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-sky-900/20 border border-sky-800/50">
+              <ShieldCheck className="text-sky-400 h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-1">Secure By Design</h3>
+              <p className="text-sm text-neutral-400">
+                Built with modern security standards, ensuring your data is protected with end-to-end encryption.
+              </p>
+            </div>
+          </SpotlightCard>
+          <SpotlightCard className="p-6 h-full flex flex-col gap-4" spotlightColor="rgba(168, 85, 247, 0.25)">
+            <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-purple-900/20 border border-purple-800/50">
+              <Zap className="text-purple-400 h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-1">Lightning Fast</h3>
+              <p className="text-sm text-neutral-400">
+                Optimized for performance. Import the component and start building without configuration overhead.
+              </p>
+            </div>
+          </SpotlightCard>
+        </div>
+      </div>
+      <div className="dark">
+        <Features7 />
+      </div>
+      <FeaturedSectionStats />
       <StatsBar />
       <LiveFeed />
       <HowItWorks />
@@ -1920,7 +1947,7 @@ export default function LandingPage() {
       <FAQ />
       <Pricing />
       <FinalCTA />
-      <Footer />
+      <FlickeringFooter />
     </div>
   )
 }
