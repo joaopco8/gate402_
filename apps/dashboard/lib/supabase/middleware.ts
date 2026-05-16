@@ -37,11 +37,11 @@ export async function updateSession(request: NextRequest) {
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = '/auth/login'
     return NextResponse.redirect(url)
   }
 
-  if (user && request.nextUrl.pathname === '/login') {
+  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/auth/login')) {
     const url = request.nextUrl.clone()
     url.pathname = '/post-login'
     // preserve ?intent=checkout (or any intent) through the redirect
