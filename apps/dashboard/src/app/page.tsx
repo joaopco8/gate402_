@@ -6,6 +6,7 @@ import { createClient } from '../../lib/supabase/client'
 import InteractiveHero from '@/components/ui/hero-section-nexus'
 import { Features as FeaturesGrid } from '@/components/ui/features-4'
 import RuixenSection from '@/components/ui/ruixen-feature-section'
+import { FAQSection } from '@/components/ui/faqsection'
 import { BentoGrid } from '@/components/ui/bento-grid'
 import { Component as FlickeringFooter } from '@/components/ui/flickering-footer'
 import { Features as Features8 } from '@/components/blocks/features-8'
@@ -38,7 +39,7 @@ const CSS = `
     --text:         #ffffff;
     --text-muted:   #666666;
     --text-dim:     #333333;
-    --green:        #00ff88;
+    --green:        #00bc7d;
     --purple:       #9945FF;
   }
 
@@ -108,9 +109,14 @@ const CSS = `
     to { opacity: 1; transform: translateY(0); }
   }
 
+  @keyframes blurReveal {
+    from { opacity: 0; filter: blur(18px); transform: translateY(16px); }
+    to   { opacity: 1; filter: blur(0px);  transform: translateY(0); }
+  }
+
   @keyframes borderPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,136,0); }
-    50% { box-shadow: 0 0 20px 2px rgba(0,255,136,0.15); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,188,125,0); }
+    50% { box-shadow: 0 0 20px 2px rgba(0,188,125,0.15); }
   }
 
   @keyframes gridMove {
@@ -125,7 +131,7 @@ const CSS = `
   }
 
   .gradient-animated {
-    background: linear-gradient(135deg, #00ff88, #9945FF, #00ff88, #9945FF);
+    background: linear-gradient(135deg, #00bc7d, #9945FF, #00bc7d, #9945FF);
     background-size: 300% 300%;
     animation: gradientShift 3s ease infinite;
     -webkit-background-clip: text;
@@ -134,8 +140,8 @@ const CSS = `
   }
 
   @keyframes pulseGreen {
-    0%, 100% { opacity: 0.4; box-shadow: 0 0 0 0 rgba(0,255,136,0.3); }
-    50%       { opacity: 1; box-shadow: 0 0 0 4px rgba(0,255,136,0); }
+    0%, 100% { opacity: 0.4; box-shadow: 0 0 0 0 rgba(0,188,125,0.3); }
+    50%       { opacity: 1; box-shadow: 0 0 0 4px rgba(0,188,125,0); }
   }
 
   .fade-in-up   { animation: fadeInUp 0.6s ease-out both; }
@@ -283,7 +289,7 @@ function Nav() {
           fontFamily: 'var(--font-space)',
           fontWeight: 500,
           color: '#000',
-          background: '#00ff88',
+          background: '#00bc7d',
           padding: '8px 18px',
           borderRadius: 6,
         }}>Start free →</a>
@@ -334,14 +340,14 @@ function LiveFeed() {
   ]
 
   return (
-    <section style={{ background: '#0F0F0F', padding: '80px 32px', borderTop: '1px solid #1a1a1a' }}>
+    <section style={{ background: '#111111', padding: '80px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
         {/* header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <span style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 400, fontSize: 16, color: '#fff' }}>
             Live payments
           </span>
-          <span className="badge mono" style={{ color: '#00ff88', borderColor: '#00ff8830', background: '#00ff8808', fontSize: 10 }}>
+          <span className="badge mono" style={{ color: '#00bc7d', borderColor: '#00bc7d30', background: '#00bc7d08', fontSize: 10 }}>
             DEVNET
           </span>
         </div>
@@ -358,20 +364,20 @@ function LiveFeed() {
                 height: 48,
                 padding: '0 20px',
                 borderBottom: i < feedItems.length - 1 ? '1px solid #1a1a1a' : 'none',
-                background: item.id === latestId ? '#0a0a0a' : '#000',
+                background: item.id === latestId ? '#111111' : '#000',
                 transition: 'background 0.4s',
                 animation: item.id === latestId ? 'fadeInDown 0.4s ease-out' : undefined,
               }}
             >
-              <span className="mono" style={{ fontSize: 12, color: '#00ff88', minWidth: 140 }}>{item.endpoint}</span>
+              <span className="mono" style={{ fontSize: 12, color: '#00bc7d', minWidth: 140 }}>{item.endpoint}</span>
               <span className="mono feed-wallet" style={{ fontSize: 12, color: '#333' }}>{item.wallet}</span>
               <span className="feed-arrow" style={{ fontSize: 12, color: '#333', margin: '0 8px' }}>→</span>
               <span className="mono" style={{ fontSize: 12, color: '#fff', flex: 1, textAlign: 'center' }}>{item.amount} USDC</span>
               <span className="badge" style={{
                 fontSize: 10,
-                color: item.id === latestId ? '#00ff88' : '#333',
-                borderColor: item.id === latestId ? '#00ff8830' : '#1a1a1a',
-                background: item.id === latestId ? '#00ff8808' : 'transparent',
+                color: item.id === latestId ? '#00bc7d' : '#333',
+                borderColor: item.id === latestId ? '#00bc7d30' : '#1a1a1a',
+                background: item.id === latestId ? '#00bc7d08' : 'transparent',
                 padding: '3px 10px',
               }}>
                 {item.id === latestId ? 'confirmed ✓' : `${Math.min(i * 5, 59)}s ago`}
@@ -409,7 +415,7 @@ const HOW_STEPS = [
     title: 'Install',
     desc: 'npm install gate402. Wrap your Express app. 3 lines of code. Done.',
     snippet: 'app.use(gate402({ ... }))',
-    snippetColor: '#00ff88',
+    snippetColor: '#00bc7d',
   },
   {
     n: '02',
@@ -423,7 +429,7 @@ const HOW_STEPS = [
     title: 'Collect',
     desc: 'Agents pay in USDC on Solana. 400ms confirmation. Funds go directly to your wallet.',
     snippet: '✓ 0.001 USDC · 412ms',
-    snippetColor: '#00ff88',
+    snippetColor: '#00bc7d',
   },
 ]
 
@@ -431,7 +437,7 @@ function HowItWorks() {
   const [hovered, setHovered] = useState<number | null>(null)
 
   return (
-    <section id="how-it-works" style={{ background: '#0F0F0F', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
+    <section id="how-it-works" style={{ background: '#111111', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 16 }}>
@@ -465,7 +471,7 @@ function HowItWorks() {
               onMouseEnter={() => setHovered(idx)}
               onMouseLeave={() => setHovered(null)}
               style={{
-                background: hovered === idx ? '#0a0a0a' : '#000',
+                background: hovered === idx ? '#111111' : '#000',
                 padding: '40px 32px',
                 borderRight: idx < HOW_STEPS.length - 1 ? '1px solid #1a1a1a' : 'none',
                 borderBottom: 'none',
@@ -497,7 +503,7 @@ function HowItWorks() {
               </p>
 
               <div className="mono" style={{
-                background: '#0a0a0a',
+                background: '#111111',
                 border: '1px solid #1a1a1a',
                 borderRadius: 4,
                 padding: '14px 16px',
@@ -525,7 +531,7 @@ const FLOW_LINES = [
   { from: 'Agent', to: 'Solana', dir: 'right',  color: '#9945FF', msg: 'send 0.001 USDC' },
   { from: 'Solana', to: 'Agent', dir: 'left',   color: '#14F195', msg: 'confirmed · tx_5kWq...9mLP · 412ms' },
   { from: 'Agent', to: 'Gate402', dir: 'right', color: '#9945FF', msg: 'GET /api/weather · X-Payment: tx_5kWq...' },
-  { from: 'Gate402', to: 'Agent', dir: 'left',  color: '#00ff88', msg: '200 OK · { city: São Paulo, temp: 28°C }' },
+  { from: 'Gate402', to: 'Agent', dir: 'left',  color: '#00bc7d', msg: '200 OK · { city: São Paulo, temp: 28°C }' },
 ]
 
 const AGENT_CODE_TOKENS = [
@@ -538,13 +544,13 @@ const AGENT_CODE_TOKENS = [
   { text: 'wrapFetch',                                       color: '#3b82f6', inline: true },
   { text: ' } ',                                             color: '#ccc',    inline: true },
   { text: 'from',                                            color: '#9945FF', inline: true },
-  { text: " 'x402-fetch'",                                   color: '#00ff88', inline: true, newline: true },
+  { text: " 'x402-fetch'",                                   color: '#00bc7d', inline: true, newline: true },
   { text: 'import',                                          color: '#9945FF', inline: true },
   { text: ' { ',                                             color: '#ccc',    inline: true },
   { text: 'Keypair',                                         color: '#3b82f6', inline: true },
   { text: ' } ',                                             color: '#ccc',    inline: true },
   { text: 'from',                                            color: '#9945FF', inline: true },
-  { text: " '@solana/web3.js'",                              color: '#00ff88', inline: true, newline: true },
+  { text: " '@solana/web3.js'",                              color: '#00bc7d', inline: true, newline: true },
   { text: '',                                                 color: '' },
   { text: 'const',                                           color: '#9945FF', inline: true },
   { text: ' agentWallet = ',                                 color: '#ccc',    inline: true },
@@ -559,7 +565,7 @@ const AGENT_CODE_TOKENS = [
   { text: '({',                                              color: '#ccc',    inline: true, newline: true },
   { text: '  wallet: agentWallet,',                          color: '#ccc',    inline: true, newline: true },
   { text: "  network: ",                                     color: '#ccc',    inline: true },
-  { text: "'mainnet'",                                       color: '#00ff88', inline: true, newline: true },
+  { text: "'mainnet'",                                       color: '#00bc7d', inline: true, newline: true },
   { text: '})',                                              color: '#ccc',    inline: true, newline: true },
   { text: '',                                                 color: '' },
   { text: '// This pays automatically',                      color: '#333' },
@@ -570,7 +576,7 @@ const AGENT_CODE_TOKENS = [
   { text: ' ',                                               color: '#ccc',    inline: true },
   { text: 'fetch',                                           color: '#3b82f6', inline: true },
   { text: '(',                                               color: '#ccc',    inline: true, newline: true },
-  { text: "  'https://api.gate402.dev/weather'",             color: '#00ff88', inline: true, newline: true },
+  { text: "  'https://api.gate402.dev/weather'",             color: '#00bc7d', inline: true, newline: true },
   { text: ')',                                               color: '#ccc',    inline: true, newline: true },
   { text: '',                                                 color: '' },
   { text: "// data = { city: 'São Paulo', temp: '28°C' }",   color: '#333' },
@@ -620,7 +626,7 @@ function AgentFlow() {
   if (currentRow.length) codeRows.push({ segments: currentRow })
 
   return (
-    <section style={{ background: '#0F0F0F', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+    <section style={{ background: '#111111', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
 
         {/* Eyebrow */}
@@ -644,13 +650,13 @@ function AgentFlow() {
         <div ref={ref} style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 24, marginBottom: 48 }} className="agent-flow-grid">
 
           {/* LEFT — Sequence diagram */}
-          <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 8, padding: 32, fontFamily: 'var(--font-mono, monospace)' }}>
+          <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 8, padding: 32, fontFamily: 'var(--font-mono, monospace)' }}>
 
             {/* Actors */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', marginBottom: 0 }}>
               {[
                 { icon: '◈', label: 'AI Agent',  color: '#9945FF' },
-                { icon: '⬡', label: 'Gate402',   color: '#00ff88' },
+                { icon: '⬡', label: 'Gate402',   color: '#00bc7d' },
                 { icon: '◎', label: 'Solana',    color: '#14F195' },
               ].map(({ icon, label, color }) => (
                 <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, paddingBottom: 16 }}>
@@ -686,7 +692,7 @@ function AgentFlow() {
                       <span style={{ fontSize: 11, color: '#555', textAlign: 'center' }}>{isRight ? fromLabel : toLabel}</span>
                       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <div style={{ position: 'absolute', left: 0, right: 0, borderTop: '1px dashed #1a1a1a' }} />
-                        <span style={{ position: 'relative', fontSize: 14, color: line.color, background: '#0a0a0a', padding: '0 4px' }}>
+                        <span style={{ position: 'relative', fontSize: 14, color: line.color, background: '#111111', padding: '0 4px' }}>
                           {isRight ? '→' : '←'}
                         </span>
                       </div>
@@ -761,7 +767,7 @@ function Features() {
     const x = (e.clientX - rect.left) / rect.width - 0.5
     const y = (e.clientY - rect.top) / rect.height - 0.5
     e.currentTarget.style.transform = `perspective(600px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg)`
-    e.currentTarget.style.borderTopColor = '#00ff88'
+    e.currentTarget.style.borderTopColor = '#00bc7d'
   }
 
   function handle3DLeave(e: React.MouseEvent<HTMLDivElement>) {
@@ -777,21 +783,21 @@ function Features() {
       badge: <span className="badge" style={{ color: '#9945FF', borderColor: '#9945ff30', background: '#9945ff08', alignSelf: 'flex-start' }}>RFC Draft</span>,
     },
     {
-      icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.09 12.96H11L10.09 22L19 11.04H12.09L13 2Z" stroke="#00ff88" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/></svg>,
+      icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.09 12.96H11L10.09 22L19 11.04H12.09L13 2Z" stroke="#00bc7d" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/></svg>,
       title: 'Solana settlement',
       desc: '400ms finality. $0.001 fees. No banks. No chargebacks. No KYC. No weekends.',
-      badge: <span className="mono" style={{ fontSize: 12, color: '#00ff88' }}>400ms · $0.001</span>,
+      badge: <span className="mono" style={{ fontSize: 12, color: '#00bc7d' }}>400ms · $0.001</span>,
     },
     {
       icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="1" stroke="#fff" strokeWidth="1.5"/><rect x="13" y="3" width="8" height="8" rx="1" stroke="#fff" strokeWidth="1.5"/><rect x="3" y="13" width="8" height="8" rx="1" stroke="#fff" strokeWidth="1.5"/><rect x="13" y="13" width="8" height="8" rx="1" stroke="#fff" strokeWidth="1.5"/></svg>,
       title: 'Real-time dashboard',
       desc: 'Every call, every payment, every wallet. Live analytics. Export CSV. Yours forever.',
-      badge: <span className="badge" style={{ color: '#00ff88', borderColor: '#00ff8830', background: '#00ff8808', alignSelf: 'flex-start' }}><span className="live-dot-green" style={{ width: 6, height: 6, borderRadius: '50%', background: '#00ff88', display: 'inline-block' }} /> Live</span>,
+      badge: <span className="badge" style={{ color: '#00bc7d', borderColor: '#00bc7d30', background: '#00bc7d08', alignSelf: 'flex-start' }}><span className="live-dot-green" style={{ width: 6, height: 6, borderRadius: '50%', background: '#00bc7d', display: 'inline-block' }} /> Live</span>,
     },
   ]
 
   return (
-    <section id="features" style={{ background: '#0F0F0F', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+    <section id="features" style={{ background: '#111111', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
       <div ref={ref} style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
         <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>
           INFRASTRUCTURE
@@ -846,10 +852,10 @@ const CODE_LINES = [
   { text: "import { gate402 } from 'gate402'",      color: '#ccc' },
   { text: "",                                       color: '' },
   { text: "app.use(gate402({",                      color: '#ccc' },
-  { text: "  apiKey: 'gk_live_...',",               color: '#00ff88' },
+  { text: "  apiKey: 'gk_live_...',",               color: '#00bc7d' },
   { text: "  endpoints: {",                         color: '#ccc' },
-  { text: "    '/api/data': 0.005,",                color: '#00ff88' },
-  { text: "    '/api/premium': 0.050,",             color: '#00ff88' },
+  { text: "    '/api/data': 0.005,",                color: '#00bc7d' },
+  { text: "    '/api/premium': 0.050,",             color: '#00bc7d' },
   { text: "  }",                                    color: '#ccc' },
   { text: "}))",                                    color: '#ccc' },
   { text: "",                                       color: '' },
@@ -890,7 +896,7 @@ function CodeSection() {
   }, [codeVisible])
 
   return (
-    <section style={{ background: '#0F0F0F', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
+    <section style={{ background: '#111111', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div className="code-grid" style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
 
         {/* Left */}
@@ -905,7 +911,7 @@ function CodeSection() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 36 }}>
             {BENEFITS.map(b => (
               <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ color: '#00ff88', fontSize: 13 }}>✓</span>
+                <span style={{ color: '#00bc7d', fontSize: 13 }}>✓</span>
                 <span style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 14, color: '#888' }}>{b}</span>
               </div>
             ))}
@@ -930,7 +936,7 @@ function CodeSection() {
               <div key={i} style={{ color: line.color || 'transparent', minHeight: '1.75em' }}>
                 {line.text}
                 {i === visibleLines - 1 && (
-                  <span style={{ animation: 'blink 1s infinite', marginLeft: 2, color: '#00ff88' }}>|</span>
+                  <span style={{ animation: 'blink 1s infinite', marginLeft: 2, color: '#00bc7d' }}>|</span>
                 )}
               </div>
             ))}
@@ -960,12 +966,12 @@ function CodeBlock({ lang, lines }: { lang: string; lines: CodeLine[] }) {
     setTimeout(() => setCopied(false), 2000)
   }
   return (
-    <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden' }}>
+    <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid #1a1a1a' }}>
         <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333', letterSpacing: '0.06em' }}>{lang}</span>
         <button
           onClick={copy}
-          style={{ background: copied ? '#00ff8815' : 'transparent', border: `1px solid ${copied ? '#00ff8840' : '#222'}`, color: copied ? '#00ff88' : '#444', borderRadius: 4, padding: '3px 10px', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, cursor: 'pointer', transition: 'all 0.15s' }}
+          style={{ background: copied ? '#00bc7d15' : 'transparent', border: `1px solid ${copied ? '#00bc7d40' : '#222'}`, color: copied ? '#00bc7d' : '#444', borderRadius: 4, padding: '3px 10px', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, cursor: 'pointer', transition: 'all 0.15s' }}
         >
           {copied ? 'Copied ✓' : 'Copy'}
         </button>
@@ -1011,7 +1017,7 @@ function ProviderSide() {
     {
       n: '01', title: 'Install',
       content: (
-        <div style={{ background: '#0F0F0F', border: '1px solid #1a1a1a', borderRadius: 4, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, color: '#00ff88' }}>
+        <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 4, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, color: '#00bc7d' }}>
           npm install gate402
         </div>
       ),
@@ -1019,9 +1025,9 @@ function ProviderSide() {
     {
       n: '02', title: 'Add middleware',
       content: (
-        <div style={{ background: '#0F0F0F', border: '1px solid #1a1a1a', borderRadius: 4, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.7 }}>
+        <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 4, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.7 }}>
           <span style={{ color: '#9945FF' }}>app</span><span style={{ color: '#ccc' }}>.use(gate402({'{'}</span><br />
-          <span style={{ color: '#ccc' }}>{'  '}apiKey: </span><span style={{ color: '#00ff88' }}>&apos;key&apos;</span><span style={{ color: '#ccc' }}>, price: </span><span style={{ color: '#f59e0b' }}>0.001</span><br />
+          <span style={{ color: '#ccc' }}>{'  '}apiKey: </span><span style={{ color: '#00bc7d' }}>&apos;key&apos;</span><span style={{ color: '#ccc' }}>, price: </span><span style={{ color: '#f59e0b' }}>0.001</span><br />
           <span style={{ color: '#ccc' }}>{'}))'}</span>
         </div>
       ),
@@ -1031,7 +1037,7 @@ function ProviderSide() {
       content: (
         <div>
           <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', lineHeight: 1.6, marginBottom: 12 }}>Payments go directly to your Solana wallet.</p>
-          <span style={{ display: 'inline-block', background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.2)', color: '#00ff88', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, padding: '4px 10px', borderRadius: 4 }}>Non-custodial</span>
+          <span style={{ display: 'inline-block', background: 'rgba(0,188,125,0.08)', border: '1px solid rgba(0,188,125,0.2)', color: '#00bc7d', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, padding: '4px 10px', borderRadius: 4 }}>Non-custodial</span>
         </div>
       ),
     },
@@ -1040,14 +1046,14 @@ function ProviderSide() {
       content: (
         <div>
           <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', lineHeight: 1.6, marginBottom: 12 }}>Agents receive HTTP 402 and pay automatically.</p>
-          <span style={{ display: 'inline-block', background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.2)', color: '#00ff88', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, padding: '4px 10px', borderRadius: 4 }}>✓ Done</span>
+          <span style={{ display: 'inline-block', background: 'rgba(0,188,125,0.08)', border: '1px solid rgba(0,188,125,0.2)', color: '#00bc7d', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, padding: '4px 10px', borderRadius: 4 }}>✓ Done</span>
         </div>
       ),
     },
   ]
 
   return (
-    <section style={{ background: '#0F0F0F', padding: '96px 0', borderTop: '1px solid #1a1a1a' }}>
+    <section style={{ background: '#111111', padding: '96px 0', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ marginBottom: 56 }}>
           <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', letterSpacing: '0.12em', marginBottom: 16 }}>FOR API DEVELOPERS</div>
@@ -1061,7 +1067,7 @@ function ProviderSide() {
               onMouseEnter={() => setHoveredCard(i)}
               onMouseLeave={() => setHoveredCard(null)}
               style={{
-                background: hoveredCard === i ? '#0f0f0f' : '#0a0a0a',
+                background: hoveredCard === i ? '#0f0f0f' : '#111111',
                 border: `1px solid ${hoveredCard === i ? '#2a2a2a' : '#1a1a1a'}`,
                 borderRadius: 8,
                 padding: 28,
@@ -1081,7 +1087,7 @@ function ProviderSide() {
 
 function AgentSide() {
   return (
-    <section style={{ background: '#0a0a0a', borderTop: '1px solid #1a1a1a', borderBottom: '1px solid #1a1a1a', padding: '80px 0' }}>
+    <section style={{ background: '#111111', borderTop: '1px solid #1a1a1a', borderBottom: '1px solid #1a1a1a', padding: '80px 0' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ maxWidth: 720, marginBottom: 48 }}>
           <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', letterSpacing: '0.12em', marginBottom: 16 }}>FOR AGENT OPERATORS</div>
@@ -1090,22 +1096,22 @@ function AgentSide() {
         </div>
 
         <div className="code-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 32 }}>
-          <div style={{ background: '#0F0F0F', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444' }}>with x402-fetch</span>
-              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#00ff88' }}>RECOMMENDED</span>
+              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#00bc7d' }}>RECOMMENDED</span>
             </div>
             <div style={{ padding: '16px 20px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.7 }}>
-              <div><span style={{ color: '#9945FF' }}>import</span><span style={{ color: '#ccc' }}> {'{ wrapFetch }'} </span><span style={{ color: '#9945FF' }}>from</span><span style={{ color: '#00ff88' }}> &apos;x402-fetch&apos;</span></div>
+              <div><span style={{ color: '#9945FF' }}>import</span><span style={{ color: '#ccc' }}> {'{ wrapFetch }'} </span><span style={{ color: '#9945FF' }}>from</span><span style={{ color: '#00bc7d' }}> &apos;x402-fetch&apos;</span></div>
               <div style={{ height: 8 }} />
               <div><span style={{ color: '#9945FF' }}>const</span><span style={{ color: '#ccc' }}> fetch = </span><span style={{ color: '#3b82f6' }}>wrapFetch</span><span style={{ color: '#ccc' }}>{'({ wallet: agentWallet })'}</span></div>
-              <div><span style={{ color: '#9945FF' }}>const</span><span style={{ color: '#ccc' }}> data = </span><span style={{ color: '#9945FF' }}>await</span><span style={{ color: '#ccc' }}> fetch(</span><span style={{ color: '#00ff88' }}>&apos;https://api.dev/data&apos;</span><span style={{ color: '#ccc' }}>)</span></div>
+              <div><span style={{ color: '#9945FF' }}>const</span><span style={{ color: '#ccc' }}> data = </span><span style={{ color: '#9945FF' }}>await</span><span style={{ color: '#ccc' }}> fetch(</span><span style={{ color: '#00bc7d' }}>&apos;https://api.dev/data&apos;</span><span style={{ color: '#ccc' }}>)</span></div>
               <div style={{ height: 4 }} />
               <div><span style={{ color: '#444' }}>{'// Pays automatically on HTTP 402'}</span></div>
             </div>
           </div>
 
-          <div style={{ background: '#0F0F0F', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444' }}>with any HTTP client</span>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#444' }}>MANUAL</span>
@@ -1205,11 +1211,11 @@ function HoodCard({ card }: { card: typeof HOOD_CARDS[number] }) {
         <span style={{
           display: 'inline-block',
           fontFamily: 'var(--font-mono, monospace)', fontSize: 9, color: '#333',
-          letterSpacing: '0.12em', background: '#0a0a0a', border: '1px solid #1a1a1a',
+          letterSpacing: '0.12em', background: '#111111', border: '1px solid #1a1a1a',
           borderRadius: 3, padding: '3px 8px',
         }}>STEP {card.n}</span>
         {card.dot === 'amber' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />}
-        {card.dot === 'green' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00ff88', display: 'inline-block' }} />}
+        {card.dot === 'green' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00bc7d', display: 'inline-block' }} />}
       </div>
 
       <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 500, fontSize: 17, color: '#fff', marginBottom: 8 }}>{card.title}</div>
@@ -1219,7 +1225,7 @@ function HoodCard({ card }: { card: typeof HOOD_CARDS[number] }) {
         <div style={{
           display: 'inline-block', marginTop: 16,
           fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333',
-          background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 4, padding: '6px 12px',
+          background: '#111111', border: '1px solid #1a1a1a', borderRadius: 4, padding: '6px 12px',
         }}>{card.detail}</div>
       )}
     </div>
@@ -1229,7 +1235,7 @@ function HoodCard({ card }: { card: typeof HOOD_CARDS[number] }) {
 function HowItWorksTimeline() {
   const [hovered8, setHovered8] = useState(false)
   return (
-    <section style={{ background: '#0F0F0F', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+    <section style={{ background: '#111111', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px' }}>
 
         {/* Header */}
@@ -1282,10 +1288,10 @@ function HowItWorksTimeline() {
                   <span style={{
                     display: 'inline-block',
                     fontFamily: 'var(--font-mono, monospace)', fontSize: 9, color: '#333',
-                    letterSpacing: '0.12em', background: '#0a0a0a', border: '1px solid #1a1a1a',
+                    letterSpacing: '0.12em', background: '#111111', border: '1px solid #1a1a1a',
                     borderRadius: 3, padding: '3px 8px',
                   }}>STEP 08</span>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00ff88', display: 'inline-block' }} />
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00bc7d', display: 'inline-block' }} />
                 </div>
                 <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 500, fontSize: 17, color: '#fff', marginBottom: 8 }}>Access granted</div>
                 <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#555', lineHeight: 1.7, margin: 0, maxWidth: 480 }}>
@@ -1296,11 +1302,11 @@ function HowItWorksTimeline() {
               {/* Right: badge */}
               <div style={{
                 flexShrink: 0, zIndex: 1,
-                background: 'rgba(0,255,136,0.06)', border: '1px solid rgba(0,255,136,0.15)',
+                background: 'rgba(0,188,125,0.06)', border: '1px solid rgba(0,188,125,0.15)',
                 borderRadius: 8, padding: '20px 32px',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
               }}>
-                <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 24, color: '#00ff88', fontWeight: 600 }}>200 OK</span>
+                <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 24, color: '#00bc7d', fontWeight: 600 }}>200 OK</span>
                 <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333' }}>handler executed</span>
               </div>
             </div>
@@ -1330,7 +1336,7 @@ function FAQ() {
   const [open, setOpen] = useState<number | null>(null)
 
   return (
-    <section style={{ background: '#0F0F0F', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
+    <section style={{ background: '#111111', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 32px' }}>
         <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>FAQ</div>
         <h2 style={{ fontSize: 40, fontWeight: 300, marginBottom: 64, lineHeight: 1.2 }}>Common questions</h2>
@@ -1342,7 +1348,7 @@ function FAQ() {
                 style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '18px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', textAlign: 'left' }}
               >
                 <span style={{ color: '#fff', fontSize: 15, fontFamily: 'inherit' }}>{item.q}</span>
-                <span style={{ color: '#00ff88', fontSize: 20, flexShrink: 0, marginLeft: 16, fontFamily: 'var(--font-mono,monospace)' }}>{open === idx ? '−' : '+'}</span>
+                <span style={{ color: '#00bc7d', fontSize: 20, flexShrink: 0, marginLeft: 16, fontFamily: 'var(--font-mono,monospace)' }}>{open === idx ? '−' : '+'}</span>
               </button>
               <div style={{ maxHeight: open === idx ? 300 : 0, overflow: 'hidden', transition: 'max-height 0.3s ease' }}>
                 <p style={{ color: '#666', fontSize: 14, lineHeight: 1.7, paddingBottom: 18 }}>{item.a}</p>
@@ -1360,7 +1366,7 @@ function FAQ() {
 function PricingFeature({ label }: { label: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-      <span style={{ color: '#00ff88', fontSize: 12, flexShrink: 0, marginTop: 1 }}>✓</span>
+      <span style={{ color: '#00bc7d', fontSize: 12, flexShrink: 0, marginTop: 1 }}>✓</span>
       <span style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#888', lineHeight: 1.5 }}>{label}</span>
     </div>
   )
@@ -1416,7 +1422,7 @@ function Pricing() {
   const delays = ['0s', '0.15s', '0.3s']
 
   return (
-    <section id="pricing" style={{ background: '#0F0F0F', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
+    <section id="pricing" style={{ background: '#111111', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Header */}
@@ -1472,7 +1478,7 @@ function Pricing() {
           {/* ── CARD 2: Pro ── */}
           <div style={{
             background: '#0d0d0d',
-            border: '1px solid rgba(0,255,136,0.25)',
+            border: '1px solid rgba(0,188,125,0.25)',
             borderRadius: 8,
             padding: 28,
             display: 'flex',
@@ -1481,8 +1487,8 @@ function Pricing() {
             animation: visible ? `cardReveal 0.5s ease-out ${delays[1]} both, borderPulse 3s ease-in-out 0.5s infinite` : undefined,
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <span className="badge" style={{ color: '#00ff88', borderColor: '#00ff8830', background: '#00ff8808' }}>Hosted</span>
-              <span className="badge" style={{ color: '#00ff88', borderColor: '#00ff8830', background: '#00ff8808', fontSize: 10 }}>Most popular</span>
+              <span className="badge" style={{ color: '#00bc7d', borderColor: '#00bc7d30', background: '#00bc7d08' }}>Hosted</span>
+              <span className="badge" style={{ color: '#00bc7d', borderColor: '#00bc7d30', background: '#00bc7d08', fontSize: 10 }}>Most popular</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 2 }}>
               <span style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 56, color: '#fff', letterSpacing: '-0.03em' }}>$99</span>
@@ -1507,7 +1513,7 @@ function Pricing() {
               <div style={{ height: 1, background: '#1a1a1a', marginBottom: 16 }} />
               <div className="mono" style={{ fontSize: 10, color: '#333', letterSpacing: '0.08em', marginBottom: 8 }}>SETUP</div>
               <div style={{
-                background: '#0a0a0a',
+                background: '#111111',
                 border: '1px solid #222',
                 borderRadius: 6,
                 padding: 10,
@@ -1518,9 +1524,9 @@ function Pricing() {
               }}>
                 {[
                   [{ t: 'app.use(gate402({', c: '#666' }],
-                  [{ t: '  apiKey: ', c: '#666' }, { t: "'your-key'", c: '#00ff88' }, { t: ',', c: '#666' }],
-                  [{ t: '  serverUrl: ', c: '#666' }, { t: "'https://api.gate402.dev'", c: '#00ff88' }, { t: ',', c: '#666' }],
-                  [{ t: '  endpoints: ', c: '#666' }, { t: '{', c: '#ccc' }, { t: " '/api/data'", c: '#00ff88' }, { t: ': 0.001 }', c: '#ccc' }],
+                  [{ t: '  apiKey: ', c: '#666' }, { t: "'your-key'", c: '#00bc7d' }, { t: ',', c: '#666' }],
+                  [{ t: '  serverUrl: ', c: '#666' }, { t: "'https://api.gate402.dev'", c: '#00bc7d' }, { t: ',', c: '#666' }],
+                  [{ t: '  endpoints: ', c: '#666' }, { t: '{', c: '#ccc' }, { t: " '/api/data'", c: '#00bc7d' }, { t: ': 0.001 }', c: '#ccc' }],
                   [{ t: '}))', c: '#666' }],
                 ].map((line, li) => (
                   <div key={li}>
@@ -1587,111 +1593,131 @@ function Pricing() {
   )
 }
 
-/* ─── FINAL CTA ──────────────────────────────────────────────────────────── */
 
-/* SECTION: FinalCTA */
-function FinalCTA() {
-  const [copied, setCopied] = useState(false)
-  const [ctaVisible, setCtaVisible] = useState(false)
-  const ctaRef = useRef<HTMLDivElement>(null)
+/* ─── GET STARTED ────────────────────────────────────────────────────────── */
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setCtaVisible(true) },
-      { threshold: 0.3 }
-    )
-    if (ctaRef.current) observer.observe(ctaRef.current)
-    return () => observer.disconnect()
-  }, [])
+/* SECTION: GetStarted */
+function GetStarted() {
+  const [copied, setCopied] = useState<string | null>(null)
 
-  function handleCopy() {
-    navigator.clipboard.writeText('npm install gate402')
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  function handleCopy(cmd: string) {
+    navigator.clipboard.writeText(cmd)
+    setCopied(cmd)
+    setTimeout(() => setCopied(null), 2000)
   }
 
+  const options = [
+    {
+      label: 'Provider Side',
+      desc: 'Monetize any Express, Fastify, or Python API. Three lines of middleware. Agents pay you in USDC.',
+      cmd: 'npm install gate402',
+      badge: 'API Middleware',
+    },
+    {
+      label: 'Consumer Side',
+      desc: 'Add autonomous payment to any AI agent. Detects 402, pays, retries — zero human interaction.',
+      cmd: 'npm install gate402-agent',
+      badge: 'Agent SDK',
+    },
+    {
+      label: 'MCP Server — from scratch',
+      desc: 'Scaffold a new MCP server with Gate402 pre-configured. Per-tool pricing out of the box.',
+      cmd: 'npx create-gate402-mcp',
+      badge: 'MCP',
+    },
+    {
+      label: 'Existing MCP Server',
+      desc: 'Add Gate402 billing to an MCP server you already have running. Drop-in middleware.',
+      cmd: 'npm install gate402',
+      badge: 'Middleware',
+    },
+  ]
+
   return (
-    <section style={{ background: '#0F0F0F', padding: '160px 32px', borderTop: '1px solid #1a1a1a', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-      {/* animated grid background */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        backgroundImage: `
-          linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px)
-        `,
-        backgroundSize: '60px 60px',
-        animation: 'gridMove 20s linear infinite',
-        zIndex: 0,
-      }} />
-
-      <div ref={ctaRef} style={{ maxWidth: 640, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <h2 className="final-cta-headline" style={{
-          fontFamily: 'var(--font-space, sans-serif)',
-          fontWeight: 300,
-          fontSize: 64,
-          letterSpacing: '-0.03em',
-          color: '#fff',
-          lineHeight: 1.05,
-          marginBottom: 16,
-          opacity: ctaVisible ? undefined : 0,
-          animation: ctaVisible ? 'fadeInUp 0.8s ease-out both' : undefined,
-        }}>
-          Your API has been free for too long.
-        </h2>
-        <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 20, color: '#666', marginBottom: 48 }}>
-          Start collecting USDC in 5 minutes.
-        </p>
-
-        {/* copiable snippet */}
-        <div className="npm-snippet" style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 16,
-          background: '#0d0d0d',
-          border: '1px solid #1a1a1a',
-          borderRadius: 6,
-          padding: '14px 20px',
-          marginBottom: 32,
-        }}>
-          <span className="mono" style={{ fontSize: 15, color: '#ccc' }}>
-            $ npm install gate402
-            <span style={{ animation: 'blink 1s ease-in-out infinite', color: '#00ff88', marginLeft: 2 }}>_</span>
-          </span>
-          <button onClick={handleCopy} style={{
-            background: copied ? '#00ff8815' : 'transparent',
-            border: `1px solid ${copied ? '#00ff8840' : '#333'}`,
-            color: copied ? '#00ff88' : '#555',
-            borderRadius: 4,
-            padding: '4px 12px',
-            fontFamily: 'var(--font-mono, monospace)',
-            fontSize: 12,
-            cursor: 'pointer',
-            transition: 'all 0.15s',
-          }}>
-            {copied ? 'Copied ✓' : 'Copy'}
-          </button>
+    <section style={{ background: '#111111', borderTop: '1px solid #222222', padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 32px)' }}>
+      <div style={{ maxWidth: 960, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+          <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 500, lineHeight: 1.15, marginBottom: 12, fontFamily: 'var(--font-space)' }}>
+            <span style={{ color: '#fff' }}>Start building.</span>{' '}
+            <span style={{ color: '#898989' }}>Pick your entry point.</span>
+          </h2>
+          <p style={{ fontSize: 16, color: '#898989', lineHeight: 1.65, maxWidth: 480, margin: '0 auto', fontFamily: 'var(--font-space)' }}>
+            One command. No accounts. No contracts. Your first payment flows in under five minutes.
+          </p>
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <a href="/dashboard" className="btn-primary" style={{ padding: '14px 32px', fontSize: 16 }}>
-            Open Dashboard →
-          </a>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+          {options.map((opt) => (
+            <div
+              key={opt.cmd}
+              style={{
+                background: '#161616',
+                border: '1px solid #222222',
+                borderRadius: 12,
+                padding: '28px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+                transition: 'border-color 0.2s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = '#333')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = '#222222')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: '#fff', fontFamily: 'var(--font-space)', margin: 0 }}>
+                  {opt.label}
+                </h3>
+                <span style={{
+                  fontSize: 11, fontWeight: 500, color: '#00bc7d',
+                  background: 'rgba(0,188,125,0.1)', border: '1px solid rgba(0,188,125,0.2)',
+                  borderRadius: 4, padding: '2px 8px', whiteSpace: 'nowrap',
+                }}>
+                  {opt.badge}
+                </span>
+              </div>
+
+              <p style={{ fontSize: 13, color: '#666', lineHeight: 1.6, fontFamily: 'var(--font-space)', margin: 0, flexGrow: 1 }}>
+                {opt.desc}
+              </p>
+
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                background: '#0d0d0d', border: '1px solid #1a1a1a',
+                borderRadius: 6, padding: '10px 14px', gap: 12,
+              }}>
+                <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 13, color: '#ccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {opt.cmd}
+                </span>
+                <button
+                  onClick={() => handleCopy(opt.cmd)}
+                  style={{
+                    flexShrink: 0,
+                    background: copied === opt.cmd ? 'rgba(0,188,125,0.1)' : 'transparent',
+                    border: `1px solid ${copied === opt.cmd ? 'rgba(0,188,125,0.3)' : '#333'}`,
+                    color: copied === opt.cmd ? '#00bc7d' : '#555',
+                    borderRadius: 4, padding: '3px 10px',
+                    fontFamily: 'var(--font-mono, monospace)', fontSize: 11,
+                    cursor: 'pointer', transition: 'all 0.15s',
+                  }}
+                >
+                  {copied === opt.cmd ? '✓' : 'Copy'}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-        <p className="mono" style={{ fontSize: 12, color: '#333' }}>
-          No credit card. No account. Open source.
-        </p>
       </div>
     </section>
   )
 }
+
 
 /* ─── FOOTER ─────────────────────────────────────────────────────────────── */
 
 /* SECTION: Footer */
 function Footer() {
   return (
-    <footer style={{ borderTop: '1px solid #1a1a1a', background: '#0F0F0F', padding: '40px 32px 0' }}>
+    <footer style={{ borderTop: '1px solid #1a1a1a', background: '#111111', padding: '40px 32px 0' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div className="footer-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: 32, borderBottom: '1px solid #1a1a1a' }}>
           {/* Left */}
@@ -1785,11 +1811,11 @@ function MacTerminal() {
   function renderLine(line: { type: string; text?: string }, i: number) {
     if (line.type === 'blank') return <div key={i} style={{ height: 10 }} />
     const styles: Record<string, { color: string; prefix?: string }> = {
-      prompt:  { color: '#00ff88',               prefix: '$ ' },
+      prompt:  { color: '#00bc7d',               prefix: '$ ' },
       output:  { color: 'rgba(255,255,255,0.5)' },
       json:    { color: 'rgba(255,255,255,0.4)' },
       info:    { color: '#3b82f6',               prefix: '  [agent] ' },
-      success: { color: '#00ff88',               prefix: '  ✓ ' },
+      success: { color: '#00bc7d',               prefix: '  ✓ ' },
       money:   { color: '#f59e0b',               prefix: '  💰 ' },
       comment: { color: 'rgba(255,255,255,0.2)', prefix: '  # ' },
     }
@@ -1840,13 +1866,13 @@ function MacTerminal() {
           }}>
             <style>{`
               @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-              @keyframes termPulse { 0%,100%{opacity:1;box-shadow:0 0 4px #00ff88} 50%{opacity:.4;box-shadow:none} }
+              @keyframes termPulse { 0%,100%{opacity:1;box-shadow:0 0 4px #00bc7d} 50%{opacity:.4;box-shadow:none} }
             `}</style>
             {terminalLines.slice(0, visibleLines).map((line, i) => renderLine(line, i))}
             {visibleLines < terminalLines.length && (
               <span style={{
                 display: 'inline-block', width: 8, height: 14,
-                background: '#00ff88', verticalAlign: 'middle', marginLeft: 2,
+                background: '#00bc7d', verticalAlign: 'middle', marginLeft: 2,
                 animation: 'blink 1s step-end infinite',
               }} />
             )}
@@ -1862,7 +1888,7 @@ function MacTerminal() {
           borderBottomLeftRadius: 12, borderBottomRightRadius: 12,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00ff88', animation: 'termPulse 2s ease-in-out infinite' }} />
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00bc7d', animation: 'termPulse 2s ease-in-out infinite' }} />
             <span style={{ fontFamily: 'monospace', fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>gate402 connected</span>
           </div>
           <span style={{ fontFamily: 'monospace', fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>solana devnet</span>
@@ -1882,21 +1908,186 @@ function MacTerminal() {
 
 /* ─── PAGE ROOT ──────────────────────────────────────────────────────────── */
 
+/* SECTION: InstallSection */
+const INSTALL_PANELS = [
+  {
+    badge: 'Provider Side',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path d="M4 9l10-5 10 5-10 5L4 9z" stroke="#333" strokeWidth="1.5" strokeLinejoin="round"/>
+        <path d="M4 14l10 5 10-5" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M4 19l10 5 10-5" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    title: 'API Middleware',
+    description: 'Monetize any Express, Fastify, or Python API. Three lines of middleware. Agents pay you in USDC.',
+    command: 'npm install gate402',
+  },
+  {
+    badge: 'Consumer Side',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <rect x="7" y="10" width="14" height="12" rx="3" stroke="#333" strokeWidth="1.5"/>
+        <circle cx="11" cy="16" r="1.5" fill="#333"/>
+        <circle cx="17" cy="16" r="1.5" fill="#333"/>
+        <path d="M14 6v4M11 6h6" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    title: 'Agent SDK',
+    description: 'Add autonomous payment to any AI agent. Detects 402, pays, retries — zero human interaction.',
+    command: 'npm install gate402-agent',
+  },
+  {
+    badge: 'MCP Server — from scratch',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <rect x="4" y="6" width="20" height="16" rx="2" stroke="#333" strokeWidth="1.5"/>
+        <path d="M8 12l4 3-4 3" stroke="#333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M16 18h4" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    title: 'MCP',
+    description: 'Scaffold a new MCP server with Gate402 pre-configured. Per-tool pricing out of the box.',
+    command: 'npx create-gate402-mcp',
+  },
+  {
+    badge: 'Existing MCP Server',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path d="M14 18v4M10 18h8" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
+        <rect x="9" y="12" width="10" height="6" rx="1" stroke="#333" strokeWidth="1.5"/>
+        <path d="M11 12V8M17 12V8" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    title: 'Middleware',
+    description: 'Add Gate402 billing to an MCP server you already have running. Drop-in middleware.',
+    command: 'npm install gate402',
+  },
+]
+
+function InstallSection() {
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+
+  function handleCopy(text: string, index: number) {
+    navigator.clipboard.writeText(text)
+    setCopiedIndex(index)
+    setTimeout(() => setCopiedIndex(null), 2000)
+  }
+
+  return (
+    <div style={{ borderTop: '1px solid #1a1a1a', borderBottom: '1px solid #1a1a1a', background: '#111111' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+        }}
+        className="install-grid"
+      >
+        <style>{`
+          .install-grid { grid-template-columns: repeat(4, 1fr); }
+          @media (max-width: 768px) { .install-grid { grid-template-columns: repeat(2, 1fr); } }
+          @media (max-width: 480px) { .install-grid { grid-template-columns: 1fr; } }
+          .install-panel { transition: background 200ms; }
+          .install-panel:hover { background: rgba(255,255,255,0.015); }
+        `}</style>
+        {INSTALL_PANELS.map((panel, i) => (
+          <div
+            key={i}
+            className="install-panel"
+            style={{
+              padding: 'clamp(32px, 4vw, 48px) clamp(24px, 3vw, 40px)',
+              borderRight: i < 3 ? '1px solid #1a1a1a' : undefined,
+              position: 'relative',
+            }}
+          >
+            {/* Badge */}
+            <div style={{ display: 'inline-block', fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#444', letterSpacing: '0.12em', border: '1px solid #1a1a1a', borderRadius: 3, padding: '3px 8px', marginBottom: 32 }}>
+              {panel.badge}
+            </div>
+
+            {/* Icon */}
+            <div style={{ marginBottom: 16 }}>{panel.icon}</div>
+
+            {/* Title */}
+            <div style={{ fontSize: 18, fontWeight: 600, color: '#ffffff', marginBottom: 12 }}>
+              {panel.title}
+            </div>
+
+            {/* Description */}
+            <div style={{ fontSize: 13, color: '#555', lineHeight: 1.7, marginBottom: 32 }}>
+              {panel.description}
+            </div>
+
+            {/* Command */}
+            <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px' }}>
+              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#00bc7d' }}>
+                {panel.command}
+              </span>
+              <button
+                onClick={() => handleCopy(panel.command, i)}
+                style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: copiedIndex === i ? '#00bc7d' : '#444', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 150ms', padding: 0 }}
+                onMouseEnter={e => { if (copiedIndex !== i) (e.currentTarget as HTMLButtonElement).style.color = '#888' }}
+                onMouseLeave={e => { if (copiedIndex !== i) (e.currentTarget as HTMLButtonElement).style.color = '#444' }}
+              >
+                {copiedIndex === i ? 'Copied ✓' : 'copy'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function BlurReveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setVisible(true); obs.disconnect() }
+    }, { threshold: 0.08 })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity: visible ? 1 : 0,
+        animation: visible ? `blurReveal 0.75s cubic-bezier(0.22,1,0.36,1) ${delay}ms both` : 'none',
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
 export default function LandingPage() {
   return (
     <div
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
-      style={{ background: '#0F0F0F', minHeight: '100vh', fontFamily: 'var(--font-space), sans-serif', overflowX: 'hidden' }}
+      style={{ background: '#111111', minHeight: '100vh', fontFamily: 'var(--font-space), sans-serif', overflowX: 'hidden' }}
     >
       <style>{CSS}</style>
-      <InteractiveHero><MacTerminal /></InteractiveHero>
-      <FeaturedSectionStats />
-      <FeaturesGrid />
-      <div className="min-h-[500px] w-full flex items-center justify-center p-4 sm:p-10" style={{ background: '#0F0F0F' }}>
+      <InteractiveHero />
+      <BlurReveal><div style={{ borderTop: '1px solid #222222', background: '#111111' }}><FeaturedSectionStats /></div></BlurReveal>
+      <BlurReveal><div style={{ borderTop: '1px solid #222222', background: '#111111' }}><FeaturesGrid /></div></BlurReveal>
+
+
+      <BlurReveal>
+      <div style={{ textAlign: 'center', padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 32px) 0', background: '#111111', borderTop: '1px solid #222222' }}>
+        <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 500, marginBottom: 12, lineHeight: 1.15, fontFamily: 'var(--font-space)' }}><span style={{ color: '#898989' }}>Three building blocks.</span> <span style={{ color: '#fff' }}>Infinite APIs.</span></h2>
+        <p style={{ fontSize: 16, color: '#898989', maxWidth: 540, margin: '0 auto', lineHeight: 1.65, fontFamily: 'var(--font-space)' }}>Gate402 connects API providers, AI agents, and Solana settlement in one lightweight middleware layer.</p>
+      </div>
+      </BlurReveal>
+      <BlurReveal>
+      <div className="min-h-[500px] w-full flex items-center justify-center p-4 sm:p-10" style={{ background: '#111111' }}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3 max-w-5xl w-full">
-          <SpotlightCard className="p-6 h-full flex flex-col gap-4">
-            <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-neutral-800 border border-neutral-700">
-              <Layers className="text-white h-5 w-5" />
+          <SpotlightCard className="p-4 sm:p-8 h-full flex flex-col gap-4 sm:gap-8" spotlightColor="rgba(0,188,125,0.2)">
+            <div className="h-10 w-10 flex items-center justify-center rounded-lg" style={{ background: "rgba(0,188,125,0.1)", border: "1px solid rgba(0,188,125,0.3)" }}>
+              <Layers style={{ color: "#00bc7d", width: 20, height: 20 }} />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white mb-1">Drop-in middleware</h3>
@@ -1905,9 +2096,9 @@ export default function LandingPage() {
               </p>
             </div>
           </SpotlightCard>
-          <SpotlightCard className="p-6 h-full flex flex-col gap-4" spotlightColor="rgba(14, 165, 233, 0.25)">
-            <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-sky-900/20 border border-sky-800/50">
-              <ShieldCheck className="text-sky-400 h-5 w-5" />
+          <SpotlightCard className="p-4 sm:p-8 h-full flex flex-col gap-4 sm:gap-8" spotlightColor="rgba(0,188,125,0.2)">
+            <div className="h-10 w-10 flex items-center justify-center rounded-lg" style={{ background: "rgba(0,188,125,0.1)", border: "1px solid rgba(0,188,125,0.3)" }}>
+              <ShieldCheck style={{ color: "#00bc7d", width: 20, height: 20 }} />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white mb-1">Verified on-chain</h3>
@@ -1916,9 +2107,9 @@ export default function LandingPage() {
               </p>
             </div>
           </SpotlightCard>
-          <SpotlightCard className="p-6 h-full flex flex-col gap-4" spotlightColor="rgba(168, 85, 247, 0.25)">
-            <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-purple-900/20 border border-purple-800/50">
-              <Zap className="text-purple-400 h-5 w-5" />
+          <SpotlightCard className="p-4 sm:p-8 h-full flex flex-col gap-4 sm:gap-8" spotlightColor="rgba(0,188,125,0.2)">
+            <div className="h-10 w-10 flex items-center justify-center rounded-lg" style={{ background: "rgba(0,188,125,0.1)", border: "1px solid rgba(0,188,125,0.3)" }}>
+              <Zap style={{ color: "#00bc7d", width: 20, height: 20 }} />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white mb-1">Built for micropayments</h3>
@@ -1929,13 +2120,52 @@ export default function LandingPage() {
           </SpotlightCard>
         </div>
       </div>
-      <div className="dark">
+      </BlurReveal>
+      <BlurReveal><div className="dark" style={{ borderTop: "1px solid #222222" }}>
         <Features7 />
+      </div></BlurReveal>
+
+
+      <BlurReveal>
+      <div style={{ textAlign: 'center', padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 32px) 0', background: '#111111', borderTop: '1px solid #222222' }}>
+        <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 500, marginBottom: 12, lineHeight: 1.15, fontFamily: 'var(--font-space)' }}><span style={{ color: '#fff' }}>Any stack.</span> <span style={{ color: '#898989' }}>Any language.</span></h2>
+        <p style={{ fontSize: 16, color: '#898989', maxWidth: 540, margin: '0 auto', lineHeight: 1.65, fontFamily: 'var(--font-space)' }}>From Express to Python to Rust — drop Gate402 in without rewriting your business logic.</p>
       </div>
-      <BentoGrid />
-      <RuixenSection />
-      <FinalCTA />
-      <FlickeringFooter />
+      </BlurReveal>
+      <BlurReveal><BentoGrid /></BlurReveal>
+
+
+      <BlurReveal>
+      <div style={{ textAlign: 'center', padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 32px) 0', background: '#111111', borderTop: '1px solid #222222' }}>
+        <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 500, marginBottom: 12, lineHeight: 1.15, fontFamily: 'var(--font-space)' }}><span style={{ color: '#898989' }}>From 402 to paid in</span> <span style={{ color: '#fff' }}>400ms.</span></h2>
+        <p style={{ fontSize: 16, color: '#898989', maxWidth: 540, margin: '0 auto', lineHeight: 1.65, fontFamily: 'var(--font-space)' }}>Real-time payment flows for every role in the stack — provider, agent, and MCP server.</p>
+      </div>
+      </BlurReveal>
+      <BlurReveal><RuixenSection /></BlurReveal>
+      <BlurReveal><div style={{ borderTop: '1px solid #222222', background: '#111111' }}>
+        <FAQSection
+          title="Questions & Answers"
+          description="Everything you need to know about Gate402, the x402 protocol, and how AI agents pay for APIs."
+          buttonLabel="Browse Docs →"
+          onButtonClick={() => window.open('/docs', '_self')}
+          faqsLeft={[
+            { question: "Why can't I just use Stripe to charge AI agents?", answer: "Stripe requires a human cardholder, a billing address, and identity verification. An AI agent has none of these — it has a cryptographic keypair and a USDC balance. Gate402 uses the x402 protocol and Solana to enable payments between machines, with no human in the loop." },
+            { question: "Does the agent operator need to do anything manually after setup?", answer: "No. Once the agent wallet is funded with USDC, the gate402-agent SDK handles everything automatically — detecting HTTP 402, sending the payment on Solana, and retrying the request with the transaction hash. Zero manual intervention." },
+            { question: "Where does my money actually go?", answer: "Directly to your Solana wallet. Gate402 never holds your funds, not even for a millisecond. Payments go on-chain from the agent's wallet to your wallet. We collect 1% as a platform fee in a separate transaction." },
+            { question: "What happens if the agent tries to reuse a transaction hash?", answer: "Gate402 blocks it. Every transaction hash is stored in Redis with a 24-hour TTL and backed up in PostgreSQL. Any replay attempt returns a 402 with 'Payment already used.' This protection is always on, with no configuration needed." },
+            { question: "Can I change my endpoint prices without redeploying my API?", answer: "Yes. In managed mode, prices are fetched from the dashboard and cached locally for 60 seconds. Change the price in gate402.dev and it propagates to all your instances within one minute — no redeploy, no downtime." },
+          ]}
+          faqsRight={[
+            { question: "What happens if Solana is congested and payment takes longer than expected?", answer: "Gate402 has a 15-second timeout for on-chain verification. If the transaction is not confirmed within that window, the agent receives a 503 and should retry. Average confirmation time on Solana is 400ms — congestion is rare and short-lived." },
+            { question: "How do I test without spending real USDC?", answer: "Use demo mode. Any payment hash starting with demo_ bypasses blockchain verification entirely. This works in development and is automatically disabled when NODE_ENV=production is set. For more realistic testing, get free devnet USDC at faucet.circle.com." },
+            { question: "What if I already have an MCP server — do I need to rebuild it?", answer: "No. Install gate402, add gate402MCP() as middleware before your existing /mcp route, and configure your tool prices. Your tools stay exactly the same. tools/call gets charged, initialize and tools/list always pass through for free." },
+            { question: "Is the 1% fee charged on every payment including devnet?", answer: "The 1% split is included in every HTTP 402 response regardless of network. On devnet with demo mode, no real USDC moves so no real fee is collected. On mainnet with real payments, the 1% is deducted automatically from each transaction via the split mechanism." },
+            { question: "What is the minimum viable payment I can charge?", answer: "Technically, fractions of a cent. Practically, $0.001 USDC per call is the lowest amount that makes economic sense given Solana's transaction fees of ~$0.001. Charging less than $0.001 means the fee costs more than the payment." },
+          ]}
+        />
+      </div></BlurReveal>
+      <BlurReveal><InstallSection /></BlurReveal>
+      <BlurReveal><FlickeringFooter /></BlurReveal>
     </div>
   )
 }
