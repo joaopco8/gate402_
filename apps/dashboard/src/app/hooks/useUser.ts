@@ -54,6 +54,7 @@ export function useUser() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) { setLoading(false); return }
         setSupabaseUserId(user.id)
+        console.log('[debug] supabase user id:', user.id)
 
         const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
 
@@ -71,6 +72,7 @@ export function useUser() {
 
           if (res.ok) {
             const data = await res.json()
+            console.log('[debug] user data:', data)
             setUserData(data)
             return
           }
