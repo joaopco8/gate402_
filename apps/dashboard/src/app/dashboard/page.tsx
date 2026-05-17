@@ -118,36 +118,69 @@ function StatsCard({ label, value, sub, sparkData, change, loading }: {
 
 // ── MiniChart ────────────────────────────────────────────────────────────────
 
+const CHART_CSS = `
+  .g402-chart .recharts-cartesian-axis-tick text {
+    fill: var(--text-muted);
+    font-size: 12px;
+  }
+  .g402-chart .recharts-cartesian-grid line[stroke='#ccc'],
+  .g402-chart .recharts-cartesian-grid line {
+    stroke: var(--border);
+    stroke-opacity: 0.5;
+  }
+  .g402-chart .recharts-rectangle.recharts-tooltip-cursor {
+    fill: var(--surface);
+    opacity: 0.6;
+  }
+  .g402-chart .recharts-curve.recharts-tooltip-cursor { stroke: var(--border); }
+  .g402-chart .recharts-layer,
+  .g402-chart .recharts-sector,
+  .g402-chart .recharts-surface { outline: none; }
+`
+
 function MiniChart({ data }: { data: Array<{ date: string; count: number }> }) {
   if (!data?.length) return (
-    <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--font-code)' }}>
+    <div style={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--font-code)' }}>
       no data yet
     </div>
   )
   return (
-    <ResponsiveContainer width="100%" height={120}>
-      <BarChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
-        <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.5} />
-        <XAxis
-          dataKey="date"
-          tickLine={false}
-          axisLine={false}
-          tickMargin={8}
-          tick={{ fill: 'var(--text-faint)', fontSize: 10, fontFamily: 'var(--font-code)' }}
-          tickFormatter={(value: string) => {
-            const d = new Date(value)
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-          }}
-        />
-        <Tooltip
-          cursor={{ fill: 'rgba(0,188,125,0.06)' }}
-          contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12, fontFamily: 'var(--font-code)', color: 'var(--text-primary)' }}
-          formatter={(value: unknown) => [`${value} calls`, '']}
-          labelFormatter={(label: unknown) => new Date(String(label)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-        />
-        <Bar dataKey="count" fill="#00bc7d" radius={[3, 3, 0, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
+    <>
+      <style>{CHART_CSS}</style>
+      <div className="g402-chart" style={{ width: '100%', height: 220 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 4, right: 12, left: 12, bottom: 0 }}>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              minTickGap={32}
+              tickFormatter={(value: string) =>
+                new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+              }
+            />
+            <Tooltip
+              contentStyle={{
+                background: 'var(--card)',
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+                fontSize: 12,
+                fontFamily: 'var(--font-code)',
+                color: 'var(--text-primary)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+              }}
+              formatter={(value: unknown) => [`${value} calls`, '']}
+              labelFormatter={(label: unknown) =>
+                new Date(String(label)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+              }
+            />
+            <Bar dataKey="count" fill="#00bc7d" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </>
   )
 }
 
@@ -324,7 +357,7 @@ export default function DashboardPage() {
                 {data?.callsPerDay?.reduce((s, d) => s + d.count, 0) || 0} total
               </span>
             </div>
-            {loading ? <Skeleton height={80} /> : <MiniChart data={data?.callsPerDay || []} />}
+            {loading ? <Skeleton height={220} /> : <MiniChart data={data?.callsPerDay || []} />}
           </Card>
 
           <ProGate isPro={isPro} feature="MRR Projection">
