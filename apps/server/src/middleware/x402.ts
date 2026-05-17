@@ -85,25 +85,28 @@ async function getCachedEndpoint(
   return result;
 }
 
-async function findEndpointRecord(fullPath: string, shortPath: string, apiKey?: string) {
+async function findEndpointRecord(endpointPath: string, shortPath: string, apiKey?: string) {
+  console.log('[findEndpoint] searching paths:', [endpointPath, shortPath], 'apiKey?', !!apiKey);
+
   // When apiKey is present, always resolve to the correct owner's endpoint
   if (apiKey) {
     const user = await prisma.user.findUnique({
       where: { apiKey },
       include: {
         endpoints: {
-          where: { path: { in: [fullPath, shortPath] }, active: true },
+          where: { path: { in: [endpointPath, shortPath] }, active: true },
         },
       },
     });
+    console.log('[findEndpoint] user found:', !!user, '| endpoints:', user?.endpoints?.map(e => e.path));
     if (user?.endpoints?.length) {
-      const ep = user.endpoints.find(e => e.path === fullPath) ?? user.endpoints[0];
+      const ep = user.endpoints.find(e => e.path === endpointPath) ?? user.endpoints[0];
       return { ...ep, user };
     }
   }
 
   const record = await prisma.endpoint.findFirst({
-    where: { path: fullPath, active: true },
+    where: { path: endpointPath, active: true },
     include: { user: true },
   });
   if (record) return record;
