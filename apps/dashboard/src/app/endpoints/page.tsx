@@ -322,11 +322,6 @@ export default function EndpointsPage() {
           />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 8, flexShrink: 0 }}>
-            {!isPro && (
-              <span style={{ fontSize: 11, fontFamily: MONO, color: badgeColor, background: badgeBg, border: `1px solid ${badgeBorder}`, borderRadius: 20, padding: '4px 10px', whiteSpace: 'nowrap' }}>
-                {count}/3 endpoints{count >= 3 ? ' — Limit reached' : ' used'}
-              </span>
-            )}
             <button
               onClick={() => { if (!atLimit) setShowAdd(true) }}
               disabled={atLimit}
