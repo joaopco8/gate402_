@@ -36,14 +36,19 @@ function JsonDisplay({ data }: { data: unknown }) {
   const json = JSON.stringify(data, null, 2)
   const highlighted = json
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"([^"]+)":/g, '<span style="color:#888">"$1":</span>')
-    .replace(/: "([^"]+)"/g, ': <span style="color:#00bc7d">"$1"</span>')
-    .replace(/: (-?\d+\.?\d*)/g, ': <span style="color:#f59e0b">$1</span>')
+    // keys
+    .replace(/"([^"]+)":/g, '<span style="color:#7dd3fc">"$1":</span>')
+    // string values
+    .replace(/: "([^"]+)"/g, ': <span style="color:#86efac">"$1"</span>')
+    // numbers
+    .replace(/: (-?\d+\.?\d*)/g, ': <span style="color:#fcd34d">$1</span>')
+    // booleans
     .replace(/: (true|false)/g, ': <span style="color:#f59e0b">$1</span>')
-    .replace(/: (null)/g, ': <span style="color:#555">$1</span>')
+    // null
+    .replace(/: (null)/g, ': <span style="color:#6b7280">$1</span>')
   return (
     <pre
-      style={{ margin: 0, fontFamily: MONO, fontSize: 13, lineHeight: 1.7, color: '#ccc', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+      style={{ margin: 0, fontFamily: MONO, fontSize: 13, lineHeight: 1.7, color: 'var(--text-secondary)', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
       dangerouslySetInnerHTML={{ __html: highlighted }}
     />
   )
@@ -215,7 +220,7 @@ export default function PlaygroundPage() {
   }
 
   const codeBlockStyle: React.CSSProperties = {
-    background: '#000', border: '1px solid #1a1a1a', borderRadius: 8,
+    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8,
     padding: 20, fontFamily: MONO, fontSize: 13, lineHeight: 1.7,
     overflowX: 'auto', minHeight: 120,
   }
@@ -238,18 +243,26 @@ export default function PlaygroundPage() {
             {/* Card 1 — Endpoint selector */}
             <Card>
               <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>Endpoint</div>
-              <select
-                value={selectedPath}
-                onChange={e => setSelectedPath(e.target.value)}
-                style={{ width: '100%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, padding: '9px 12px', fontSize: 13, color: 'var(--text-primary)', fontFamily: MONO, outline: 'none', cursor: 'pointer', appearance: 'none' }}
-              >
-                {endpoints.length === 0 && (
-                  <option value="">No endpoints configured</option>
-                )}
-                {endpoints.map(ep => (
-                  <option key={ep.id} value={ep.path}>{ep.path} — {ep.priceUsdc} USDC</option>
-                ))}
-              </select>
+              <div style={{ position: 'relative' }}>
+                <select
+                  value={selectedPath}
+                  onChange={e => setSelectedPath(e.target.value)}
+                  style={{ width: '100%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, padding: '9px 36px 9px 12px', fontSize: 13, color: 'var(--text-primary)', fontFamily: MONO, outline: 'none', cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none' }}
+                >
+                  {endpoints.length === 0 && (
+                    <option value="">No endpoints configured</option>
+                  )}
+                  {endpoints.map(ep => (
+                    <option key={ep.id} value={ep.path}>{ep.path} — {ep.priceUsdc} USDC</option>
+                  ))}
+                </select>
+                <svg
+                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+                  width="14" height="14" viewBox="0 0 14 14" fill="none"
+                >
+                  <path d="M3 5l4 4 4-4" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
               {selectedEp && (
                 <div style={{ marginTop: 8, fontFamily: MONO, fontSize: 12, color: 'var(--green)' }}>
                   Price: {selectedEp.priceUsdc} USDC per call
@@ -289,7 +302,7 @@ export default function PlaygroundPage() {
                   <textarea
                     value={body}
                     onChange={e => setBody(e.target.value)}
-                    style={{ width: '100%', boxSizing: 'border-box', background: '#000', border: '1px solid #1a1a1a', borderRadius: 6, padding: 12, fontSize: 13, color: '#ccc', fontFamily: MONO, lineHeight: 1.6, height: 120, resize: 'vertical', outline: 'none' }}
+                    style={{ width: '100%', boxSizing: 'border-box', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, padding: 12, fontSize: 13, color: 'var(--text-primary)', fontFamily: MONO, lineHeight: 1.6, height: 120, resize: 'vertical', outline: 'none' }}
                     spellCheck={false}
                   />
                 </>
