@@ -28,7 +28,7 @@ export function ProBanner({ isPro }: { isPro: boolean }) {
         fontFamily: 'var(--font-display)',
         whiteSpace: 'nowrap',
       }}>
-        Upgrade — $99/mo
+        Upgrade to Pro
       </a>
     </div>
   )

@@ -60,7 +60,7 @@ export function ProGate({ isPro, feature, children }: ProGateProps) {
             fontFamily: 'var(--font-display)',
           }}
         >
-          Upgrade to Pro — $99/mo
+          Upgrade to Pro
         </a>
       </div>
     </div>
