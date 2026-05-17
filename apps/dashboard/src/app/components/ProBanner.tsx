@@ -28,7 +28,7 @@ export function ProBanner({ isPro }: { isPro: boolean }) {
         fontFamily: 'var(--font-display)',
         whiteSpace: 'nowrap',
       }}>
-        Upgrade to Pro to withdraw your earnings.
+        Upgrade to Pro
       </a>
     </div>
   )
