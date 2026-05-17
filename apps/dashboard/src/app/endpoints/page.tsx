@@ -343,8 +343,8 @@ export default function EndpointsPage() {
 
         {atLimit && (
           <div style={{ marginBottom: 'var(--space-md)', padding: '12px 16px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, color: '#ef4444', fontFamily: SANS }}>Free plan: 3/3 endpoints used</span>
-            <a href="/billing" style={{ fontSize: 13, color: 'var(--green)', fontFamily: SANS, textDecoration: 'none' }}>Upgrade to Pro →</a>
+            <span style={{ fontSize: 13, color: '#fff', fontFamily: SANS }}>Free plan: 3/3 endpoints used</span>
+            <a href="/billing" style={{ fontSize: 13, color: '#fff', fontFamily: SANS, textDecoration: 'none' }}>Upgrade to Pro →</a>
           </div>
         )}
 
