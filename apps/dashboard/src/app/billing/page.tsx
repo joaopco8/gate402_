@@ -1,24 +1,22 @@
 'use client'
 
 import { useState } from 'react'
+import { CheckIcon } from 'lucide-react'
 import { createClient } from '../../../lib/supabase/client'
 import { useUser } from '../hooks/useUser'
+import DashboardLayout from '../components/DashboardLayout'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
 
 const FREE_FEATURES = [
-  { label: 'npm install gate402',         included: true },
-  { label: 'x402 middleware',             included: true },
-  { label: 'Solana devnet + mainnet',     included: true },
-  { label: 'Up to 3 endpoints',          included: true },
-  { label: 'Last 5 calls visible',       included: true },
-  { label: '7-day chart',                included: true },
-  { label: 'Advanced analytics',         included: false },
-  { label: 'Revenue breakdown',          included: false },
-  { label: 'CSV export',                 included: false },
-  { label: 'Latency tracking',           included: false },
-  { label: 'Wallet management',          included: false },
-  { label: 'Unlimited endpoints',        included: false },
+  'npm install gate402',
+  'x402 middleware',
+  'Solana devnet + mainnet',
+  'Up to 3 endpoints',
+  'Last 5 calls visible',
+  '7-day chart',
+  'Community support',
+  'MIT licensed',
 ]
 
 const PRO_FEATURES = [
@@ -26,7 +24,7 @@ const PRO_FEATURES = [
   'Unlimited endpoints',
   'Last 50 calls visible',
   '90-day analytics',
-  'Revenue breakdown (gross/net/fees)',
+  'Revenue breakdown gross/net',
   'Top paying agents',
   'Latency p50/p95/p99',
   'Failed requests tracking',
@@ -35,6 +33,7 @@ const PRO_FEATURES = [
   'MRR projection',
   'Metering engine (token/compute/bandwidth)',
   'Priority email support',
+  'Cancel anytime',
 ]
 
 const FAQ = [
@@ -51,24 +50,6 @@ const FAQ = [
     a: 'We offer a 7-day refund if you are not satisfied. Contact support@gate402.dev.',
   },
 ]
-
-function CheckIcon({ color = '#00bc7d' }: { color?: string }) {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-      <circle cx="7" cy="7" r="7" fill={color} fillOpacity={0.15} />
-      <path d="M4 7l2 2 4-4" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function XIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-      <circle cx="7" cy="7" r="7" fill="#333" />
-      <path d="M5 5l4 4M9 5l-4 4" stroke="#555" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 function ChevronIcon({ open }: { open: boolean }) {
   return (
@@ -88,7 +69,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '16px 0', background: 'transparent', border: 'none', cursor: 'pointer',
-          color: open ? '#fff' : '#aaa', fontSize: 14, fontFamily: 'var(--font-display)',
+          color: open ? '#fff' : '#898989', fontSize: 14, fontFamily: 'var(--font-display)',
           textAlign: 'left', gap: 12, transition: 'color 150ms',
         }}
       >
@@ -96,7 +77,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         <ChevronIcon open={open} />
       </button>
       {open && (
-        <p style={{ fontSize: 13, color: '#666', lineHeight: 1.65, paddingBottom: 16, fontFamily: 'var(--font-display)' }}>
+        <p style={{ fontSize: 13, color: '#898989', lineHeight: 1.65, paddingBottom: 16, fontFamily: 'var(--font-display)' }}>
           {a}
         </p>
       )}
@@ -137,177 +118,138 @@ export default function BillingPage() {
   }
 
   return (
-    <div style={{ background: '#000', minHeight: '100vh', fontFamily: 'var(--font-display)' }}>
-
-      {/* Header */}
-      <div style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 32px', background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(8px)',
-        borderBottom: '1px solid #1a1a1a',
-      }}>
-        <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-          <img src="/logo-gate.png" alt="gate402" style={{ height: 20, width: 'auto' }} />
-        </a>
-        <a href="/dashboard" style={{
-          fontSize: 13, color: '#666', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6,
-          transition: 'color 150ms',
-        }}
-          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-          onMouseLeave={e => e.currentTarget.style.color = '#666'}
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <path d="M9 3L5 7l4 4" />
-          </svg>
-          Dashboard
-        </a>
-      </div>
+    <DashboardLayout>
+    <div style={{ background: '#0D0D0D', minHeight: '100vh', fontFamily: 'var(--font-display)', color: '#fff' }}>
 
       {/* Content */}
-      <div style={{ paddingTop: 56, maxWidth: 880, margin: '0 auto', padding: '88px 24px 80px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '56px 24px 80px' }}>
 
         {/* Hero */}
-        <div style={{ textAlign: 'center', marginBottom: 56 }}>
-          <span style={{
-            display: 'inline-block', marginBottom: 20,
-            background: 'rgba(153,69,255,0.1)', color: '#9945FF',
-            border: '1px solid rgba(153,69,255,0.25)', borderRadius: 4,
-            padding: '3px 10px', fontSize: 11,
-            fontFamily: 'var(--font-code)', letterSpacing: '0.1em',
-          }}>
-            PRO PLAN
-          </span>
-          <h1 style={{ fontSize: 36, fontWeight: 600, color: '#fff', letterSpacing: '-0.5px', marginBottom: 12, lineHeight: 1.1 }}>
-            Unlock the full Gate402
+        <div style={{ textAlign: 'center', marginBottom: 56, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <h1 style={{ fontWeight: 500, lineHeight: 1.15, margin: 0 }}>
+            <span style={{ color: '#fff', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)' }}>Pricing that</span>{' '}
+            <span style={{ color: '#898989', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)' }}>scales with you.</span>
           </h1>
-          <p style={{ fontSize: 16, color: '#666', lineHeight: 1.6 }}>
-            Everything you need to monetize APIs at scale.
+          <p style={{ fontSize: 16, color: '#898989', lineHeight: 1.65, maxWidth: 480, margin: 0 }}>
+            Start free. Upgrade when you need more. No hidden fees. No minimums. Cancel anytime.
           </p>
         </div>
 
         {/* Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 56 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', maxWidth: 720, margin: '0 auto 56px' }}>
 
           {/* Free card */}
-          <div style={{
-            background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 12, padding: 28,
-            display: 'flex', flexDirection: 'column',
-          }}>
-            <span style={{
-              display: 'inline-block', marginBottom: 20,
-              background: '#111', color: '#666',
-              border: '1px solid #1a1a1a', borderRadius: 4,
-              padding: '3px 10px', fontSize: 11,
-              fontFamily: 'var(--font-code)', letterSpacing: '0.08em',
-            }}>
-              FREE — Current plan
-            </span>
-            <div style={{ marginBottom: 24 }}>
-              <span style={{ fontSize: 32, fontWeight: 600, color: '#fff' }}>$0</span>
-              <span style={{ fontSize: 14, color: '#555', marginLeft: 4 }}>/month</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-              {FREE_FEATURES.map(f => (
-                <div key={f.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  {f.included ? <CheckIcon /> : <XIcon />}
-                  <span style={{ fontSize: 13, color: f.included ? '#aaa' : '#444' }}>{f.label}</span>
+          <div style={{ border: '1px solid rgba(255,255,255,0.08)', padding: '28px', display: 'flex', flexDirection: 'column', gap: 24, justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ fontWeight: 500, fontSize: 20, lineHeight: 1.25 }}>
+                  Free{' '}
+                  {!isPro && !loading && (
+                    <span style={{ fontSize: 14, fontWeight: 400, color: '#00bc7d' }}>// current plan</span>
+                  )}
                 </div>
-              ))}
+                <p style={{ fontSize: 14, color: '#898989', lineHeight: 1.57, margin: 0 }}>For developers getting started.</p>
+                <div style={{ fontSize: 12, lineHeight: 1.25 }}>
+                  <span style={{ fontWeight: 500, fontSize: 16 }}>$0</span>
+                  <span style={{ color: '#898989' }}> forever</span>
+                </div>
+              </div>
+              <hr style={{ borderColor: 'rgba(255,255,255,0.08)', margin: 0 }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {FREE_FEATURES.map(f => (
+                  <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <CheckIcon style={{ width: 15, height: 15, flexShrink: 0 }} />
+                    <span style={{ fontSize: 14, lineHeight: 1.1 }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <hr style={{ borderColor: 'rgba(255,255,255,0.08)', margin: '0 0 24px' }} />
+              <a
+                href="/dashboard"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '100%', height: 40, fontSize: 14, fontWeight: 500,
+                  background: 'transparent', border: '1px solid #333', color: '#d1d5db',
+                  textDecoration: 'none', transition: 'opacity 150ms',
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              >
+                Go to dashboard
+              </a>
             </div>
           </div>
 
           {/* Pro card */}
-          <div style={{
-            background: 'rgba(153,69,255,0.05)',
-            border: '1px solid rgba(153,69,255,0.3)',
-            borderRadius: 12, padding: 28,
-            display: 'flex', flexDirection: 'column',
-            position: 'relative', overflow: 'hidden',
-          }}>
-            {/* Subtle purple glow top */}
-            <div style={{
-              position: 'absolute', top: 0, left: 0, right: 0, height: 1,
-              background: 'linear-gradient(90deg, transparent, rgba(153,69,255,0.4), transparent)',
-              pointerEvents: 'none',
-            }} />
-
-            <span style={{
-              display: 'inline-block', marginBottom: 20,
-              background: 'rgba(153,69,255,0.1)', color: '#9945FF',
-              border: '1px solid rgba(153,69,255,0.25)', borderRadius: 4,
-              padding: '3px 10px', fontSize: 11,
-              fontFamily: 'var(--font-code)', letterSpacing: '0.08em',
-            }}>
-              PRO — Recommended
-            </span>
-
-            <div style={{ marginBottom: 6 }}>
-              <span style={{ fontSize: 40, fontWeight: 700, color: '#fff', letterSpacing: '-1px' }}>$99</span>
-              <span style={{ fontSize: 14, color: '#888', marginLeft: 4 }}>/month</span>
-            </div>
-            <p style={{ fontSize: 12, color: '#555', marginBottom: 24, fontFamily: 'var(--font-code)' }}>
-              Billed monthly via Stripe. Cancel anytime.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, marginBottom: 28 }}>
-              {PRO_FEATURES.map(f => (
-                <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <CheckIcon color="#9945FF" />
-                  <span style={{ fontSize: 13, color: '#ccc' }}>{f}</span>
+          <div style={{ border: '1px solid rgba(255,255,255,0.08)', padding: '28px', display: 'flex', flexDirection: 'column', gap: 24, justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ fontWeight: 500, fontSize: 20, lineHeight: 1.25 }}>
+                  Pro{' '}
+                  {isPro ? (
+                    <span style={{ fontSize: 14, fontWeight: 400, color: '#00bc7d' }}>// active</span>
+                  ) : (
+                    <span style={{ fontSize: 14, fontWeight: 400, color: '#00bc7d' }}>// most popular</span>
+                  )}
                 </div>
-              ))}
+                <p style={{ fontSize: 14, color: '#898989', lineHeight: 1.57, margin: 0 }}>For developers monetizing at scale.</p>
+                <div style={{ fontSize: 12, lineHeight: 1.25 }}>
+                  <span style={{ fontWeight: 500, fontSize: 16 }}>$99</span>
+                  <span style={{ color: '#898989' }}> monthly</span>
+                </div>
+              </div>
+              <hr style={{ borderColor: 'rgba(255,255,255,0.08)', margin: 0 }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {PRO_FEATURES.map(f => (
+                  <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <CheckIcon style={{ width: 15, height: 15, flexShrink: 0 }} />
+                    <span style={{ fontSize: 14, lineHeight: 1.1 }}>{f}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            {isPro ? (
-              <div style={{ textAlign: 'center' }}>
-                <span style={{
-                  display: 'inline-block', marginBottom: 12,
-                  background: 'rgba(153,69,255,0.12)', color: '#9945FF',
-                  border: '1px solid rgba(153,69,255,0.3)', borderRadius: 4,
-                  padding: '4px 12px', fontSize: 12,
-                  fontFamily: 'var(--font-code)', letterSpacing: '0.08em',
-                }}>
-                  PRO — Active
-                </span>
-                <p style={{ fontSize: 14, color: '#888', marginBottom: 16 }}>You are on the Pro plan.</p>
+            <div>
+              <hr style={{ borderColor: 'rgba(255,255,255,0.08)', margin: '0 0 24px' }} />
+              {isPro ? (
                 <a
                   href={`${SERVER_URL}/api/billing/portal`}
                   style={{
-                    display: 'block', fontSize: 13, color: '#9945FF',
-                    fontFamily: 'var(--font-code)', textDecoration: 'none',
-                    transition: 'opacity 150ms',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: '100%', height: 40, fontSize: 14, fontWeight: 500,
+                    backgroundColor: '#00bc7d', color: '#111111',
+                    textDecoration: 'none', transition: 'opacity 150ms',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
                   onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                 >
-                  Manage subscription →
+                  Manage subscription
                 </a>
-              </div>
-            ) : (
-              <>
-                <button
-                  onClick={handleUpgrade}
-                  disabled={upgrading}
-                  style={{
-                    width: '100%', padding: '14px', background: '#9945FF',
-                    border: 'none', borderRadius: 8, cursor: upgrading ? 'not-allowed' : 'pointer',
-                    fontSize: 15, fontWeight: 500, color: '#fff',
-                    fontFamily: 'var(--font-display)',
-                    opacity: upgrading ? 0.7 : 1, transition: 'opacity 150ms',
-                  }}
-                  onMouseEnter={e => { if (!upgrading) e.currentTarget.style.opacity = '0.9' }}
-                  onMouseLeave={e => { e.currentTarget.style.opacity = upgrading ? '0.7' : '1' }}
-                >
-                  {upgrading ? 'Redirecting to Stripe…' : 'Upgrade to Pro'}
-                </button>
-                {error && (
-                  <p style={{ fontSize: 12, color: '#ef4444', marginTop: 8, textAlign: 'center' }}>{error}</p>
-                )}
-                <p style={{ fontSize: 11, color: '#444', textAlign: 'center', marginTop: 12, fontFamily: 'var(--font-code)' }}>
-                  Secure payment via Stripe. No hidden fees.
-                </p>
-              </>
-            )}
+              ) : (
+                <>
+                  <button
+                    onClick={handleUpgrade}
+                    disabled={upgrading}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: '100%', height: 40, fontSize: 14, fontWeight: 500,
+                      backgroundColor: '#00bc7d', color: '#111111',
+                      border: 'none', cursor: upgrading ? 'not-allowed' : 'pointer',
+                      fontFamily: 'var(--font-display)',
+                      opacity: upgrading ? 0.7 : 1, transition: 'opacity 150ms',
+                    }}
+                    onMouseEnter={e => { if (!upgrading) e.currentTarget.style.opacity = '0.9' }}
+                    onMouseLeave={e => { e.currentTarget.style.opacity = upgrading ? '0.7' : '1' }}
+                  >
+                    {upgrading ? 'Redirecting to Stripe…' : 'Start Pro'}
+                  </button>
+                  {error && (
+                    <p style={{ fontSize: 12, color: '#ef4444', marginTop: 8, textAlign: 'center' }}>{error}</p>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -324,5 +266,6 @@ export default function BillingPage() {
 
       </div>
     </div>
+    </DashboardLayout>
   )
 }

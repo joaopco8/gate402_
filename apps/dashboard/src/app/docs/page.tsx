@@ -426,7 +426,7 @@ export default function DocsPage() {
   const isMobile = width > 0 && width < 900
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#0A0A0A', fontFamily: "'Space Grotesk', sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#0D0D0D', fontFamily: "'Space Grotesk', sans-serif" }}>
 
       {/* ── Mobile overlay ── */}
       {isMobile && sidebarOpen && (
