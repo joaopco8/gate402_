@@ -2,8 +2,9 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
 import { createClient } from '../../../lib/supabase/client'
 import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
@@ -39,17 +40,110 @@ interface EndpointRevenue {
   calls: number
 }
 
-function StatCard({ label, value, sub }: { label: string; value: string; sub: string }) {
+// ── Area stat card — matches area-charts-1 demo exactly ────────────────────
+
+interface SparkPoint { value: number }
+
+function buildSpark(txns: TxRow[], field: 'totalAmount' | 'providerAmount' | 'platformFee'): SparkPoint[] {
+  const map: Record<string, number> = {}
+  txns.forEach(tx => {
+    const d = tx.createdAt?.split('T')[0] ?? 'x'
+    map[d] = (map[d] ?? 0) + (tx[field] ?? 0)
+  })
+  return Object.entries(map)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([, v]) => ({ value: v }))
+}
+
+// Inline SVG icons
+function IconDollar({ color }: { color: string }) {
   return (
-    <div style={{ flex: 1 }}>
-      <div style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
-        {label}
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8"/><line x1="12" y1="6" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="18"/>
+    </svg>
+  )
+}
+function IconTrendUp({ color }: { color: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+    </svg>
+  )
+}
+function IconActivity({ color }: { color: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+  )
+}
+
+function AreaStatCard({
+  title, period, value, sparkData, color, gradientId, icon, loading,
+}: {
+  title: string; period: string; value: string; sparkData: SparkPoint[]
+  color: string; gradientId: string; icon: React.ReactNode; loading: boolean
+}) {
+  return (
+    <Card>
+      {/* space-y-5 equivalent */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Header: icon + title */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {icon}
+          <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{title}</span>
+        </div>
+
+        {/* Body: details + chart */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 10 }}>
+          {/* Left: period + value */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ fontSize: 14, color: 'var(--text-muted)', whiteSpace: 'nowrap', fontFamily: SANS }}>{period}</div>
+            <div style={{ fontSize: 30, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
+              {loading ? '—' : value}
+            </div>
+          </div>
+
+          {/* Right: mini area chart — max-w-40 h-16 */}
+          <div style={{ maxWidth: 160, height: 64, width: '100%', position: 'relative', flexShrink: 0 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={sparkData.length ? sparkData : [{ value: 0 }]} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                <defs>
+                  <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+                    <stop offset="100%" stopColor={color} stopOpacity={0.05} />
+                  </linearGradient>
+                  <filter id={`${gradientId}-shadow`} x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow dx="2" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,0.5)" />
+                  </filter>
+                </defs>
+                <Tooltip
+                  cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: '2 2' }}
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null
+                    const v = payload[0].value as number
+                    return (
+                      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', backdropFilter: 'blur(4px)', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontFamily: MONO, color: 'var(--text-primary)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'none' }}>
+                        ${v.toFixed(5)}
+                      </div>
+                    )
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke={color}
+                  fill={`url(#${gradientId})`}
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 6, fill: color, stroke: 'white', strokeWidth: 2, filter: `url(#${gradientId}-shadow)` }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
-      <div style={{ fontSize: 26, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: 4 }}>
-        {value}
-      </div>
-      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{sub}</div>
-    </div>
+    </Card>
   )
 }
 
@@ -148,30 +242,46 @@ export default function WalletPage() {
           subtitle={`Revenue & payouts · Solana ${network.charAt(0).toUpperCase() + network.slice(1)}`}
         />
 
-        {/* ── Stat row ── */}
-        <Card style={{ marginBottom: 'var(--space-md)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-lg)' }}>
-            <StatCard
-              label="Total Revenue"
-              value={loading ? '—' : `$${gross.toFixed(4)}`}
-              sub="all time"
-            />
-            <div style={{ borderLeft: '1px solid var(--border)', paddingLeft: 'var(--space-lg)' }}>
-              <StatCard
-                label="Net Revenue (99%)"
-                value={loading ? '—' : `$${net.toFixed(5)}`}
-                sub="goes to your wallet"
+        {/* ── Area stat cards ── */}
+        {(() => {
+          const grossSpark = buildSpark(txns, 'totalAmount')
+          const netSpark   = buildSpark(txns, 'providerAmount')
+          const feeSpark   = buildSpark(txns, 'platformFee')
+          return (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
+              <AreaStatCard
+                title="Total Revenue"
+                period="All time"
+                value={`$${gross.toFixed(4)}`}
+                sparkData={grossSpark}
+                color="#00bc7d"
+                gradientId="walletGross"
+                icon={<IconDollar color="#00bc7d" />}
+                loading={loading}
+              />
+              <AreaStatCard
+                title="Net Revenue (99%)"
+                period="Goes to your wallet"
+                value={`$${net.toFixed(5)}`}
+                sparkData={netSpark}
+                color="#3b82f6"
+                gradientId="walletNet"
+                icon={<IconTrendUp color="#3b82f6" />}
+                loading={loading}
+              />
+              <AreaStatCard
+                title="Platform Fees (1%)"
+                period="Gate402 fee"
+                value={`$${fee.toFixed(5)}`}
+                sparkData={feeSpark}
+                color="#8b5cf6"
+                gradientId="walletFee"
+                icon={<IconActivity color="#8b5cf6" />}
+                loading={loading}
               />
             </div>
-            <div style={{ borderLeft: '1px solid var(--border)', paddingLeft: 'var(--space-lg)' }}>
-              <StatCard
-                label="Platform Fees (1%)"
-                value={loading ? '—' : `$${fee.toFixed(5)}`}
-                sub="Gate402 fee"
-              />
-            </div>
-          </div>
-        </Card>
+          )
+        })()}
 
         {/* ── Receiving Wallet ── */}
         <Card style={{ marginBottom: 'var(--space-md)' }}>
