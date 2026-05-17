@@ -60,7 +60,7 @@ export function ProGate({ isPro, feature, children }: ProGateProps) {
             fontFamily: 'var(--font-display)',
           }}
         >
-          Upgrade to Pro
+          Upgrade to Pro to withdraw your earnings.
         </a>
       </div>
     </div>
