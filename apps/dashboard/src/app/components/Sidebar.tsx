@@ -70,12 +70,21 @@ const IconChevron = ({ collapsed }: { collapsed: boolean }) => (
   </svg>
 )
 
+const IconBilling = () => (
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="1" y="3" width="13" height="9" rx="1.5"/>
+    <path d="M1 6h13"/>
+    <path d="M4 9.5h2M9.5 9.5h1.5"/>
+  </svg>
+)
+
 const NAV_ITEMS = [
   { label: 'Overview',   href: '/dashboard',  Icon: IconOverview },
   { label: 'Wallet',     href: '/wallet',     Icon: IconWallet },
   { label: 'Endpoints',  href: '/endpoints',  Icon: IconEndpoints },
   { label: 'Playground', href: '/playground', Icon: IconPlayground },
   { label: 'Docs',       href: '/docs',       Icon: IconDocs },
+  { label: 'Billing',    href: '/billing',    Icon: IconBilling },
   { label: 'Settings',   href: '/settings',   Icon: IconSettings },
 ]
 
