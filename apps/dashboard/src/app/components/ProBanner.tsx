@@ -5,10 +5,10 @@ export function ProBanner({ isPro }: { isPro: boolean }) {
 
   return (
     <div style={{
-      background: 'rgba(153,69,255,0.05)',
-      border: '1px solid rgba(153,69,255,0.15)',
+      background: '#161616',
+      border: '1px solid #222',
       borderRadius: 8,
-      padding: '14px 20px',
+      padding: '12px 20px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -17,24 +17,25 @@ export function ProBanner({ isPro }: { isPro: boolean }) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{
-          fontFamily: 'monospace', fontSize: 10,
-          color: '#9945FF', letterSpacing: '0.1em',
-          background: 'rgba(153,69,255,0.1)',
-          border: '1px solid rgba(153,69,255,0.2)',
+          fontFamily: 'var(--font-code)', fontSize: 10,
+          color: '#555', letterSpacing: '0.1em',
+          background: '#1a1a1a',
+          border: '1px solid #222',
           borderRadius: 3, padding: '2px 8px',
+          whiteSpace: 'nowrap',
         }}>FREE PLAN</span>
-        <span style={{ fontSize: 13, color: '#666' }}>
-          You are on the free plan. Upgrade to unlock advanced analytics, CSV export, wallet management, and unlimited endpoints.
+        <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+          Upgrade to unlock analytics, CSV export, wallet management, and unlimited endpoints.
         </span>
       </div>
       <a href="/billing" style={{
         flexShrink: 0,
         padding: '7px 16px',
-        background: '#9945FF',
-        color: '#fff', borderRadius: 6,
+        background: 'var(--green)',
+        color: '#000', borderRadius: 6,
         fontSize: 12, fontWeight: 500,
         textDecoration: 'none',
-        fontFamily: 'sans-serif',
+        fontFamily: 'var(--font-display)',
         whiteSpace: 'nowrap',
       }}>
         Upgrade — $99/mo

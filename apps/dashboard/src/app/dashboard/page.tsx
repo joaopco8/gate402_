@@ -195,7 +195,6 @@ export default function DashboardPage() {
     <DashboardLayout>
       <style>{`
         @keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
-        @keyframes pulse   { 0%, 100% { opacity: 1 } 50% { opacity: 0.4 } }
       `}</style>
 
       <PageContainer>
@@ -205,12 +204,6 @@ export default function DashboardPage() {
           eyebrow="GATE402"
           title="Overview"
           subtitle={`${userData?.plan === 'pro' ? 'Pro plan' : 'Free plan'} · ${userData?.network === 'mainnet' ? 'Solana Mainnet' : 'Solana Devnet'}`}
-          action={
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', boxShadow: '0 0 6px var(--green)', animation: 'pulse 2s ease-in-out infinite' }} />
-              <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-faint)' }}>live</span>
-            </div>
-          }
         />
 
         {/* Stat cards */}
