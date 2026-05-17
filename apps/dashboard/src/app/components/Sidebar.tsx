@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
 import { useUser } from '../hooks/useUser'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { CheckIcon } from 'lucide-react'
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 
@@ -257,7 +259,23 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
               zIndex: 50, overflow: 'hidden',
             }}>
               {/* Account header */}
-              <div style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a' }}>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <Avatar className="size-7 ring-2 ring-[#00bc7d] ring-offset-2 ring-offset-black">
+                    <AvatarFallback className="bg-[#111] text-[#888] text-[11px] font-mono">
+                      {initial}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span style={{
+                    position: 'absolute', bottom: -3, right: -3,
+                    width: 14, height: 14, borderRadius: '50%',
+                    background: '#00bc7d',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <CheckIcon size={9} color="#000" strokeWidth={3} />
+                  </span>
+                </div>
+                <div>
                 <div style={{
                   fontSize: 12, color: '#fff', fontFamily: 'var(--font-display)',
                   fontWeight: 500, marginBottom: 6,
@@ -276,6 +294,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                 ) : (
                   <span style={{ fontSize: 10, color: '#444', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.06em' }}>FREE PLAN</span>
                 )}
+                </div>
               </div>
 
               {/* Items */}
@@ -369,14 +388,21 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
         >
           <div
             title={collapsed ? (email ?? undefined) : undefined}
-            style={{
-              width: 28, height: 28, borderRadius: '50%',
-              background: '#111', border: '1px solid #1a1a1a',
+            style={{ position: 'relative', flexShrink: 0 }}
+          >
+            <Avatar className="size-7 ring-2 ring-[#00bc7d] ring-offset-2 ring-offset-black">
+              <AvatarFallback className="bg-[#111] text-[#888] text-[11px] font-mono">
+                {initial}
+              </AvatarFallback>
+            </Avatar>
+            <span style={{
+              position: 'absolute', bottom: -3, right: -3,
+              width: 14, height: 14, borderRadius: '50%',
+              background: '#00bc7d',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 11, fontFamily: 'JetBrains Mono, monospace',
-              color: '#666', flexShrink: 0,
             }}>
-            {initial}
+              <CheckIcon size={9} color="#000" strokeWidth={3} />
+            </span>
           </div>
 
           {!collapsed && (
