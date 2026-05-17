@@ -302,32 +302,37 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       }).catch(e => console.error('[revenue] log failed:', e));
       console.log('[revenue] logged');
 
-      // 6c. Legacy ApiCall (mantém dashboard existente funcionando)
-      try {
-        const apiCall = await prisma.apiCall.create({
-          data: {
-            endpointId,
-            txHash: txHashProviderToLog,
-            amountUsdc: confirmedAmount,
-            payerWallet: agentWallet || payerWallet || null,
-            status: isDemo ? 'demo' : 'confirmed',
-            userId,
-          },
-        });
-        console.log('[x402] ApiCall created for userId:', apiCall.userId)
-      } catch (e) {
-        console.error('[x402] Failed to log api call:', e);
-      }
-
-      // 6d. Transaction + Splits — fresh endpoint lookup with user relation
+      // 6c. Fresh endpoint lookup — source of truth for ApiCall + Transaction
       console.log('[transaction] creating record...');
       const endpointForTx = await findEndpointRecord(fullPath, shortPath, apiKey);
+      console.log('[x402] endpointRecord:', endpointForTx?.id, endpointForTx?.userId ?? (endpointForTx as any)?.user?.id)
       console.log('[x402] endpoint found:', endpointForTx?.id)
       console.log('[x402] endpoint userId:', (endpointForTx as any)?.userId)
       console.log('[x402] endpoint user:', endpointForTx?.user?.id)
       console.log('[transaction] user found:', !!endpointForTx?.user);
       console.log('[transaction] userId:', endpointForTx?.user?.id ?? null);
       console.log('[transaction] endpointId:', endpointForTx?.id ?? null);
+
+      const resolvedEndpointId = endpointForTx?.id ?? endpointId;
+      const resolvedUserId = endpointForTx?.user?.id ?? (endpointForTx as any)?.userId ?? userId;
+
+      // Legacy ApiCall — uses resolved values from fresh DB lookup
+      try {
+        console.log('[x402] creating ApiCall...')
+        const apiCall = await prisma.apiCall.create({
+          data: {
+            endpointId: resolvedEndpointId,
+            txHash: txHashProviderToLog,
+            amountUsdc: confirmedAmount,
+            payerWallet: agentWallet || payerWallet || null,
+            status: isDemo ? 'demo' : 'confirmed',
+            userId: resolvedUserId,
+          },
+        });
+        console.log('[x402] ApiCall created:', apiCall.id, 'userId:', apiCall.userId)
+      } catch (e: any) {
+        console.error('[x402] ApiCall create failed:', e.message);
+      }
 
       if (!endpointForTx || !endpointForTx.user) {
         console.error('[transaction] skipped — endpoint has no owner (userId is null).');
