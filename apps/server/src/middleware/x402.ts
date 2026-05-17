@@ -2,126 +2,18 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyPayment } from '../solana/verify';
 import { walletAddress as serverWallet } from '../solana/wallet';
 import { prisma } from '../lib/prisma';
-import { redisGet, redisSet } from '../lib/redis';
 import { sendPaymentAlert } from '../lib/email';
 import { sendWebhook } from '../lib/webhook';
 import { checkIdempotency, markUsed } from '../lib/idempotency';
 import { logRevenue } from '../lib/revenueLog';
 
 const PLATFORM_WALLET = process.env.GATE402_PLATFORM_WALLET || '7UQctUWgfH87jjz9xjnCCKVY6Q1tMWZ8i1ZB3Whx939D';
-const PRICING_CACHE_TTL = 60; // seconds
-
-interface CachedPricing {
-  endpointId: string;
-  price: number;
-  providerWallet: string;
-  network: string;
-  userId: string | null;
-}
-
-async function getCachedEndpoint(
-  fullPath: string,
-  shortPath: string,
-  apiKey?: string,
-  toolPath?: string
-): Promise<CachedPricing | null> {
-  const cacheKey = apiKey
-    ? `pricing:apikey:${apiKey}:${fullPath}`
-    : `pricing:path:${fullPath}`;
-
-  const cached = await redisGet(cacheKey);
-  if (cached) {
-    console.log('[x402] pricing cache hit:', cacheKey.slice(0, 30));
-    return JSON.parse(cached);
-  }
-
-  let result: CachedPricing | null = null;
-
-  if (apiKey) {
-    // Try fullPath first, then toolPath for MCP calls
-    const pathsToTry = [fullPath, ...(toolPath ? [toolPath] : [])];
-    const user = await prisma.user.findUnique({
-      where: { apiKey },
-      include: { endpoints: { where: { path: { in: pathsToTry }, active: true } } },
-    });
-    if (user && user.endpoints.length > 0 && user.walletAddress) {
-      // Prefer exact fullPath match, fallback to toolPath
-      const ep = user.endpoints.find(e => e.path === fullPath) ?? user.endpoints[0];
-      result = {
-        endpointId: ep.id,
-        price: ep.priceUsdc,
-        providerWallet: user.walletAddress,
-        network: user.network,
-        userId: user.id,
-      };
-    }
-  } else {
-    const ep = await prisma.endpoint.findFirst({
-      where: { path: fullPath, active: true },
-      include: { user: true },
-    }) ?? await prisma.endpoint.findFirst({
-      where: { path: shortPath, active: true },
-      include: { user: true },
-    }) ?? (toolPath ? await prisma.endpoint.findFirst({
-      where: { path: toolPath, active: true },
-      include: { user: true },
-    }) : null);
-
-    if (ep) {
-      result = {
-        endpointId: ep.id,
-        price: ep.priceUsdc,
-        providerWallet: ep.user?.walletAddress ?? serverWallet,
-        network: ep.user?.network ?? 'devnet',
-        userId: ep.userId ?? null,
-      };
-    }
-  }
-
-  if (result) {
-    await redisSet(cacheKey, JSON.stringify(result), PRICING_CACHE_TTL);
-  }
-
-  return result;
-}
-
-async function findEndpointRecord(endpointPath: string, shortPath: string, apiKey?: string) {
-  console.log('[findEndpoint] searching paths:', [endpointPath, shortPath], 'apiKey?', !!apiKey);
-
-  // When apiKey is present, always resolve to the correct owner's endpoint
-  if (apiKey) {
-    const user = await prisma.user.findUnique({
-      where: { apiKey },
-      include: {
-        endpoints: {
-          where: { path: { in: [endpointPath, shortPath] }, active: true },
-        },
-      },
-    });
-    console.log('[findEndpoint] user found:', !!user, '| endpoints:', user?.endpoints?.map(e => e.path));
-    if (user?.endpoints?.length) {
-      const ep = user.endpoints.find(e => e.path === endpointPath) ?? user.endpoints[0];
-      return { ...ep, user };
-    }
-  }
-
-  const record = await prisma.endpoint.findFirst({
-    where: { path: endpointPath, active: true },
-    include: { user: true },
-  });
-  if (record) return record;
-  return prisma.endpoint.findFirst({
-    where: { path: shortPath, active: true },
-    include: { user: true },
-  });
-}
 
 export async function x402Middleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const requestStart = Date.now();
-    const fullPath = req.originalUrl.split('?')[0];  // e.g. /api/weather (reliable across all mount points)
-    const shortPath = req.path;                       // e.g. /weather
-    const rawPaymentHeader = req.headers['x-payment-payload'] as string | undefined;
+    const endpointPath = req.originalUrl.split('?')[0]; // e.g. /api/weather
+    const shortPath = req.path;                          // e.g. /weather
     const apiKey = req.headers['x-api-key'] as string | undefined;
     const agentWallet = req.headers['x-agent-wallet'] as string | undefined;
 
@@ -132,85 +24,106 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       : undefined;
     const toolPath = mcpToolName ? `/tools/${mcpToolName}` : undefined;
 
-    console.log('[x402] req.path:', req.path)
-    console.log('[x402] req.originalUrl:', req.originalUrl)
-    console.log('[x402] full path:', fullPath)
-    console.log('[x402] api-key header:', apiKey?.slice(0, 8))
+    console.log('[x402] path:', endpointPath, '| shortPath:', shortPath, '| apiKey:', apiKey?.slice(0, 8));
 
-    // 1. Busca pricing (Redis cache → DB fallback)
-    const pricing = await getCachedEndpoint(fullPath, shortPath, apiKey, toolPath);
+    // ── STEP 1: Resolve endpoint + owner ────────────────────────────────────
+    let currentUser: (typeof import('@prisma/client').PrismaClient extends { user: infer U } ? U : any) | null = null;
+    let currentEndpoint: any = null;
 
-    // Endpoint não cadastrado — deixa passar
-    if (!pricing) {
+    if (apiKey) {
+      const user = await prisma.user.findUnique({
+        where: { apiKey },
+        include: {
+          endpoints: {
+            where: {
+              path: { in: [endpointPath, shortPath, ...(toolPath ? [toolPath] : [])] },
+              active: true,
+            },
+          },
+        },
+      });
+      console.log('[x402] user by apiKey:', !!user, user?.id?.slice(0, 8), '| endpoints:', user?.endpoints?.map(e => e.path));
+      if (user) {
+        currentUser = user as any;
+        // prefer exact endpointPath match
+        currentEndpoint = user.endpoints.find(e => e.path === endpointPath)
+          ?? user.endpoints.find(e => e.path === shortPath)
+          ?? user.endpoints[0]
+          ?? null;
+      }
+    }
+
+    // Fallback: find by path without apiKey constraint
+    if (!currentEndpoint) {
+      const ep = await prisma.endpoint.findFirst({
+        where: { path: endpointPath, active: true },
+        include: { user: true },
+      }) ?? await prisma.endpoint.findFirst({
+        where: { path: shortPath, active: true },
+        include: { user: true },
+      }) ?? (toolPath ? await prisma.endpoint.findFirst({
+        where: { path: toolPath, active: true },
+        include: { user: true },
+      }) : null);
+
+      if (ep) {
+        currentEndpoint = ep;
+        if (!currentUser) currentUser = (ep as any).user ?? null;
+      }
+    }
+
+    console.log('[x402] endpoint:', currentEndpoint?.id?.slice(0, 8) ?? 'NOT FOUND', '| path stored:', currentEndpoint?.path);
+    console.log('[x402] owner:', (currentUser as any)?.id?.slice(0, 8) ?? 'none');
+
+    // No registered endpoint — pass through
+    if (!currentEndpoint) {
       return next();
     }
 
-    const { endpointId, price, providerWallet, network, userId } = pricing;
+    const price: number = currentEndpoint.priceUsdc;
+    const platformFee = parseFloat((price * 0.01).toFixed(6));
+    const providerAmount = parseFloat((price - platformFee).toFixed(6));
+    const providerWallet: string = (currentUser as any)?.walletAddress ?? serverWallet;
+    const network: string = (currentUser as any)?.network ?? 'devnet';
 
-    // Fee split amounts
-    const totalAmount = price;
-    const platformFee = parseFloat((totalAmount * 0.01).toFixed(6));
-    const providerAmount = parseFloat((totalAmount - platformFee).toFixed(6));
-
-    // 2. Sem payment header → retorna 402 com splits
+    // ── STEP 2: No payment header → 402 ────────────────────────────────────
+    const rawPaymentHeader = req.headers['x-payment-payload'] as string | undefined;
     if (!rawPaymentHeader) {
       res.status(402).json({
         error: 'Payment Required',
-        price: {
-          total: totalAmount,
-          currency: 'USDC',
-          network: `solana-${network}`,
-        },
+        price: { total: price, currency: 'USDC', network: `solana-${network}` },
         splits: {
           provider: { wallet: providerWallet, amount: providerAmount },
           platform: { wallet: PLATFORM_WALLET, amount: platformFee },
         },
-        endpoint: fullPath,
-        instructions: 'Send two USDC transfers: one to provider, one to platform. Include both tx hashes in X-Payment-Payload header separated by comma.',
+        endpoint: endpointPath,
+        instructions: 'Send USDC on Solana and include tx hash in X-Payment-Payload header.',
       });
       return;
     }
 
-    // 3. Parse dual tx hashes
+    // ── STEP 3: Parse tx hashes ─────────────────────────────────────────────
     const [txHashProvider, txHashPlatform] = rawPaymentHeader.split(',').map(h => h.trim());
     const isDemoMode = txHashProvider?.startsWith('demo_');
 
-    // 4. Anti-replay check (demo AND real payments)
+    // ── STEP 4: Anti-replay ──────────────────────────────────────────────────
     console.log('[idempotency] checking:', txHashProvider);
     const { isDuplicate } = await checkIdempotency(txHashProvider, 'payment');
-    console.log('[idempotency] isDuplicate:', isDuplicate);
     if (isDuplicate) {
-      try {
-        await prisma.apiCall.create({
-          data: {
-            endpointId,
-            userId,
-            txHash: txHashProvider || 'replayed',
-            amountUsdc: 0,
-            status: 'replayed',
-            payerWallet: agentWallet || null,
-          },
-        });
-      } catch {}
-      res.status(402).json({
-        error: 'Payment already used',
-        details: 'This transaction hash has already been used to access this endpoint.',
-      });
+      res.status(402).json({ error: 'Payment already used', details: 'This tx hash has already been used.' });
       return;
     }
 
-    // 5. Demo mode OU verificação real na blockchain
-    let paymentConfirmed = false;
-    let confirmedAmount = totalAmount;
+    // ── STEP 5: Verify payment ───────────────────────────────────────────────
+    let confirmedAmount = price;
     let payerWallet: string | undefined;
-    let txHashProviderToLog = txHashProvider;
+    let txHashToLog = txHashProvider;
 
     if (isDemoMode) {
-      paymentConfirmed = true;
-      txHashProviderToLog = `demo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      txHashToLog = `demo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       payerWallet = 'demo_wallet';
+      console.log('[x402] demo mode — skipping blockchain verify');
     } else {
-      // Verifica pagamento ao provider
       const providerResult = await verifyPayment({
         txHash: txHashProvider,
         expectedAmountUsdc: providerAmount,
@@ -219,18 +132,6 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       });
 
       if (!providerResult.valid) {
-        try {
-          await prisma.apiCall.create({
-            data: {
-              endpointId,
-              userId,
-              txHash: txHashProvider || 'invalid',
-              amountUsdc: 0,
-              status: 'failed',
-              payerWallet: agentWallet || null,
-            },
-          });
-        } catch {}
         res.status(402).json({
           error: 'Provider payment invalid',
           details: providerResult.reason,
@@ -239,10 +140,9 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         return;
       }
 
-      confirmedAmount = providerResult.amount ?? totalAmount;
+      confirmedAmount = providerResult.amount ?? price;
       payerWallet = providerResult.payerWallet;
 
-      // Verifica fee ao Gate402 (se enviado e não demo)
       if (txHashPlatform && !txHashPlatform.startsWith('demo_')) {
         const platformResult = await verifyPayment({
           txHash: txHashPlatform,
@@ -250,20 +150,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
           recipientAddress: PLATFORM_WALLET,
           network,
         });
-
         if (!platformResult.valid) {
-          try {
-            await prisma.apiCall.create({
-              data: {
-                endpointId,
-                userId,
-                txHash: txHashProvider || 'invalid',
-                amountUsdc: 0,
-                status: 'failed',
-                payerWallet: agentWallet || null,
-              },
-            });
-          } catch {}
           res.status(402).json({
             error: 'Platform fee payment invalid',
             details: platformResult.reason,
@@ -272,178 +159,119 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
           return;
         }
       }
-
-      paymentConfirmed = true;
     }
 
-    // 6. Pagamento confirmado — registra tudo
-    if (paymentConfirmed) {
-      const isDemo = isDemoMode;
-      const effectiveTxPlatform = txHashPlatform || txHashProviderToLog;
+    // ── STEP 6: Mark anti-replay ─────────────────────────────────────────────
+    try {
+      await markUsed(txHashProvider, 'payment', {
+        endpointPath,
+        amount: price,
+        timestamp: new Date().toISOString(),
+      });
+      console.log('[idempotency] marked used:', txHashProvider);
+    } catch (e) {
+      console.error('[idempotency] markUsed failed:', (e as Error).message);
+    }
 
-      // 6a. Anti-replay mark — FIRST, before any DB writes, regardless of userId
+    // ── STEP 7: Create ApiCall ───────────────────────────────────────────────
+    const resolvedUserId = (currentUser as any)?.id ?? null;
+    console.log('[x402] creating ApiCall — endpointId:', currentEndpoint.id?.slice(0, 8), '| userId:', resolvedUserId?.slice(0, 8));
+    try {
+      const apiCall = await prisma.apiCall.create({
+        data: {
+          endpointId: currentEndpoint.id,
+          userId: resolvedUserId,
+          txHash: txHashToLog,
+          amountUsdc: confirmedAmount,
+          payerWallet: agentWallet || payerWallet || null,
+          status: isDemoMode ? 'demo' : 'confirmed',
+        },
+      });
+      console.log('[x402] ApiCall created:', apiCall.id, '| userId:', apiCall.userId);
+    } catch (e: any) {
+      console.error('[x402] ApiCall create FAILED:', e.message, '| code:', e.code);
+    }
+
+    // ── STEP 8: Revenue log ──────────────────────────────────────────────────
+    const effectiveTxPlatform = txHashPlatform || txHashToLog;
+    logRevenue({
+      source: 'platform_fee',
+      amount: platformFee,
+      txHash: effectiveTxPlatform,
+      userId: resolvedUserId ?? undefined,
+      description: `1% fee from ${endpointPath} — total: ${price} USDC`,
+    }).catch(e => console.error('[revenue] log failed:', (e as Error).message));
+
+    // ── STEP 9: Transaction record (requires owner) ──────────────────────────
+    if (resolvedUserId) {
       try {
-        console.log('[idempotency] marking used:', txHashProvider);
-        await markUsed(txHashProvider, 'payment', {
-          endpointPath: fullPath,
-          amount: totalAmount,
-          timestamp: new Date().toISOString(),
-        });
-        console.log('[idempotency] marked successfully');
-      } catch (e) {
-        console.error('[idempotency] markUsed failed:', (e as Error).message);
-      }
-
-      // 6b. Revenue log — independent, runs regardless of userId
-      console.log('[revenue] logging fee:', platformFee);
-      await logRevenue({
-        source: 'platform_fee',
-        amount: platformFee,
-        txHash: effectiveTxPlatform,
-        userId: userId ?? undefined,
-        description: `1% fee from ${fullPath} — total: ${totalAmount} USDC`,
-      }).catch(e => console.error('[revenue] log failed:', e));
-      console.log('[revenue] logged');
-
-      // 6c. Fresh endpoint lookup — source of truth for ApiCall + Transaction
-      console.log('[transaction] creating record...');
-      const endpointForTx = await findEndpointRecord(fullPath, shortPath, apiKey);
-      console.log('[x402] endpointRecord:', endpointForTx?.id, endpointForTx?.userId ?? (endpointForTx as any)?.user?.id)
-      console.log('[x402] endpoint found:', endpointForTx?.id)
-      console.log('[x402] endpoint userId:', (endpointForTx as any)?.userId)
-      console.log('[x402] endpoint user:', endpointForTx?.user?.id)
-      console.log('[transaction] user found:', !!endpointForTx?.user);
-      console.log('[transaction] userId:', endpointForTx?.user?.id ?? null);
-      console.log('[transaction] endpointId:', endpointForTx?.id ?? null);
-
-      const resolvedEndpointId = endpointForTx?.id ?? endpointId;
-      const resolvedUserId = endpointForTx?.user?.id ?? (endpointForTx as any)?.userId ?? userId;
-
-      // Legacy ApiCall — uses resolved values from fresh DB lookup
-      try {
-        console.log('[x402] creating ApiCall...')
-        const apiCall = await prisma.apiCall.create({
+        const transaction = await prisma.transaction.create({
           data: {
-            endpointId: resolvedEndpointId,
-            txHash: txHashProviderToLog,
-            amountUsdc: confirmedAmount,
-            payerWallet: agentWallet || payerWallet || null,
-            status: isDemo ? 'demo' : 'confirmed',
             userId: resolvedUserId,
+            endpointId: currentEndpoint.id,
+            txHashProvider: txHashToLog,
+            txHashPlatform: effectiveTxPlatform !== txHashToLog ? effectiveTxPlatform : null,
+            totalAmount: price,
+            providerAmount,
+            platformFee,
+            status: 'verified',
+            network,
+            payerWallet: agentWallet || payerWallet || null,
+            splits: {
+              create: [
+                { recipient: 'provider', wallet: providerWallet, amount: providerAmount, txHash: txHashToLog, status: 'confirmed', confirmedAt: new Date() },
+                { recipient: 'platform', wallet: PLATFORM_WALLET, amount: platformFee, txHash: effectiveTxPlatform, status: 'confirmed', confirmedAt: new Date() },
+              ],
+            },
           },
         });
-        console.log('[x402] ApiCall created:', apiCall.id, 'userId:', apiCall.userId)
+        console.log('[transaction] created:', transaction.id);
       } catch (e: any) {
-        console.error('[x402] ApiCall create failed:', e.message);
+        console.error('[transaction] create failed:', e.message, '| code:', e.code);
       }
-
-      if (!endpointForTx || !endpointForTx.user) {
-        console.error('[transaction] skipped — endpoint has no owner (userId is null).');
-        console.error('[transaction] endpoint path:', endpointForTx?.path ?? 'not found');
-        console.error('[transaction] endpoint userId field:', (endpointForTx as { userId?: string | null } | null)?.userId ?? 'null');
-      } else {
-        try {
-          const transaction = await prisma.transaction.create({
-            data: {
-              userId: endpointForTx.user.id,
-              endpointId: endpointForTx.id,
-              txHashProvider: txHashProviderToLog,
-              txHashPlatform: effectiveTxPlatform !== txHashProviderToLog ? effectiveTxPlatform : null,
-              totalAmount,
-              providerAmount,
-              platformFee,
-              status: 'verified',
-              network,
-              payerWallet: agentWallet || payerWallet || null,
-              splits: {
-                create: [
-                  {
-                    recipient: 'provider',
-                    wallet: providerWallet,
-                    amount: providerAmount,
-                    txHash: txHashProviderToLog,
-                    status: 'confirmed',
-                    confirmedAt: new Date(),
-                  },
-                  {
-                    recipient: 'platform',
-                    wallet: PLATFORM_WALLET,
-                    amount: platformFee,
-                    txHash: effectiveTxPlatform,
-                    status: 'confirmed',
-                    confirmedAt: new Date(),
-                  },
-                ],
-              },
-            },
-          });
-          console.log('[transaction] created successfully:', transaction.id);
-        } catch (e: unknown) {
-          const err = e as Error & { code?: string };
-          console.error('[transaction] create failed:', err.message);
-          console.error('[transaction] error code:', err.code);
-        }
-      }
-
-      // 6c. Email alert
-      try {
-        const endpointRecord = await findEndpointRecord(fullPath, shortPath);
-
-        if (endpointRecord?.user?.email && endpointRecord.user.emailAlerts) {
-          sendPaymentAlert({
-            to: endpointRecord.user.email,
-            endpoint: fullPath,
-            amount: confirmedAmount,
-            txHash: txHashProviderToLog,
-            payerWallet,
-            network: endpointRecord.user.network || 'devnet',
-          })
-            .then(() => console.log('[email] Alert sent to', endpointRecord.user!.email))
-            .catch(err => console.error('[email] Failed:', err instanceof Error ? err.message : err));
-        }
-      } catch (err) {
-        console.error('[email] Error:', err);
-      }
-
-      // 6d. Webhook — fire-and-forget
-      try {
-        const webhookRecord = await findEndpointRecord(fullPath, shortPath);
-        if (webhookRecord?.user?.webhookUrl) {
-          sendWebhook(
-            webhookRecord.user.webhookUrl,
-            webhookRecord.user.webhookSecret ?? null,
-            {
-              event: 'payment.confirmed',
-              endpoint: fullPath,
-              amount: confirmedAmount,
-              currency: 'USDC',
-              network: webhookRecord.user.network || 'devnet',
-              txHash: txHashProviderToLog,
-              payerWallet,
-              timestamp: new Date().toISOString(),
-            }
-          ).catch(err => console.error('[webhook] Unhandled error:', err));
-        }
-      } catch (err) {
-        console.error('[webhook] Error:', err);
-      }
-
-      // 7. Libera acesso
-      req.headers['x-payment-verified'] = 'true';
-      req.headers['x-payment-amount'] = confirmedAmount.toString();
-
-      // Track latency after handler finishes
-      res.on('finish', () => {
-        const latencyMs = Date.now() - requestStart;
-        prisma.apiCall.updateMany({
-          where: { txHash: txHashProviderToLog, status: { in: ['confirmed', 'demo'] } },
-          data: { latencyMs },
-        }).catch(() => {});
-      });
-
-      console.log('[x402] about to call next()');
-      return next();
+    } else {
+      console.warn('[transaction] skipped — no userId resolved for endpoint:', endpointPath);
     }
+
+    // ── STEP 10: Email + Webhook (fire-and-forget) ───────────────────────────
+    const ownerUser = (currentEndpoint as any).user ?? currentUser;
+    if (ownerUser?.email && ownerUser.emailAlerts) {
+      sendPaymentAlert({
+        to: ownerUser.email,
+        endpoint: endpointPath,
+        amount: confirmedAmount,
+        txHash: txHashToLog,
+        payerWallet,
+        network: ownerUser.network || 'devnet',
+      }).catch(err => console.error('[email] Failed:', (err as Error).message));
+    }
+    if (ownerUser?.webhookUrl) {
+      sendWebhook(ownerUser.webhookUrl, ownerUser.webhookSecret ?? null, {
+        event: 'payment.confirmed',
+        endpoint: endpointPath,
+        amount: confirmedAmount,
+        currency: 'USDC',
+        network: ownerUser.network || 'devnet',
+        txHash: txHashToLog,
+        payerWallet,
+        timestamp: new Date().toISOString(),
+      }).catch(err => console.error('[webhook] Failed:', (err as Error).message));
+    }
+
+    // ── STEP 11: Release ─────────────────────────────────────────────────────
+    req.headers['x-payment-verified'] = 'true';
+    req.headers['x-payment-amount'] = confirmedAmount.toString();
+
+    res.on('finish', () => {
+      const latencyMs = Date.now() - requestStart;
+      prisma.apiCall.updateMany({
+        where: { txHash: txHashToLog, status: { in: ['confirmed', 'demo'] } },
+        data: { latencyMs },
+      }).catch(() => {});
+    });
+
+    console.log('[x402] payment verified — calling next()');
+    return next();
 
   } catch (error) {
     console.error('[x402] Middleware error:', error);
