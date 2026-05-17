@@ -20,15 +20,32 @@ router.get('/endpoints', async (req, res) => {
 
   if (!user) return res.status(404).json({ error: 'User not found' })
 
-  return res.json(user.endpoints.map(ep => ({
-    id: ep.id,
-    path: ep.path,
-    priceUsdc: ep.priceUsdc,
-    active: ep.active,
-    description: ep.description,
-    totalCalls: ep._count.calls,
-    createdAt: ep.createdAt,
-  })))
+  const endpointIds = user.endpoints.map(ep => ep.id)
+
+  const revenueByEndpoint = endpointIds.length > 0
+    ? await prisma.apiCall.groupBy({
+        by: ['endpointId'],
+        where: { endpointId: { in: endpointIds } },
+        _sum: { amountUsdc: true },
+      })
+    : []
+
+  const revenueMap = new Map(revenueByEndpoint.map(r => [r.endpointId, r._sum.amountUsdc ?? 0]))
+
+  return res.json(user.endpoints.map(ep => {
+    const gross = revenueMap.get(ep.id) ?? 0
+    return {
+      id: ep.id,
+      path: ep.path,
+      priceUsdc: ep.priceUsdc,
+      active: ep.active,
+      description: ep.description,
+      totalCalls: ep._count.calls,
+      revenue: gross,
+      netRevenue: parseFloat((gross * 0.99).toFixed(6)),
+      createdAt: ep.createdAt,
+    }
+  }))
 })
 
 // GET /api/endpoints/pricing — rota pública, SDK busca preços por apiKey
