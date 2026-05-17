@@ -44,6 +44,7 @@ function buildLimits(plan: UserData['plan']): PlanLimits {
 
 export function useUser() {
   const [userData, setUserData] = useState<UserData | null>(null)
+  const [supabaseUserId, setSupabaseUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export function useUser() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) { setLoading(false); return }
+        setSupabaseUserId(user.id)
 
         const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
 
@@ -107,5 +109,7 @@ export function useUser() {
     syncUser()
   }, [])
 
-  return { userData, loading }
+  const isPro = userData?.plan === 'pro' || userData?.plan === 'enterprise'
+
+  return { userData, supabaseUserId, loading, isPro }
 }

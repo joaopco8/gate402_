@@ -1,759 +1,279 @@
-'use client';
+'use client'
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useRef, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Activity, DollarSign, Zap, TrendingUp } from 'lucide-react';
-import MetricCard from '../components/MetricCard';
-import DashboardLayout from '../components/DashboardLayout';
-import PageContainer from '../components/PageContainer';
-import PageHeader from '../components/PageHeader';
-import Card from '../components/Card';
-import { ProGate } from '../components/ProGate';
-import { ProBanner } from '../components/ProBanner';
-import { usePlan } from '../hooks/usePlan';
-import { getMetrics, getCallsPerDay, getRecentCalls, getEndpoints, getEndpointRevenue, getTransactions, getAnalyticsRevenue, getSuccessRate, getTopAgents, getLatencyStats, getMeteringStats, getFailedRequests, type Metrics, type DayData, type RecentCall, type Transaction, type TransactionStats, type AnalyticsRevenueSummary, type SuccessRateData, type TopAgent, type LatencyStatRow, type MeteringStatsData, type FailedRequestsData } from '../lib/api';
+import DashboardLayout from '../components/DashboardLayout'
+import { ProGate } from '../components/ProGate'
+import { ProBanner } from '../components/ProBanner'
+import { useUser } from '../hooks/useUser'
+import { useDashboardData } from '../hooks/useDashboardData'
 
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins} min ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
+// ── Skeleton ──────────────────────────────────────────────────────────────────
 
-function Skeleton({ width, height }: { width?: string; height?: number }) {
+function Skeleton({ width = '100%', height = 20 }: { width?: string | number; height?: number }) {
   return (
     <div style={{
-      background: '#0d0d0d',
-      border: '1px solid var(--border)',
-      borderRadius: 8,
-      width: width ?? '100%',
-      height: height ?? 40,
-      animation: 'pulse 1.5s ease-in-out infinite',
+      width, height,
+      background: 'linear-gradient(90deg, #111 25%, #1a1a1a 50%, #111 75%)',
+      backgroundSize: '200% 100%',
+      animation: 'shimmer 1.5s infinite',
+      borderRadius: 4,
     }} />
-  );
+  )
 }
 
-const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number; name: string; color: string }[]; label?: string }) => {
-  if (!active || !payload?.length) return null;
+// ── StatCard ─────────────────────────────────────────────────────────────────
+
+function StatCard({ label, value, sub, loading, positive }: {
+  label: string; value: string; sub?: string; loading?: boolean; positive?: boolean
+}) {
   return (
-    <div style={{ background: '#111', border: '1px solid #333', borderRadius: 8, padding: '10px 14px', fontFamily: 'var(--font-display)', fontSize: 12 }}>
-      <div style={{ color: '#888', marginBottom: 6 }}>{label}</div>
-      {payload.map((p) => (
-        <div key={p.name} style={{ color: p.color }}>
-          {p.name}: {p.name === 'usdc' ? `$${p.value.toFixed(4)}` : p.value}
+    <div style={{ background: '#111', border: '1px solid #1a1a1a', borderRadius: 10, padding: '20px 24px' }}>
+      <div style={{ fontFamily: 'monospace', fontSize: 10, color: '#444', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
+        {label}
+      </div>
+      {loading
+        ? <Skeleton height={30} width={100} />
+        : <div style={{ fontSize: 26, fontWeight: 600, color: '#fff', letterSpacing: '-0.5px', marginBottom: 4 }}>{value}</div>
+      }
+      {sub && !loading && (
+        <div style={{ fontSize: 12, color: positive ? '#00bc7d' : '#444', marginTop: 2 }}>{sub}</div>
+      )}
+    </div>
+  )
+}
+
+// ── MiniChart ────────────────────────────────────────────────────────────────
+
+function MiniChart({ data }: { data: Array<{ date: string; count: number }> }) {
+  if (!data?.length) return (
+    <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#333', fontSize: 12, fontFamily: 'monospace' }}>
+      no data yet
+    </div>
+  )
+  const max = Math.max(...data.map(d => d.count), 1)
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 80 }}>
+      {data.map((d, i) => {
+        const h = Math.max((d.count / max) * 72, d.count > 0 ? 4 : 2)
+        return (
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div
+              title={`${d.count} calls on ${d.date}`}
+              style={{ width: '100%', height: h, background: d.count > 0 ? '#00bc7d' : '#1a1a1a', borderRadius: 2, opacity: d.count > 0 ? 1 : 0.4, transition: 'height 300ms ease' }}
+            />
+            <span style={{ fontSize: 9, color: '#333', fontFamily: 'monospace' }}>{d.date}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── RecentCalls ───────────────────────────────────────────────────────────────
+
+function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean; isPro: boolean }) {
+  const timeAgo = (date: string) => {
+    const diff = Date.now() - new Date(date).getTime()
+    const m = Math.floor(diff / 60000)
+    const h = Math.floor(diff / 3600000)
+    const d = Math.floor(diff / 86400000)
+    if (m < 1) return 'just now'
+    if (m < 60) return `${m}m ago`
+    if (h < 24) return `${h}h ago`
+    return `${d}d ago`
+  }
+
+  return (
+    <div style={{ background: '#111', border: '1px solid #1a1a1a', borderRadius: 10, overflow: 'hidden' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 150px 80px', padding: '10px 16px', background: '#0d0d0d', borderBottom: '1px solid #1a1a1a' }}>
+        {['Endpoint', 'Amount', 'Payer', 'Time'].map(h => (
+          <span key={h} style={{ fontFamily: 'monospace', fontSize: 10, color: '#333', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>
+        ))}
+      </div>
+
+      {loading ? (
+        Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} style={{ padding: '12px 16px', borderBottom: '1px solid #0d0d0d' }}>
+            <Skeleton height={13} />
+          </div>
+        ))
+      ) : calls.length === 0 ? (
+        <div style={{ padding: '40px 16px', textAlign: 'center', color: '#333', fontFamily: 'monospace', fontSize: 12 }}>
+          No calls yet — make your first request
+        </div>
+      ) : (
+        calls.map((call, i) => (
+          <div key={call.id} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 150px 80px', padding: '10px 16px', borderBottom: i < calls.length - 1 ? '1px solid #0d0d0d' : 'none', alignItems: 'center' }}>
+            <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {call.endpoint || '—'}
+            </span>
+            <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#00bc7d' }}>
+              {call.amountUsdc ? `$${Number(call.amountUsdc).toFixed(5)}` : '—'}
+            </span>
+            <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#555' }}>
+              {call.payerWallet ? `${call.payerWallet.slice(0, 6)}...${call.payerWallet.slice(-4)}` : 'anonymous'}
+            </span>
+            <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#444' }}>
+              {call.createdAt ? timeAgo(call.createdAt) : '—'}
+            </span>
+          </div>
+        ))
+      )}
+
+      {!isPro && !loading && calls.length >= 5 && (
+        <div style={{ padding: '10px 16px', borderTop: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: '#444', fontFamily: 'monospace' }}>Showing last 5 calls</span>
+          <a href="/billing" style={{ fontSize: 12, color: '#00bc7d', textDecoration: 'none', fontFamily: 'monospace' }}>
+            Upgrade for last 50 →
+          </a>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── QuickSetup ────────────────────────────────────────────────────────────────
+
+function QuickSetup({ walletAddress, endpointCount, totalCalls }: {
+  walletAddress: string | null; endpointCount: number; totalCalls: number
+}) {
+  const steps = [
+    { done: true,              label: 'Account created',          link: null },
+    { done: !!walletAddress,   label: 'Configure Solana wallet',  link: '/settings' },
+    { done: endpointCount > 0, label: 'Add your first endpoint',  link: '/endpoints' },
+    { done: totalCalls > 0,    label: 'Receive first payment',    link: '/docs' },
+  ]
+  const allDone = steps.every(s => s.done)
+  if (allDone) return null
+
+  return (
+    <div style={{ background: '#111', border: '1px solid #1a1a1a', borderRadius: 10, padding: '20px 24px', marginTop: 24 }}>
+      <div style={{ fontFamily: 'monospace', fontSize: 10, color: '#444', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>
+        Quick Setup
+      </div>
+      {steps.map((step, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: i < steps.length - 1 ? 12 : 0 }}>
+          <div style={{
+            width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+            background: step.done ? 'rgba(0,188,125,0.1)' : '#0d0d0d',
+            border: `1px solid ${step.done ? '#00bc7d' : '#1a1a1a'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {step.done && (
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M2 5l2.5 2.5L8 3" stroke="#00bc7d" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            )}
+          </div>
+          <span style={{ fontSize: 13, color: step.done ? '#444' : '#fff', textDecoration: step.done ? 'line-through' : 'none', flex: 1 }}>
+            {step.label}
+          </span>
+          {!step.done && step.link && (
+            <a href={step.link} style={{ fontSize: 12, color: '#00bc7d', textDecoration: 'none', fontFamily: 'monospace' }}>
+              Set up →
+            </a>
+          )}
         </div>
       ))}
     </div>
-  );
-};
+  )
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { isPro } = usePlan();
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
-  const [chartData, setChartData] = useState<DayData[]>([]);
-  const [recentCalls, setRecentCalls] = useState<RecentCall[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [endpoints, setEndpoints] = useState<string[]>([]);
-  const [selectedEndpoint, setSelectedEndpoint] = useState<string>('all');
-  const selectedEndpointRef = useRef('all');
-  const [projection, setProjection] = useState<number>(0);
-  const [endpointRevenue, setEndpointRevenue] = useState<{ name: string; value: number; calls: number }[]>([]);
-  const [animated, setAnimated] = useState(false);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [txStats, setTxStats] = useState<TransactionStats>({ totalGross: 0, totalNet: 0, totalFeesPaid: 0, transactionCount: 0 });
-  const [analyticsRevenue, setAnalyticsRevenue] = useState<AnalyticsRevenueSummary | null>(null);
-  const [revenuePeriod, setRevenuePeriod] = useState<'7d' | '30d' | '90d'>('7d');
-  const [successRate, setSuccessRate] = useState<SuccessRateData | null>(null);
-  const [topAgents, setTopAgents] = useState<TopAgent[]>([]);
-  const [latencyStats, setLatencyStats] = useState<LatencyStatRow[]>([]);
-  const [meteringStats, setMeteringStats] = useState<MeteringStatsData | null>(null);
-  const [failedRequests, setFailedRequests] = useState<FailedRequestsData | null>(null);
-  const [selectedMetricLabel, setSelectedMetricLabel] = useState<string>('API Calls');
+  const { userData, supabaseUserId, loading: userLoading, isPro } = useUser()
+  const { data, loading: dataLoading } = useDashboardData(supabaseUserId, isPro)
 
-  async function fetchAll() {
-    const [m, c, r, endpointList, rev, txData, sr, agents, latency, metering, failed] = await Promise.all([
-      getMetrics(),
-      getCallsPerDay(7, selectedEndpointRef.current),
-      getRecentCalls(),
-      getEndpoints(),
-      getEndpointRevenue(),
-      getTransactions(),
-      getSuccessRate(),
-      getTopAgents(),
-      getLatencyStats(),
-      getMeteringStats(),
-      getFailedRequests(),
-    ]);
-    setMetrics(m);
-    setChartData(c);
-    setRecentCalls(r);
-    setEndpointRevenue(Array.isArray(rev) ? rev : []);
-    setTransactions(txData.transactions ?? []);
-    setTxStats(txData.stats ?? { totalGross: 0, totalNet: 0, totalFeesPaid: 0, transactionCount: 0 });
-    setSuccessRate(sr);
-    setTopAgents(agents);
-    setLatencyStats(latency);
-    setMeteringStats(metering);
-    setFailedRequests(failed);
-    const paths = Array.isArray(endpointList)
-      ? endpointList.map((e: { path: string }) => e.path)
-      : [];
-    setEndpoints(['all', ...paths]);
-    const totalLast7Days = Array.isArray(c)
-      ? c.reduce((sum: number, d: DayData) => sum + d.usdc, 0)
-      : 0;
-    setProjection((totalLast7Days / 7) * 30);
-    setLoading(false);
-  }
+  const loading = userLoading || dataLoading
 
-  useEffect(() => {
-    fetchAll();
-    const interval = setInterval(fetchAll, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    selectedEndpointRef.current = selectedEndpoint;
-    getCallsPerDay(7, selectedEndpoint).then(setChartData);
-  }, [selectedEndpoint]);
-
-  useEffect(() => {
-    getAnalyticsRevenue(revenuePeriod).then(data => { if (data) setAnalyticsRevenue(data); });
-  }, [revenuePeriod]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setAnimated(true), 100);
-    return () => clearTimeout(t);
-  }, []);
-
-  function exportCSV() {
-    const headers = ['endpoint', 'amount_usdc', 'payer_wallet', 'tx_hash', 'status', 'created_at'];
-    const rows = recentCalls.map(call => [
-      call.endpoint?.path ?? '-',
-      call.amountUsdc.toFixed(4),
-      call.payerWallet,
-      call.txHash,
-      call.status,
-      new Date(call.createdAt).toISOString(),
-    ]);
-    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `gate402-calls-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  const weeklyAmount = data?.callsPerDay?.reduce((s, d) => s + (d.amount || 0), 0) || 0
+  const mrrProjected = (weeklyAmount / 7) * 30
 
   return (
     <DashboardLayout>
-      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
-      <PageContainer>
-        <PageHeader eyebrow="OVERVIEW" title="Dashboard" subtitle="Real-time billing analytics for your APIs" />
+      <div style={{ padding: '32px', maxWidth: 1100, margin: '0 auto' }}>
+        <style>{`
+          @keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
+          @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.4 } }
+        `}</style>
+
         <ProBanner isPro={isPro} />
 
-        {/* LineChart6-style metrics + chart card */}
-        {(() => {
-          const MOCK: DayData[] = [
-            { date: 'May 9',  calls: 12,  usdc: 0.048 },
-            { date: 'May 10', calls: 34,  usdc: 0.136 },
-            { date: 'May 11', calls: 21,  usdc: 0.084 },
-            { date: 'May 12', calls: 58,  usdc: 0.232 },
-            { date: 'May 13', calls: 47,  usdc: 0.188 },
-            { date: 'May 14', calls: 73,  usdc: 0.292 },
-            { date: 'May 15', calls: 89,  usdc: 0.356 },
-          ];
-          const displayData = chartData.length > 0 && chartData.some(d => d.calls > 0 || d.usdc > 0) ? chartData : MOCK;
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 600, color: '#fff', margin: 0 }}>Overview</h1>
+            <p style={{ fontSize: 13, color: '#444', marginTop: 4, margin: '4px 0 0' }}>
+              {userData?.plan === 'pro' ? 'Pro plan' : 'Free plan'} · {userData?.network === 'mainnet' ? 'Solana Mainnet' : 'Solana Devnet'}
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00bc7d', boxShadow: '0 0 6px #00bc7d', animation: 'pulse 2s ease-in-out infinite' }} />
+            <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#333' }}>live</span>
+          </div>
+        </div>
 
-          const last7calls = displayData.reduce((s, d) => s + (d.calls ?? 0), 0);
-          const last7usdc  = displayData.reduce((s, d) => s + (d.usdc  ?? 0), 0);
-          const mid = Math.floor(displayData.length / 2);
-          const prevCalls = displayData.slice(0, mid).reduce((s, d) => s + (d.calls ?? 0), 0);
-          const prevUsdc  = displayData.slice(0, mid).reduce((s, d) => s + (d.usdc  ?? 0), 0);
-          const currCalls = displayData.slice(mid).reduce((s, d) => s + (d.calls ?? 0), 0);
-          const currUsdc  = displayData.slice(mid).reduce((s, d) => s + (d.usdc  ?? 0), 0);
+        {/* Stat cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
+          <StatCard label="Total Calls" value={loading ? '—' : (data?.totalCalls || 0).toLocaleString()} sub="all time" loading={loading} />
+          <StatCard label="Total Earned" value={loading ? '—' : `$${(data?.totalUsdc || 0).toFixed(4)}`} sub="USDC · all time" loading={loading} positive />
+          <StatCard label="Calls Today" value={loading ? '—' : (data?.callsToday || 0).toLocaleString()} sub="since 00:00 UTC" loading={loading} />
+          <StatCard label="Revenue Today" value={loading ? '—' : `$${(data?.usdcToday || 0).toFixed(4)}`} sub="USDC today" loading={loading} positive />
+        </div>
 
-          const dashMetrics = [
-            { key: 'calls', label: 'API Calls',       value: last7calls,                   prev: prevCalls, format: (v: number) => v.toLocaleString(),         color: '#00bc7d' },
-            { key: 'usdc',  label: 'Revenue',          value: last7usdc,                    prev: prevUsdc,  format: (v: number) => `$${v.toFixed(4)}`,         color: '#3b82f6' },
-            { key: 'calls', label: 'Calls Today',      value: metrics?.todayCalls ?? 0,     prev: currCalls, format: (v: number) => v.toLocaleString(),         color: '#a855f7' },
-            { key: 'usdc',  label: 'Projection / mo',  value: projection > 0 ? projection : (last7usdc / 7) * 30, prev: prevUsdc,  format: (v: number) => `$${v.toFixed(2)}`,         color: '#f59e0b' },
-          ];
-
-          const activeColor = dashMetrics.find(m => m.label === selectedMetricLabel)?.color ?? '#00bc7d';
-          const activeKey   = dashMetrics.find(m => m.label === selectedMetricLabel)?.key   ?? 'calls';
-
-          return (
-            <div style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 12, marginBottom: 24, overflow: 'hidden' }}>
-              {/* Metrics grid header */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderBottom: '1px solid #1a1a1a' }}>
-                {loading ? (
-                  Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} style={{ padding: 16, borderRight: i < 3 ? '1px solid #1a1a1a' : 'none' }}>
-                      <Skeleton height={80} />
-                    </div>
-                  ))
-                ) : dashMetrics.map((m, i) => {
-                  const change = m.prev > 0 ? ((m.value - m.prev) / m.prev) * 100 : 0;
-                  const isSelected = selectedMetricLabel === m.label;
-                  const isPositive = change >= 0;
-                  return (
-                    <button
-                      key={m.label}
-                      onClick={() => setSelectedMetricLabel(m.label)}
-                      style={{
-                        textAlign: 'left',
-                        padding: 16,
-                        borderRight: i < 3 ? '1px solid #1a1a1a' : 'none',
-                        background: isSelected ? 'rgba(255,255,255,0.04)' : 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        transition: 'background 150ms',
-                      }}
-                    >
-                      {/* label + badge */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>{m.label}</span>
-                        {m.prev > 0 && (
-                          <span style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 3,
-                            fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 6,
-                            background: isPositive ? 'rgba(0,188,125,0.1)' : 'rgba(239,68,68,0.1)',
-                            color: isPositive ? '#00bc7d' : '#ef4444',
-                            border: `1px solid ${isPositive ? 'rgba(0,188,125,0.2)' : 'rgba(239,68,68,0.2)'}`,
-                          }}>
-                            {isPositive ? '↑' : '↓'}{Math.abs(change).toFixed(1)}%
-                          </span>
-                        )}
-                      </div>
-                      {/* value */}
-                      <div style={{ fontSize: 22, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', lineHeight: 1 }}>
-                        {m.format(m.value)}
-                      </div>
-                      {/* prev */}
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 6 }}>
-                        from {m.format(m.prev)}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Chart */}
-              <div style={{ padding: '24px 10px 24px 10px' }}>
-                {loading ? <Skeleton height={320} /> : (
-                  <ResponsiveContainer width="100%" height={320}>
-                    <LineChart data={displayData} margin={{ top: 20, right: 20, left: 5, bottom: 20 }} style={{ overflow: 'visible' }}>
-                      <defs>
-                        <pattern id="dotGrid2" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                          <circle cx="10" cy="10" r="1" fill="#222" fillOpacity="1" />
-                        </pattern>
-                        <filter id="lineShadow2" x="-100%" y="-100%" width="300%" height="300%">
-                          <feDropShadow dx="4" dy="6" stdDeviation="25" floodColor={`${activeColor}60`} />
-                        </filter>
-                        <filter id="dotShadow2" x="-50%" y="-50%" width="200%" height="200%">
-                          <feDropShadow dx="2" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,0.5)" />
-                        </filter>
-                      </defs>
-
-                      <XAxis
-                        dataKey="date"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 11, fill: '#555' }}
-                        tickMargin={10}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 11, fill: '#555' }}
-                        tickMargin={10}
-                        tickCount={6}
-                        tickFormatter={(v) => activeKey === 'usdc' ? `$${v.toFixed(2)}` : v.toString()}
-                      />
-
-                      <Tooltip
-                        content={<CustomTooltip />}
-                        cursor={{ strokeDasharray: '3 3', stroke: '#444' }}
-                      />
-
-                      <rect x="55px" y="-20px" width="calc(100% - 70px)" height="calc(100% - 10px)" fill="url(#dotGrid2)" style={{ pointerEvents: 'none' }} />
-
-                      <Line
-                        type="monotone"
-                        dataKey={activeKey}
-                        stroke={activeColor}
-                        strokeWidth={2}
-                        filter="url(#lineShadow2)"
-                        dot={false}
-                        name={activeKey}
-                        activeDot={{ r: 6, fill: activeColor, stroke: '#fff', strokeWidth: 2, filter: 'url(#dotShadow2)' }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+        {/* Chart + MRR */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 12, marginBottom: 16 }}>
+          <div style={{ background: '#111', border: '1px solid #1a1a1a', borderRadius: 10, padding: '20px 24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#444', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                Calls — last 7 days
+              </span>
+              <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#555' }}>
+                {data?.callsPerDay?.reduce((s, d) => s + d.count, 0) || 0} total
+              </span>
             </div>
-          );
-        })()}
+            {loading ? <Skeleton height={80} /> : <MiniChart data={data?.callsPerDay || []} />}
+          </div>
 
-        {/* Revenue by Endpoint */}
-        {!loading && (
-          <Card style={{ padding: '24px 28px', marginBottom: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: '#555', fontFamily: 'var(--font-display)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                Revenue by Endpoint
-              </div>
-              <div style={{ fontSize: 12, color: '#555', fontFamily: 'var(--font-display)' }}>
-                {endpointRevenue.length} endpoint{endpointRevenue.length !== 1 ? 's' : ''}
-              </div>
-            </div>
-            {endpointRevenue.length === 0 ? (
-              <div style={{
-                textAlign: 'center',
-                padding: '32px 0',
-                fontFamily: 'var(--font-display)',
-                fontSize: 13,
-                color: '#555',
-              }}>
-                No endpoints with revenue yet
-              </div>
-            ) : (() => {
-              const barColors = ['#00bc7d', '#9945FF', '#3b82f6', '#f59e0b', '#666'];
-              const total = endpointRevenue.reduce((sum, e) => sum + e.value, 0);
-              return endpointRevenue.map((ep, i) => {
-                const percentage = total > 0 ? Math.round((ep.value / total) * 100) : 0;
-                const color = barColors[Math.min(i, barColors.length - 1)];
-                return (
-                  <div
-                    key={ep.name}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 16,
-                      padding: '12px 0',
-                      borderBottom: '1px solid #0d0d0d',
-                    }}
-                  >
-                    <div style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: 13,
-                      color: '#666',
-                      width: 160,
-                      flexShrink: 0,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}>
-                      {ep.name}
-                    </div>
-                    <div style={{
-                      flex: 1,
-                      height: 4,
-                      background: '#0d0d0d',
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                    }}>
-                      <div style={{
-                        height: '100%',
-                        width: animated ? `${percentage}%` : '0%',
-                        background: color,
-                        borderRadius: 2,
-                        transition: 'width 600ms ease',
-                      }} />
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      flexShrink: 0,
-                    }}>
-                      <span style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: 12,
-                        color: color,
-                      }}>
-                        ${ep.value.toFixed(4)}
-                      </span>
-                      <span style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: 11,
-                        color: '#555',
-                        width: 36,
-                        textAlign: 'right',
-                      }}>
-                        {percentage}%
-                      </span>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </Card>
-        )}
-
-        {/* Revenue Breakdown — pro analytics */}
-        {!loading && (
-          <ProGate isPro={isPro} feature="Revenue Analytics">
-          <Card style={{ padding: '24px 28px', marginBottom: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: '#555', fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>REVENUE BREAKDOWN</div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {(['7d', '30d', '90d'] as const).map(p => (
-                  <button
-                    key={p}
-                    onClick={() => setRevenuePeriod(p)}
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: 4,
-                      border: '1px solid',
-                      borderColor: revenuePeriod === p ? 'var(--green)' : 'var(--border)',
-                      background: revenuePeriod === p ? 'rgba(0,188,125,0.08)' : 'transparent',
-                      color: revenuePeriod === p ? 'var(--green)' : '#444',
-                      fontSize: 11,
-                      fontFamily: 'var(--font-display)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-              {[
-                { label: 'Gross Revenue', value: analyticsRevenue?.grossRevenue ?? txStats.totalGross, color: '#fff' },
-                { label: 'Net Revenue', value: analyticsRevenue?.netRevenue ?? txStats.totalNet, color: '#00bc7d' },
-                { label: 'Platform Fees', value: analyticsRevenue?.platformFees ?? txStats.totalFeesPaid, color: '#555' },
-              ].map(({ label, value, color }) => (
-                <div key={label} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '16px 20px' }}>
-                  <div style={{ fontSize: 11, color: '#555', fontFamily: 'var(--font-display)', letterSpacing: '0.08em', marginBottom: 10 }}>{label.toUpperCase()}</div>
-                  <div style={{ fontSize: 24, fontWeight: 300, color, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>
-                    ${value.toFixed(4)}
-                  </div>
-                  <div style={{ fontSize: 11, color: '#555', fontFamily: 'var(--font-display)', marginTop: 4 }}>USDC</div>
+          <ProGate isPro={isPro} feature="MRR Projection">
+            <div style={{ background: '#111', border: '1px solid #1a1a1a', borderRadius: 10, padding: '20px 24px', height: '100%', boxSizing: 'border-box' }}>
+              <div style={{ fontFamily: 'monospace', fontSize: 10, color: '#444', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>MRR Projected</div>
+              <div style={{ fontSize: 26, fontWeight: 600, color: '#00bc7d', letterSpacing: '-0.5px' }}>${mrrProjected.toFixed(2)}</div>
+              <div style={{ fontSize: 12, color: '#444', marginTop: 4, marginBottom: 16 }}>based on last 7 days</div>
+              {(data?.callsPerDay || []).slice(-3).map((d, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#444' }}>{d.date}</span>
+                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#666' }}>{d.count} calls</span>
                 </div>
               ))}
             </div>
-            <div style={{ fontSize: 11, color: '#555', fontFamily: 'var(--font-display)', marginTop: 12 }}>
-              1% platform fee per transaction
-            </div>
-          </Card>
           </ProGate>
-        )}
+        </div>
 
-        {/* Success Rate */}
-        {!loading && successRate !== null && (
-          <Card style={{ padding: '24px 28px', marginBottom: 24 }}>
-            <div style={{ fontSize: 12, color: '#555', fontFamily: 'var(--font-display)', letterSpacing: '0.08em', marginBottom: 20 }}>SUCCESS RATE</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-              <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '16px 20px' }}>
-                <div style={{ fontSize: 11, color: '#555', fontFamily: 'var(--font-display)', marginBottom: 8 }}>SUCCESS RATE</div>
-                <div style={{ fontSize: 28, fontWeight: 300, fontFamily: 'var(--font-display)', color: successRate.successRate > 95 ? '#00bc7d' : successRate.successRate > 80 ? '#f59e0b' : '#ef4444' }}>
-                  {successRate.successRate.toFixed(1)}%
-                </div>
-              </div>
-              <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '16px 20px' }}>
-                <div style={{ fontSize: 11, color: '#555', fontFamily: 'var(--font-display)', marginBottom: 8 }}>TOTAL CALLS (7D)</div>
-                <div style={{ fontSize: 28, fontWeight: 300, fontFamily: 'var(--font-display)', color: '#fff' }}>
-                  {successRate.totalCalls}
-                </div>
-              </div>
-              <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '16px 20px' }}>
-                <div style={{ fontSize: 11, color: '#555', fontFamily: 'var(--font-display)', marginBottom: 8 }}>MRR PROJECTED</div>
-                <div style={{ fontSize: 28, fontWeight: 300, fontFamily: 'var(--font-display)', color: '#00bc7d' }}>
-                  ${successRate.mrrProjected.toFixed(2)}
-                </div>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Top Paying Agents */}
-        {!loading && (
-          <ProGate isPro={isPro} feature="Top Paying Agents">
-          <Card style={{ overflow: 'hidden', padding: 0, marginBottom: 24 }}>
-            <div style={{ padding: '16px 28px', borderBottom: '1px solid #1a1a1a' }}>
-              <div style={{ fontSize: 12, color: '#555', fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>TOP PAYING AGENTS</div>
-            </div>
-            {topAgents.length === 0 ? (
-              <div style={{ padding: '32px 0', textAlign: 'center', fontFamily: 'var(--font-display)', fontSize: 13, color: '#555' }}>
-                No paying agents yet
-              </div>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #1a1a1a' }}>
-                    {['Agent Wallet', 'Calls', 'Total Paid', 'Net Received'].map(h => (
-                      <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontWeight: 400, fontSize: 11, color: '#555', fontFamily: 'var(--font-display)', letterSpacing: '0.05em' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {topAgents.map((agent, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #0d0d0d', transition: 'background 150ms' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    >
-                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-code)', fontSize: 13, color: '#fff' }}>{agent.walletShort}</td>
-                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-display)', fontSize: 12, color: '#888' }}>{agent.callCount}</td>
-                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-display)', fontSize: 12, color: '#fff' }}>${agent.totalPaid.toFixed(4)}</td>
-                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-display)', fontSize: 12, color: '#00bc7d' }}>${agent.netReceived.toFixed(4)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </Card>
-          </ProGate>
-        )}
-
-        {/* Latency Stats */}
-        {!loading && latencyStats.length > 0 && (
-          <ProGate isPro={isPro} feature="Latency Analytics">
-          <Card style={{ overflow: 'hidden', padding: 0, marginBottom: 24 }}>
-            <div style={{ padding: '16px 28px', borderBottom: '1px solid #1a1a1a' }}>
-              <div style={{ fontSize: 12, color: '#555', fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>LATENCY STATS</div>
-            </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid #1a1a1a' }}>
-                  {['Endpoint', 'p50', 'p95', 'p99', 'Avg'].map(h => (
-                    <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontWeight: 400, fontSize: 11, color: '#555', fontFamily: 'var(--font-display)', letterSpacing: '0.05em' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {latencyStats.map((row, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid #0d0d0d' }}>
-                    <td style={{ padding: '12px 20px', fontFamily: 'var(--font-display)', fontSize: 12, color: '#fff' }}>{row.endpoint}</td>
-                    {[row.p50, row.p95, row.p99, row.avg].map((val, vi) => (
-                      <td key={vi} style={{ padding: '12px 20px', fontFamily: 'var(--font-display)', fontSize: 12, color: val < 200 ? '#00bc7d' : val < 500 ? '#f59e0b' : '#ef4444' }}>
-                        {val}ms
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
-          </ProGate>
-        )}
-
-        {/* Usage Metering */}
-        {!loading && meteringStats && meteringStats.byType.length > 0 && (
-          <ProGate isPro={isPro} feature="Usage Metering">
-          <Card style={{ padding: '24px 28px', marginBottom: 24 }}>
-            <div style={{ fontSize: 12, color: '#555', fontFamily: 'var(--font-display)', letterSpacing: '0.08em', marginBottom: 20 }}>USAGE METERING</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-              {meteringStats.byType.map(m => {
-                const typeInfo: Record<string, { label: string; unit: string }> = {
-                  token: { label: 'Tokens', unit: 'tokens' },
-                  compute: { label: 'Compute', unit: 'ms' },
-                  bandwidth: { label: 'Bandwidth', unit: 'kb' },
-                };
-                const info = typeInfo[m.type] ?? { label: m.type, unit: '' };
-                return (
-                  <div key={m.type} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '16px 20px' }}>
-                    <div style={{ fontSize: 11, color: '#555', fontFamily: 'var(--font-display)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>{info.label}</div>
-                    <div style={{ fontSize: 20, fontWeight: 300, color: '#fff', fontFamily: 'var(--font-display)', marginBottom: 4 }}>
-                      {m.totalUsage.toLocaleString()} {info.unit}
-                    </div>
-                    <div style={{ fontSize: 13, color: '#00bc7d', fontFamily: 'var(--font-display)', marginBottom: 4 }}>${m.totalCost.toFixed(6)}</div>
-                    <div style={{ fontSize: 11, color: '#555', fontFamily: 'var(--font-display)' }}>{m.count} records</div>
-                  </div>
-                );
-              })}
-            </div>
-            <div style={{ fontSize: 12, color: '#555', fontFamily: 'var(--font-display)', marginTop: 16 }}>
-              Pending settlement: <span style={{ color: '#f59e0b' }}>${meteringStats.totalPending.toFixed(6)}</span>
-            </div>
-          </Card>
-          </ProGate>
-        )}
-
-        {/* Failed Requests */}
-        {!loading && (
-          <Card style={{ overflow: 'hidden', padding: 0, marginBottom: 24 }}>
-            <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>FAILED REQUESTS</div>
-              <div style={{ fontSize: 11, color: '#555', fontFamily: 'var(--font-display)' }}>last 7 days</div>
-            </div>
-            {!failedRequests || failedRequests.failed.length === 0 ? (
-              <div style={{ padding: '32px 0', textAlign: 'center', fontFamily: 'var(--font-display)', fontSize: 13, color: '#00bc7d' }}>
-                No failed requests in the last 7 days
-              </div>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                    {['Time', 'Endpoint', 'Status', 'Tx Hash'].map(h => (
-                      <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontWeight: 400, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-display)', letterSpacing: '0.05em' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {failedRequests.failed.map(f => (
-                    <tr key={f.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 150ms' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    >
-                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-display)', fontSize: 12, color: 'var(--text-muted)' }}>{timeAgo(f.createdAt)}</td>
-                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-display)', fontSize: 12, color: '#fff' }}>{f.endpoint}</td>
-                      <td style={{ padding: '12px 20px' }}>
-                        <span style={{
-                          display: 'inline-block',
-                          padding: '2px 8px',
-                          borderRadius: 4,
-                          fontSize: 11,
-                          fontFamily: 'var(--font-display)',
-                          background: f.status === 'replayed' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
-                          color: f.status === 'replayed' ? '#f59e0b' : '#ef4444',
-                          border: `1px solid ${f.status === 'replayed' ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)'}`,
-                        }}>
-                          {f.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 20px', fontFamily: 'var(--font-code)', fontSize: 11, color: '#555' }}>{f.txHash.slice(0, 16)}...</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </Card>
-        )}
-
-        {/* Recent Transactions */}
-        {!loading && transactions.length > 0 && (
-          <Card style={{ overflow: 'hidden', padding: 0, marginBottom: 24 }}>
-            <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>RECENT TRANSACTIONS</div>
-              <div style={{ fontSize: 11, color: '#555', fontFamily: 'var(--font-display)' }}>{txStats.transactionCount} total</div>
-            </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  {['Endpoint', 'Gross', 'Net (yours)', 'Fee (1%)', 'Status', 'Time'].map(h => (
-                    <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontWeight: 400, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-display)', letterSpacing: '0.05em' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.slice(0, 10).map(tx => (
-                  <tr
-                    key={tx.id}
-                    style={{ borderBottom: '1px solid var(--border)', transition: 'background 150ms' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <td style={{ padding: '12px 20px', color: '#fff', fontFamily: 'var(--font-display)', fontSize: 12 }}>{tx.endpoint}</td>
-                    <td style={{ padding: '12px 20px', color: '#666', fontFamily: 'var(--font-display)', fontSize: 12 }}>${tx.totalAmount.toFixed(4)}</td>
-                    <td style={{ padding: '12px 20px', color: '#00bc7d', fontFamily: 'var(--font-display)', fontSize: 12 }}>${tx.providerAmount.toFixed(4)}</td>
-                    <td style={{ padding: '12px 20px', color: '#555', fontFamily: 'var(--font-display)', fontSize: 12 }}>${tx.platformFee.toFixed(6)}</td>
-                    <td style={{ padding: '12px 20px' }}>
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '2px 8px',
-                        borderRadius: 4,
-                        fontSize: 11,
-                        fontFamily: 'var(--font-display)',
-                        background: tx.status === 'verified' ? 'rgba(0,188,125,0.08)' : tx.status === 'demo' ? 'rgba(153,69,255,0.08)' : 'rgba(255,255,255,0.04)',
-                        color: tx.status === 'verified' ? '#00bc7d' : tx.status === 'demo' ? '#9945FF' : '#666',
-                        border: `1px solid ${tx.status === 'verified' ? 'rgba(0,188,125,0.2)' : tx.status === 'demo' ? 'rgba(153,69,255,0.2)' : '#1a1a1a'}`,
-                      }}>
-                        {tx.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px 20px', color: 'var(--text-muted)', fontSize: 12 }}>{timeAgo(tx.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
-        )}
-
-        {/* Recent Calls Table */}
-        <Card style={{ overflow: 'hidden', padding: 0 }}>
-          <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>
-              RECENT CALLS
-            </div>
-            {isPro ? (
-              <button
-                onClick={exportCSV}
-                style={{
-                  padding: '6px 14px',
-                  background: 'transparent',
-                  border: '1px solid var(--border)',
-                  borderRadius: 6,
-                  color: 'var(--text-secondary)',
-                  fontSize: 12,
-                  fontFamily: 'var(--font-display)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
-                onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.color = 'var(--green)'; }}
-                onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-              >
-                Export CSV ↓
-              </button>
-            ) : (
-              <a href="/billing" style={{
-                padding: '6px 14px',
-                background: 'transparent',
-                border: '1px solid rgba(153,69,255,0.3)',
-                borderRadius: 6,
-                color: '#9945FF',
-                fontSize: 12,
-                fontFamily: 'var(--font-display)',
-                cursor: 'pointer',
-                textDecoration: 'none',
-              }}>
-                Export CSV ↑ Pro
-              </a>
-            )}
+        {/* Recent calls */}
+        <div style={{ marginBottom: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#444', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              Recent Calls
+            </span>
+            <a href="/endpoints" style={{ fontSize: 12, color: '#444', textDecoration: 'none', fontFamily: 'monospace' }}>
+              Manage endpoints →
+            </a>
           </div>
-          {loading ? (
-            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} height={36} />)}
-            </div>
-          ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  {['Endpoint', 'Amount (USDC)', 'Payer', 'Time'].map((h) => (
-                    <th key={h} style={{ padding: '10px 28px', textAlign: 'left', fontWeight: 400, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-display)', letterSpacing: '0.05em' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {recentCalls.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} style={{ padding: '32px 28px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>No calls yet</td>
-                  </tr>
-                ) : recentCalls.map((call) => (
-                  <tr
-                    key={call.id}
-                    style={{ borderBottom: '1px solid var(--border)', transition: 'background 150ms' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <td style={{ padding: '14px 28px', color: 'var(--green)', fontFamily: 'var(--font-display)', fontSize: 13 }}>{call.endpoint?.path ?? '-'}</td>
-                    <td style={{ padding: '14px 28px', color: 'var(--blue)', fontFamily: 'var(--font-display)', fontSize: 13 }}>${call.amountUsdc.toFixed(4)}</td>
-                    <td style={{ padding: '14px 28px', color: 'var(--text-muted)', fontFamily: 'var(--font-code)', fontSize: 13 }}>{call.payerWallet.slice(0, 8)}...</td>
-                    <td style={{ padding: '14px 28px', color: 'var(--text-muted)', fontSize: 13 }}>{timeAgo(call.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </Card>
-      </PageContainer>
+          <RecentCalls calls={data?.recentCalls || []} loading={loading} isPro={isPro} />
+        </div>
+
+        {/* Quick setup — only if incomplete */}
+        {!loading && (
+          <QuickSetup
+            walletAddress={userData?.walletAddress ?? null}
+            endpointCount={data?.endpoints?.length || 0}
+            totalCalls={data?.totalCalls || 0}
+          />
+        )}
+      </div>
     </DashboardLayout>
-  );
+  )
 }
