@@ -12,39 +12,24 @@ export function Features() {
                 <div className="relative -mx-4 rounded-3xl p-3 md:-mx-12 lg:col-span-3">
                     <div style={{ perspective: '800px' }}>
                         <div style={{ transform: 'skewY(-2deg) skewX(-2deg) rotateX(6deg)' }}>
-                            <div style={{ position: 'relative', aspectRatio: '88/36' }}>
-                                {/* Fade overlay */}
-                                <div style={{
-                                    position: 'absolute',
-                                    inset: '-4.25rem',
-                                    zIndex: 2,
-                                    background: 'radial-gradient(ellipse at 75% 25%, transparent 0%, transparent 40%, #0A0A0A 75%)',
-                                    pointerEvents: 'none',
-                                }} />
+                            <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid #1a1a1a' }}>
                                 {/* Bottom fade */}
                                 <div style={{
                                     position: 'absolute',
-                                    bottom: '-4.25rem',
-                                    left: '-4.25rem',
-                                    right: '-4.25rem',
-                                    height: '60%',
-                                    zIndex: 3,
-                                    background: 'linear-gradient(to top, #0A0A0A 0%, transparent 100%)',
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    height: '30%',
+                                    zIndex: 2,
+                                    background: 'linear-gradient(to top, #111111 0%, transparent 100%)',
                                     pointerEvents: 'none',
                                 }} />
                                 <img
-                                    src="https://tailark.com/_next/image?url=%2Fmail-upper.png&w=3840&q=75"
-                                    style={{ position: 'absolute', inset: 0, zIndex: 1, width: '100%', height: '100%', objectFit: 'cover' }}
-                                    alt="payments illustration"
-                                    width={2797}
-                                    height={1137}
-                                />
-                                <img
-                                    src="https://tailark.com/_next/image?url=%2Fmail-back.png&w=3840&q=75"
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    alt="payments illustration dark"
-                                    width={2797}
-                                    height={1137}
+                                    src="/img-hero.png"
+                                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                                    alt="Gate402 real-time payment dashboard"
+                                    width={1920}
+                                    height={1080}
                                 />
                             </div>
                         </div>

@@ -33,24 +33,24 @@ export default function FeaturedSectionStats() {
         {/* Stats grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-8">
           <div>
-            <p className="text-3xl font-medium text-gray-900 dark:text-white">11,000+</p>
-            <p className="text-gray-500 text-md">MCP Servers</p>
-            <p className="text-gray-600 text-sm">Live</p>
+            <p className="text-3xl font-medium text-white">11,000+</p>
+            <p className="text-sm" style={{ color: '#888' }}>MCP Servers</p>
+            <p className="text-sm" style={{ color: '#555' }}>Live</p>
           </div>
           <div>
-            <p className="text-3xl font-medium text-gray-900 dark:text-white">97M</p>
-            <p className="text-gray-500 text-md">Downloads/month</p>
-            <p className="text-gray-600 text-sm">in 2026</p>
+            <p className="text-3xl font-medium text-white">97M</p>
+            <p className="text-sm" style={{ color: '#888' }}>Downloads/month</p>
+            <p className="text-sm" style={{ color: '#555' }}>in 2026</p>
           </div>
           <div>
-            <p className="text-3xl font-medium text-gray-900 dark:text-white">400ms</p>
-            <p className="text-gray-500 text-md">Settlement</p>
-            <p className="text-gray-600 text-sm">on Solana</p>
+            <p className="text-3xl font-medium text-white">400ms</p>
+            <p className="text-sm" style={{ color: '#888' }}>Settlement</p>
+            <p className="text-sm" style={{ color: '#555' }}>on Solana</p>
           </div>
           <div>
-            <p className="text-3xl font-medium text-gray-900 dark:text-white">1%</p>
-            <p className="text-gray-500 text-md">Platform fee</p>
-            <p className="text-gray-600 text-sm">per payment</p>
+            <p className="text-3xl font-medium text-white">1%</p>
+            <p className="text-sm" style={{ color: '#888' }}>Platform fee</p>
+            <p className="text-sm" style={{ color: '#555' }}>per payment</p>
           </div>
         </div>
       </div>

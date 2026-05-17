@@ -115,18 +115,18 @@ export default function RuixenSection() {
           </div>
 
           {/* Content */}
-          <h3 className="text-lg sm:text-xl lg:text-2xl font-normal text-gray-900 dark:text-white leading-relaxed">
+          <h3 className="text-lg sm:text-xl lg:text-2xl font-normal text-white leading-relaxed">
             Real-time Payment Dashboard <span className="text-primary">gate402</span>{" "}
-            <span className="text-gray-500 dark:text-gray-400 text-sm sm:text-base lg:text-lg"> Every USDC that lands in your wallet appears here the moment it arrives. No refresh. No delay. No intermediary.</span>
+            <span className="text-sm sm:text-base lg:text-lg" style={{ color: '#888' }}> Every USDC that lands in your wallet appears here the moment it arrives. No refresh. No delay. No intermediary.</span>
           </h3>
         </div>
 
         {/* Right Block */}
         <div className="flex flex-col items-center justify-start border border-white/[0.06] p-4 sm:p-6 lg:p-8">
           {/* Content */}
-          <h3 className="text-lg sm:text-xl lg:text-2xl font-normal text-gray-900 dark:text-white mb-4 sm:mb-6 leading-relaxed">
+          <h3 className="text-lg sm:text-xl lg:text-2xl font-normal text-white mb-4 sm:mb-6 leading-relaxed">
             The x402 ecosystem is already in production.{" "}
-            <span className="text-gray-500 dark:text-gray-400 text-sm sm:text-base lg:text-lg"> Gate402 connects your API to every agent, framework, and runtime that speaks the x402 protocol.</span>
+            <span className="text-sm sm:text-base lg:text-lg" style={{ color: '#888' }}> Gate402 connects your API to every agent, framework, and runtime that speaks the x402 protocol.</span>
           </h3>
           <div className="mt-auto w-full">
             {/* Integration List */}
@@ -164,24 +164,24 @@ export default function RuixenSection() {
               { value: "MIT",   label: "licensed",    sub: "open source"},
             ].map((item) => (
               <div key={item.value} className="flex-1 flex flex-col items-center px-4 space-y-1 text-center">
-                <div className="text-2xl sm:text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white">{item.value}</div>
-                <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{item.label}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-500">{item.sub}</p>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white">{item.value}</div>
+                <p className="text-xs sm:text-sm font-medium" style={{ color: '#aaa' }}>{item.label}</p>
+                <p className="text-xs" style={{ color: '#666' }}>{item.sub}</p>
               </div>
             ))}
           </div>
         </div>
         <div className="relative">
-          <blockquote className="border-l-2 border-white/[0.06] pl-4 sm:pl-6 lg:pl-8 text-gray-700 dark:text-gray-400">
+          <blockquote className="border-l-2 border-white/[0.06] pl-4 sm:pl-6 lg:pl-8" style={{ color: '#aaa' }}>
             <p className="text-sm sm:text-base lg:text-lg leading-relaxed">
               &ldquo;The agentic economy needs a payment layer.<br />
               HTTP 402 has existed since 1991.<br />
               Gate402 is what finally makes it real.&rdquo;
             </p>
             <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3">
-              <cite className="block font-medium text-sm sm:text-base text-gray-900 dark:text-white not-italic">
+              <cite className="block font-medium text-sm sm:text-base text-white not-italic">
                 — The infrastructure the internet forgot to build,<br />
-                <span className="font-normal text-gray-500 dark:text-gray-500">until agents made it necessary.</span>
+                <span className="font-normal" style={{ color: '#666' }}>until agents made it necessary.</span>
               </cite>
             </div>
           </blockquote>
