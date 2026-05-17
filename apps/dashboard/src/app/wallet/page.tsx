@@ -11,6 +11,7 @@ import PageContainer from '../components/PageContainer'
 import PageHeader from '../components/PageHeader'
 import Card from '../components/Card'
 import { useUser } from '../hooks/useUser'
+import { useDashboardData } from '../hooks/useDashboardData'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
 const MONO = 'var(--font-code)'
@@ -50,9 +51,13 @@ function buildSpark(txns: TxRow[], field: 'totalAmount' | 'providerAmount' | 'pl
     const d = tx.createdAt?.split('T')[0] ?? 'x'
     map[d] = (map[d] ?? 0) + (tx[field] ?? 0)
   })
-  return Object.entries(map)
+  const sorted = Object.entries(map)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([, v]) => ({ value: v }))
+  // Need ≥2 points for recharts to draw a line
+  if (sorted.length === 0) return [{ value: 0 }, { value: 0 }]
+  if (sorted.length === 1) return [{ value: 0 }, sorted[0]]
+  return sorted
 }
 
 // Inline SVG icons
@@ -160,7 +165,8 @@ function timeAgo(date: string) {
 
 export default function WalletPage() {
   const router = useRouter()
-  const { userData } = useUser()
+  const { userData, supabaseUserId } = useUser()
+  const { data: dashData, loading: dashLoading } = useDashboardData(supabaseUserId ?? null)
 
   const [stats, setStats] = useState<Stats | null>(null)
   const [txns, setTxns] = useState<TxRow[]>([])
@@ -175,6 +181,7 @@ export default function WalletPage() {
   const network = userData?.network ?? 'devnet'
   const walletAddr = userData?.walletAddress
 
+  // Fetch transactions (wallet-specific data not in dashboard route)
   useEffect(() => {
     async function load() {
       const supabase = createClient()

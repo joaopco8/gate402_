@@ -2,6 +2,21 @@
 import { useEffect, useState } from 'react'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+const CACHE_TTL = 10_000 // 10 seconds
+
+const cache = new Map<string, { data: any; timestamp: number }>()
+
+async function fetchWithCache(url: string, headers: Record<string, string>) {
+  const cached = cache.get(url)
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data
+  }
+  const res = await window.fetch(url, { headers })
+  if (!res.ok) throw new Error(`fetch ${url} failed: ${res.status}`)
+  const data = await res.json()
+  cache.set(url, { data, timestamp: Date.now() })
+  return data
+}
 
 export interface DashboardData {
   totalCalls: number
@@ -28,9 +43,11 @@ export interface DashboardData {
     active: boolean
     totalCalls: number
   }>
+  // raw server response for wallet page
+  _raw?: any
 }
 
-export function useDashboardData(userId: string | null, isPro: boolean) {
+export function useDashboardData(userId: string | null, _isPro?: boolean) {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -38,62 +55,48 @@ export function useDashboardData(userId: string | null, isPro: boolean) {
   useEffect(() => {
     if (!userId) return
 
+    let cancelled = false
+
     async function fetchAll() {
       try {
-        const headers: Record<string, string> = { 'x-user-id': userId! }
+        const url = `${SERVER_URL}/api/dashboard`
+        const json = await fetchWithCache(url, { 'x-user-id': userId! })
 
-        const [metricsRes, callsRes, perDayRes, endpointsRes] = await Promise.all([
-          fetch(`${SERVER_URL}/api/metrics`, { headers }),
-          fetch(`${SERVER_URL}/api/calls/recent`, { headers }),
-          fetch(`${SERVER_URL}/api/calls/per-day`, { headers }),
-          fetch(`${SERVER_URL}/api/endpoints`, { headers }),
-        ])
+        if (cancelled) return
 
-        const [metrics, rawCalls, rawPerDay, endpoints]: [any, any[], any[], any[]] = await Promise.all([
-          metricsRes.ok ? metricsRes.json() : {},
-          callsRes.ok ? callsRes.json() : [],
-          perDayRes.ok ? perDayRes.json() : [],
-          endpointsRes.ok ? endpointsRes.json() : [],
-        ])
+        const metrics = json.metrics ?? {}
+        const rawPerDay = json.callsPerDay ?? []
 
-        // Map per-day: API returns { date: "DD/MM", calls, usdc }
-        const callsPerDay = (rawPerDay as any[]).map(d => ({
+        // callsPerDay already has ISO dates from new route
+        const callsPerDay = rawPerDay.map((d: any) => ({
           date: d.date,
-          count: d.calls ?? d.count ?? 0,
-          amount: d.usdc ?? d.amount ?? 0,
-        }))
-
-        // Map recent calls: API returns { endpoint: { path }, amountUsdc, ... }
-        const limit = isPro ? 50 : 5
-        const recentCalls = (rawCalls as any[]).slice(0, limit).map((c: any) => ({
-          id: c.id,
-          endpoint: c.endpoint?.path ?? c.endpoint ?? '—',
-          amountUsdc: c.amountUsdc ?? 0,
-          payerWallet: c.payerWallet ?? null,
-          status: c.status ?? 'unknown',
-          createdAt: c.createdAt,
+          count: d.count ?? 0,
+          amount: d.amount ?? 0,
         }))
 
         setData({
           totalCalls: metrics.totalCalls ?? 0,
           totalUsdc: metrics.totalUsdc ?? 0,
-          callsToday: metrics.todayCalls ?? metrics.callsToday ?? 0,
-          usdcToday: metrics.todayUsdc ?? metrics.usdcToday ?? 0,
-          recentCalls,
+          callsToday: metrics.callsToday ?? 0,
+          usdcToday: metrics.usdcToday ?? 0,
+          recentCalls: json.recentCalls ?? [],
           callsPerDay,
-          endpoints: endpoints ?? [],
+          endpoints: json.endpoints ?? [],
+          _raw: json,
         })
-      } catch (e: any) {
-        setError(e.message)
-      } finally {
         setLoading(false)
+      } catch (e: any) {
+        if (!cancelled) setError(e.message)
       }
     }
 
     fetchAll()
-    const interval = setInterval(fetchAll, 10000)
-    return () => clearInterval(interval)
-  }, [userId, isPro])
+    const interval = setInterval(fetchAll, 15_000)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [userId])
 
   return { data, loading, error }
 }
