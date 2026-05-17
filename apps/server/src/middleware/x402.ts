@@ -116,8 +116,8 @@ async function findEndpointRecord(fullPath: string, shortPath: string, apiKey?: 
 export async function x402Middleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const requestStart = Date.now();
-    const fullPath = req.baseUrl + req.path; // e.g. /api/weather
-    const shortPath = req.path;              // e.g. /weather
+    const fullPath = req.originalUrl.split('?')[0];  // e.g. /api/weather (reliable across all mount points)
+    const shortPath = req.path;                       // e.g. /weather
     const rawPaymentHeader = req.headers['x-payment-payload'] as string | undefined;
     const apiKey = req.headers['x-api-key'] as string | undefined;
     const agentWallet = req.headers['x-agent-wallet'] as string | undefined;
@@ -129,7 +129,9 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       : undefined;
     const toolPath = mcpToolName ? `/tools/${mcpToolName}` : undefined;
 
-    console.log('[x402] looking for endpoint:', req.path)
+    console.log('[x402] req.path:', req.path)
+    console.log('[x402] req.originalUrl:', req.originalUrl)
+    console.log('[x402] full path:', fullPath)
     console.log('[x402] api-key header:', apiKey?.slice(0, 8))
 
     // 1. Busca pricing (Redis cache → DB fallback)
