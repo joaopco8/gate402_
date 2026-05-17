@@ -47,7 +47,7 @@ export interface DashboardData {
   _raw?: any
 }
 
-export function useDashboardData(userId: string | null, _isPro?: boolean) {
+export function useDashboardData(userId: string | null, _isPro?: boolean, days = 7) {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -59,7 +59,7 @@ export function useDashboardData(userId: string | null, _isPro?: boolean) {
 
     async function fetchAll() {
       try {
-        const url = `${SERVER_URL}/api/dashboard`
+        const url = `${SERVER_URL}/api/dashboard?days=${days}`
         const json = await fetchWithCache(url, { 'x-user-id': userId! })
 
         if (cancelled) return
@@ -90,13 +90,16 @@ export function useDashboardData(userId: string | null, _isPro?: boolean) {
       }
     }
 
+    // Bust cache immediately when period changes
+    cache.delete(`${SERVER_URL}/api/dashboard?days=${days}`)
+    setLoading(true)
     fetchAll()
     const interval = setInterval(fetchAll, 15_000)
     return () => {
       cancelled = true
       clearInterval(interval)
     }
-  }, [userId])
+  }, [userId, days])
 
   return { data, loading, error }
 }

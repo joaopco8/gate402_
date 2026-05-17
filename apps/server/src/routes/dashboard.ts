@@ -23,7 +23,11 @@ router.get('/dashboard', async (req, res) => {
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    const since7d = new Date(Date.now() - 7 * 24 * 3600 * 1000)
+
+    const rawDays = parseInt(req.query.days as string) || 7
+    const chartDays = user.plan === 'pro' ? Math.min(rawDays, 90) : Math.min(rawDays, 7)
+    const sinceN = new Date(Date.now() - chartDays * 24 * 3600 * 1000)
+
     const callLimit = user.plan === 'pro' ? 50 : 5
 
     const [
@@ -51,15 +55,15 @@ router.get('/dashboard', async (req, res) => {
           COALESCE(SUM("amountUsdc"), 0)::float as amount
         FROM "ApiCall"
         WHERE "userId" = ${user.id}
-          AND "createdAt" >= ${since7d}
+          AND "createdAt" >= ${sinceN}
         GROUP BY DATE("createdAt")
         ORDER BY date ASC
       `,
     ])
 
-    // Fill 7 days including days with zero activity
+    // Fill all days in range including days with zero activity
     const days = []
-    for (let i = 6; i >= 0; i--) {
+    for (let i = chartDays - 1; i >= 0; i--) {
       const d = new Date()
       d.setDate(d.getDate() - i)
       const dateStr = d.toISOString().split('T')[0]

@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useRef, useMemo, useEffect } from 'react'
+import { useRef, useMemo, useEffect, useState } from 'react'
 import { ComposedChart, Area, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
@@ -12,6 +12,7 @@ import { ProGate } from '../components/ProGate'
 import { ProBanner } from '../components/ProBanner'
 import { useUser } from '../hooks/useUser'
 import { useDashboardData } from '../hooks/useDashboardData'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
@@ -172,12 +173,16 @@ function MiniTooltip({ active, payload }: MiniTooltipProps) {
   )
 }
 
-function MiniChart({ data }: { data: Array<{ date: string; count: number }> }) {
+function MiniChart({ data, days = 7 }: { data: Array<{ date: string; count: number }>; days?: number }) {
   if (!data?.length) return (
     <div style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--font-code)' }}>
       no data yet
     </div>
   )
+
+  // For longer periods, thin out tick frequency so labels don't overlap
+  const tickInterval = days <= 7 ? 0 : days <= 30 ? 4 : 13
+
   return (
     <>
       <style>{CHART_CSS}</style>
@@ -209,6 +214,7 @@ function MiniChart({ data }: { data: Array<{ date: string; count: number }> }) {
               tick={{ fontSize: 12, fill: 'var(--text-muted)' }}
               tickMargin={12}
               dy={10}
+              interval={tickInterval}
               tickFormatter={(v: string) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             />
 
@@ -227,10 +233,8 @@ function MiniChart({ data }: { data: Array<{ date: string; count: number }> }) {
               cursor={{ stroke: LINE_COLOR, strokeWidth: 1, strokeDasharray: 'none' }}
             />
 
-            {/* Gradient area under the line */}
             <Area type="linear" dataKey="count" stroke="transparent" fill="url(#g402LineGrad)" strokeWidth={0} dot={false} />
 
-            {/* Main line */}
             <Line
               type="linear"
               dataKey="count"
@@ -356,9 +360,16 @@ function QuickSetup({ walletAddress, endpointCount, totalCalls }: {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+const PERIOD_OPTIONS = [
+  { value: '7',  label: 'Last 7 days' },
+  { value: '30', label: 'Last 30 days' },
+  { value: '90', label: 'Last 90 days' },
+]
+
 export default function DashboardPage() {
   const { userData, supabaseUserId, loading: userLoading, isPro } = useUser()
-  const { data, loading: dataLoading } = useDashboardData(supabaseUserId, isPro)
+  const [chartDays, setChartDays] = useState(7)
+  const { data, loading: dataLoading } = useDashboardData(supabaseUserId, isPro, chartDays)
 
   const loading = userLoading || dataLoading
   const weeklyAmount = data?.callsPerDay?.reduce((s, d) => s + (d.amount || 0), 0) || 0
@@ -413,13 +424,44 @@ export default function DashboardPage() {
           <Card>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <span style={{ fontFamily: 'var(--font-code)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                Calls — last 7 days
+                Calls
               </span>
-              <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-secondary)' }}>
-                {data?.callsPerDay?.reduce((s, d) => s + d.count, 0) || 0} total
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-secondary)' }}>
+                  {data?.callsPerDay?.reduce((s, d) => s + d.count, 0) || 0} total
+                </span>
+                <Select
+                  value={String(chartDays)}
+                  onValueChange={v => setChartDays(Number(v))}
+                  indicatorPosition="right"
+                >
+                  <SelectTrigger size="sm" className="w-[130px] font-mono text-[11px]" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PERIOD_OPTIONS.map(opt => (
+                      (!isPro && opt.value !== '7') ? null : (
+                        <SelectItem key={opt.value} value={opt.value} className="font-mono text-[11px]">
+                          {opt.label}
+                          {!isPro && opt.value !== '7' && <span className="ml-1 text-[10px] opacity-50">Pro</span>}
+                        </SelectItem>
+                      )
+                    ))}
+                    {!isPro && (
+                      <>
+                        <SelectItem value="30" disabled className="font-mono text-[11px]">
+                          Last 30 days <span className="ml-1 text-[10px] opacity-50">Pro</span>
+                        </SelectItem>
+                        <SelectItem value="90" disabled className="font-mono text-[11px]">
+                          Last 90 days <span className="ml-1 text-[10px] opacity-50">Pro</span>
+                        </SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            {loading ? <Skeleton height={280} /> : <MiniChart data={data?.callsPerDay || []} />}
+            {loading ? <Skeleton height={280} /> : <MiniChart data={data?.callsPerDay || []} days={chartDays} />}
           </Card>
 
           <ProGate isPro={isPro} feature="MRR Projection">
