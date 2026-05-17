@@ -2,6 +2,8 @@
 
 export const dynamic = 'force-dynamic'
 
+import { useRef, useMemo, useEffect } from 'react'
+import { BarChart, Bar, CartesianGrid, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
 import PageHeader from '../components/PageHeader'
@@ -25,23 +27,91 @@ function Skeleton({ width = '100%', height = 16 }: { width?: string | number; he
   )
 }
 
-// ── StatCard ─────────────────────────────────────────────────────────────────
+// ── Sparkline helpers ────────────────────────────────────────────────────────
 
-function StatCard({ label, value, sub, loading, positive }: {
-  label: string; value: string; sub?: string; loading?: boolean; positive?: boolean
+function generateSmoothPath(points: number[], w: number, h: number): string {
+  if (points.length < 2) return `M 0 ${h}`
+  const xStep = w / (points.length - 1)
+  const pts = points.map((p, i) => [i * xStep, h - (p / 100) * (h * 0.8) - h * 0.1] as [number, number])
+  let path = `M ${pts[0][0]} ${pts[0][1]}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x1, y1] = pts[i], [x2, y2] = pts[i + 1]
+    const mx = (x1 + x2) / 2
+    path += ` C ${mx},${y1} ${mx},${y2} ${x2},${y2}`
+  }
+  return path
+}
+
+// ── StatsCard ─────────────────────────────────────────────────────────────────
+
+function StatsCard({ label, value, sub, sparkData, change, loading }: {
+  label: string; value: string; sub?: string; sparkData: number[]; change: number | null; loading?: boolean
 }) {
+  const lineRef = useRef<SVGPathElement>(null)
+  const areaRef = useRef<SVGPathElement>(null)
+  const svgW = 100, svgH = 48
+  const isPositive = change === null || change >= 0
+  const strokeColor = isPositive ? '#00bc7d' : '#ef4444'
+  const gradId = `sg-${label.replace(/\W+/g, '')}`
+
+  const linePath = useMemo(() => generateSmoothPath(sparkData, svgW, svgH), [sparkData])
+  const areaPath = useMemo(() => linePath.startsWith('M') ? `${linePath} L ${svgW} ${svgH} L 0 ${svgH} Z` : '', [linePath])
+
+  useEffect(() => {
+    const path = lineRef.current
+    const area = areaRef.current
+    if (!path || !area) return
+    const len = path.getTotalLength()
+    path.style.transition = 'none'
+    path.style.strokeDasharray = `${len} ${len}`
+    path.style.strokeDashoffset = `${len}`
+    area.style.transition = 'none'
+    area.style.opacity = '0'
+    path.getBoundingClientRect()
+    path.style.transition = 'stroke-dashoffset 0.8s ease-in-out'
+    path.style.strokeDashoffset = '0'
+    area.style.transition = 'opacity 0.8s ease-in-out 0.2s'
+    area.style.opacity = '1'
+  }, [linePath])
+
   return (
     <Card>
-      <div style={{ fontFamily: 'var(--font-code)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
-        {label}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{ fontFamily: 'var(--font-code)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              {label}
+            </span>
+            {change !== null && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 600, color: isPositive ? '#00bc7d' : '#ef4444', fontFamily: 'var(--font-code)' }}>
+                {isPositive ? '↑' : '↓'}{Math.abs(change).toFixed(0)}%
+              </span>
+            )}
+          </div>
+          {loading
+            ? <Skeleton height={28} width={100} />
+            : <div style={{ fontSize: 26, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: 4 }}>{value}</div>
+          }
+          {sub && !loading && (
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{sub}</div>
+          )}
+        </div>
+
+        {!loading && sparkData.length >= 2 && (
+          <div style={{ width: 100, height: 48, flexShrink: 0 }}>
+            <svg viewBox={`0 0 ${svgW} ${svgH}`} style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
+              <defs>
+                <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={strokeColor} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={strokeColor} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <path ref={areaRef} d={areaPath} fill={`url(#${gradId})`} />
+              <path ref={lineRef} d={linePath} fill="none" stroke={strokeColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        )}
       </div>
-      {loading
-        ? <Skeleton height={28} width={100} />
-        : <div style={{ fontSize: 26, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: 4 }}>{value}</div>
-      }
-      {sub && !loading && (
-        <div style={{ fontSize: 12, color: positive ? 'var(--green)' : 'var(--text-muted)', marginTop: 2 }}>{sub}</div>
-      )}
     </Card>
   )
 }
@@ -50,26 +120,34 @@ function StatCard({ label, value, sub, loading, positive }: {
 
 function MiniChart({ data }: { data: Array<{ date: string; count: number }> }) {
   if (!data?.length) return (
-    <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--font-code)' }}>
+    <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--font-code)' }}>
       no data yet
     </div>
   )
-  const max = Math.max(...data.map(d => d.count), 1)
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 80 }}>
-      {data.map((d, i) => {
-        const h = Math.max((d.count / max) * 72, d.count > 0 ? 4 : 2)
-        return (
-          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <div
-              title={`${d.count} calls on ${d.date}`}
-              style={{ width: '100%', height: h, background: d.count > 0 ? 'var(--green)' : 'var(--border)', borderRadius: 2, opacity: d.count > 0 ? 1 : 0.5, transition: 'height 300ms ease' }}
-            />
-            <span style={{ fontSize: 9, color: 'var(--text-faint)', fontFamily: 'var(--font-code)' }}>{d.date}</span>
-          </div>
-        )
-      })}
-    </div>
+    <ResponsiveContainer width="100%" height={120}>
+      <BarChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+        <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.5} />
+        <XAxis
+          dataKey="date"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          tick={{ fill: 'var(--text-faint)', fontSize: 10, fontFamily: 'var(--font-code)' }}
+          tickFormatter={(value: string) => {
+            const d = new Date(value)
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          }}
+        />
+        <Tooltip
+          cursor={{ fill: 'rgba(0,188,125,0.06)' }}
+          contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12, fontFamily: 'var(--font-code)', color: 'var(--text-primary)' }}
+          formatter={(value: number) => [`${value} calls`, '']}
+          labelFormatter={(label: string) => new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+        />
+        <Bar dataKey="count" fill="#00bc7d" radius={[3, 3, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
   )
 }
 
@@ -191,6 +269,27 @@ export default function DashboardPage() {
   const weeklyAmount = data?.callsPerDay?.reduce((s, d) => s + (d.amount || 0), 0) || 0
   const mrrProjected = (weeklyAmount / 7) * 30
 
+  // Spark data: normalize raw values to 0–100 scale
+  const toSpark = (vals: number[]) => {
+    const max = Math.max(...vals, 1)
+    return vals.map(v => (v / max) * 100)
+  }
+  const callsRaw = data?.callsPerDay?.map(d => d.count) ?? []
+  const revenueRaw = data?.callsPerDay?.map(d => d.amount ?? 0) ?? []
+  const callsSpark = toSpark(callsRaw)
+  const revenueSpark = toSpark(revenueRaw)
+
+  // Change %: last day vs day before (day-over-day)
+  const dayChange = (vals: number[]): number | null => {
+    if (vals.length < 2) return null
+    const last = vals[vals.length - 1]
+    const prev = vals[vals.length - 2]
+    if (prev === 0) return last > 0 ? 100 : null
+    return ((last - prev) / prev) * 100
+  }
+  const callsChange = dayChange(callsRaw)
+  const revenueChange = dayChange(revenueRaw)
+
   return (
     <DashboardLayout>
       <style>{`
@@ -208,10 +307,10 @@ export default function DashboardPage() {
 
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
-          <StatCard label="Total Calls"    value={loading ? '—' : (data?.totalCalls || 0).toLocaleString()} sub="all time"        loading={loading} />
-          <StatCard label="Total Earned"   value={loading ? '—' : `$${(data?.totalUsdc || 0).toFixed(4)}`}  sub="USDC · all time" loading={loading} positive />
-          <StatCard label="Calls Today"    value={loading ? '—' : (data?.callsToday || 0).toLocaleString()} sub="since 00:00 UTC" loading={loading} />
-          <StatCard label="Revenue Today"  value={loading ? '—' : `$${(data?.usdcToday || 0).toFixed(4)}`}  sub="USDC today"      loading={loading} positive />
+          <StatsCard label="Total Calls"   value={loading ? '—' : (data?.totalCalls || 0).toLocaleString()} sub="all time"        sparkData={callsSpark}   change={callsChange}   loading={loading} />
+          <StatsCard label="Total Earned"  value={loading ? '—' : `$${(data?.totalUsdc || 0).toFixed(4)}`}  sub="USDC · all time" sparkData={revenueSpark} change={revenueChange} loading={loading} />
+          <StatsCard label="Calls Today"   value={loading ? '—' : (data?.callsToday || 0).toLocaleString()} sub="since 00:00 UTC" sparkData={callsSpark}   change={callsChange}   loading={loading} />
+          <StatsCard label="Revenue Today" value={loading ? '—' : `$${(data?.usdcToday || 0).toFixed(4)}`}  sub="USDC today"      sparkData={revenueSpark} change={revenueChange} loading={loading} />
         </div>
 
         {/* Chart + MRR */}
