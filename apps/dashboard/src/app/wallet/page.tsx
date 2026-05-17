@@ -7,127 +7,78 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
 import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
+import PageHeader from '../components/PageHeader'
+import Card from '../components/Card'
 import { useUser } from '../hooks/useUser'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
-
-const SANS = 'var(--font-display)'
 const MONO = 'var(--font-code)'
+const SANS = 'var(--font-display)'
 
-const S = {
-  card: {
-    background: '#0d0d0d',
-    border: '1px solid #1a1a1a',
-    borderRadius: 12,
-    marginBottom: 16,
-  } as React.CSSProperties,
-  cardHeader: {
-    padding: '20px 24px',
-    borderBottom: '1px solid #1a1a1a',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  } as React.CSSProperties,
-  cardBody: {
-    padding: '24px',
-  } as React.CSSProperties,
-  label: {
-    fontSize: 12,
-    fontFamily: SANS,
-    color: '#555',
-    letterSpacing: '0.06em',
-    textTransform: 'uppercase' as const,
-    marginBottom: 6,
-    fontWeight: 400,
-  },
-  mono: { fontFamily: MONO } as React.CSSProperties,
-  btn: {
-    display: 'inline-flex', alignItems: 'center', gap: 6,
-    padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 500,
-    cursor: 'pointer', border: 'none', transition: 'background 150ms',
-    background: '#3ecf8e', color: '#111',
-    fontFamily: SANS,
-  } as React.CSSProperties,
-  btnGhost: {
-    display: 'inline-flex', alignItems: 'center', gap: 6,
-    padding: '8px 16px', borderRadius: 6, fontSize: 14, fontWeight: 500,
-    cursor: 'pointer', background: 'transparent',
-    border: '1px solid #1a1a1a', color: '#666',
-    transition: 'border-color 150ms',
-    fontFamily: SANS,
-  } as React.CSSProperties,
-  input: {
-    background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6,
-    padding: '8px 12px', fontSize: 14, color: '#fff',
-    fontFamily: MONO,
-    outline: 'none', width: '100%', boxSizing: 'border-box' as const,
-  },
-  tag: {
-    display: 'inline-flex', alignItems: 'center', gap: 4,
-    fontSize: 12, padding: '2px 8px', borderRadius: 9999,
-    fontFamily: SANS,
-  } as React.CSSProperties,
+interface Stats {
+  totalGross: number
+  totalNet: number
+  totalFeesPaid: number
+  transactionCount: number
 }
 
-interface Balance {
-  available: number
-  totalEarned: number
-  totalWithdrawn: number
-  currency: string
-  network: string
-}
-
-interface Transaction {
-  date: string
+interface TxRow {
+  id: string
   endpoint: string
-  gross: number
-  net: number
-  fee: number
+  totalAmount: number
+  providerAmount: number
+  platformFee: number
   status: string
+  txHashProvider: string
+  createdAt: string
 }
 
-interface Withdrawal {
-  date: string
-  amount: number
-  toWallet: string
-  txHash: string
-  status: string
+interface EndpointRevenue {
+  name: string
+  value: number   // gross
+  calls: number
 }
 
-function StatNum({ label, value, sub }: { label: string; value: string; sub: string }) {
+function StatCard({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
-    <div style={{ flex: 1, padding: '28px 24px', borderRight: '1px solid #1a1a1a' }}>
-      <div style={S.label}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 500, color: '#fff', letterSpacing: '-0.42px', marginBottom: 6, fontFamily: SANS }}>
+    <div style={{ flex: 1 }}>
+      <div style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 26, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: 4 }}>
         {value}
       </div>
-      <div style={{ fontSize: 12, color: '#555', fontFamily: SANS }}>{sub}</div>
+      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{sub}</div>
     </div>
   )
+}
+
+function timeAgo(date: string) {
+  const diff = Date.now() - new Date(date).getTime()
+  const m = Math.floor(diff / 60000)
+  const h = Math.floor(diff / 3600000)
+  const d = Math.floor(diff / 86400000)
+  if (m < 1) return 'just now'
+  if (m < 60) return `${m}m ago`
+  if (h < 24) return `${h}h ago`
+  return `${d}d ago`
 }
 
 export default function WalletPage() {
   const router = useRouter()
   const { userData } = useUser()
 
-  const [balance, setBalance] = useState<Balance | null>(null)
-  const [loadingBalance, setLoadingBalance] = useState(true)
-
-  const [withdrawAmount, setWithdrawAmount] = useState('')
-  const [withdrawing, setWithdrawing] = useState(false)
-  const [withdrawMsg, setWithdrawMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
-
-  const [txns, setTxns] = useState<Transaction[]>([])
-  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [txns, setTxns] = useState<TxRow[]>([])
+  const [epRevenue, setEpRevenue] = useState<EndpointRevenue[]>([])
+  const [loading, setLoading] = useState(true)
 
   const [copied, setCopied] = useState(false)
   const [editingAddr, setEditingAddr] = useState(false)
   const [newAddr, setNewAddr] = useState('')
   const [savingAddr, setSavingAddr] = useState(false)
 
-  const isPro = userData?.plan === 'pro' || userData?.plan === 'enterprise'
-  const hasMetering = userData?.limits?.hasMetering ?? false
-  const network = balance?.network ?? userData?.network ?? 'devnet'
+  const network = userData?.network ?? 'devnet'
   const walletAddr = userData?.walletAddress
 
   useEffect(() => {
@@ -137,67 +88,27 @@ export default function WalletPage() {
       if (!user) { router.push('/auth/login'); return }
 
       try {
-        const [balRes, txRes] = await Promise.allSettled([
-          fetch(`${SERVER_URL}/api/wallet/balance`, { headers: { 'x-user-id': user.id } }),
-          fetch(`${SERVER_URL}/api/analytics/transactions?limit=10`, { headers: { 'x-user-id': user.id } }),
+        const [txRes, epRes] = await Promise.allSettled([
+          fetch(`${SERVER_URL}/api/transactions`, { headers: { 'x-user-id': user.id } }),
+          fetch(`${SERVER_URL}/api/endpoints/revenue`, { headers: { 'x-user-id': user.id } }),
         ])
-
-        if (balRes.status === 'fulfilled' && balRes.value.ok) {
-          const d = await balRes.value.json()
-          setBalance(d)
-          setWithdrawAmount(d.available > 0 ? d.available.toFixed(4) : '')
-        }
 
         if (txRes.status === 'fulfilled' && txRes.value.ok) {
           const d = await txRes.value.json()
-          setTxns(d.transactions ?? d ?? [])
-          setWithdrawals(d.withdrawals ?? [])
+          setStats(d.stats ?? null)
+          setTxns(d.transactions ?? [])
+        }
+
+        if (epRes.status === 'fulfilled' && epRes.value.ok) {
+          const d = await epRes.value.json()
+          setEpRevenue(Array.isArray(d) ? d : [])
         }
       } finally {
-        setLoadingBalance(false)
+        setLoading(false)
       }
     }
     load()
   }, [router])
-
-  async function handleWithdraw() {
-    if (!walletAddr || !withdrawAmount || !isPro) return
-    setWithdrawing(true)
-    setWithdrawMsg(null)
-    try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const res = await fetch(`${SERVER_URL}/api/wallet/withdraw`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
-        body: JSON.stringify({ toAddress: walletAddr, amountUsdc: parseFloat(withdrawAmount) }),
-      })
-      const d = await res.json()
-      if (res.ok) {
-        setWithdrawMsg({ type: 'ok', text: `Sent! Tx: ${d.txHash}` })
-        window.location.reload()
-      } else {
-        setWithdrawMsg({ type: 'err', text: d.error ?? 'Withdrawal failed' })
-      }
-    } catch {
-      setWithdrawMsg({ type: 'err', text: 'Network error. Try again.' })
-    } finally {
-      setWithdrawing(false)
-    }
-  }
-
-  async function handleExport() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const res = await fetch(`${SERVER_URL}/api/analytics/export`, { headers: { 'x-user-id': user.id } })
-    const blob = await res.blob()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url; a.download = 'gate402-transactions.csv'; a.click()
-    URL.revokeObjectURL(url)
-  }
 
   function handleCopy() {
     if (!walletAddr) return
@@ -224,295 +135,211 @@ export default function WalletPage() {
     }
   }
 
-  const available = balance?.available ?? 0
+  const gross = stats?.totalGross ?? 0
+  const net = stats?.totalNet ?? 0
+  const fee = stats?.totalFeesPaid ?? 0
 
   return (
     <DashboardLayout>
       <PageContainer>
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ fontSize: 12, fontFamily: SANS, color: '#555', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>Wallet</div>
-          <h1 style={{ fontSize: 28, fontWeight: 500, color: '#fff', margin: 0, letterSpacing: '-0.42px', fontFamily: SANS }}>Balance & Payouts</h1>
-          <p style={{ fontSize: 15, color: '#666', margin: '8px 0 0', lineHeight: 1.5, fontFamily: SANS }}>
-            USDC earned from API payments · Solana {network.charAt(0).toUpperCase() + network.slice(1)}
-          </p>
-        </div>
+        <PageHeader
+          eyebrow="GATE402"
+          title="Wallet"
+          subtitle={`Revenue & payouts · Solana ${network.charAt(0).toUpperCase() + network.slice(1)}`}
+        />
 
-        <div style={{ ...S.card, display: 'flex', marginBottom: 16, overflow: 'hidden' }}>
-          <StatNum
-            label="Available Balance"
-            value={loadingBalance ? '—' : `$${available.toFixed(4)}`}
-            sub="ready to withdraw"
-          />
-          <StatNum
-            label="Total Earned"
-            value={loadingBalance ? '—' : `$${(balance?.totalEarned ?? 0).toFixed(4)}`}
-            sub="all time"
-          />
-          <StatNum
-            label="Total Withdrawn"
-            value={loadingBalance ? '—' : `$${(balance?.totalWithdrawn ?? 0).toFixed(4)}`}
-            sub="withdrawal history"
-          />
-        </div>
-
-        <div style={S.card}>
-          <div style={S.cardHeader}>
-            <span style={{ fontSize: 15, fontWeight: 500, color: '#fff', fontFamily: SANS }}>Withdraw USDC</span>
-            {!isPro && (
-              <span style={{ ...S.tag, background: 'rgba(255,255,255,0.05)', border: '1px solid #1a1a1a', color: '#555' }}>
-                Pro only
-              </span>
-            )}
+        {/* ── Stat row ── */}
+        <Card style={{ marginBottom: 'var(--space-md)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-lg)' }}>
+            <StatCard
+              label="Total Revenue"
+              value={loading ? '—' : `$${gross.toFixed(4)}`}
+              sub="all time"
+            />
+            <div style={{ borderLeft: '1px solid var(--border)', paddingLeft: 'var(--space-lg)' }}>
+              <StatCard
+                label="Net Revenue (99%)"
+                value={loading ? '—' : `$${net.toFixed(5)}`}
+                sub="goes to your wallet"
+              />
+            </div>
+            <div style={{ borderLeft: '1px solid var(--border)', paddingLeft: 'var(--space-lg)' }}>
+              <StatCard
+                label="Platform Fees (1%)"
+                value={loading ? '—' : `$${fee.toFixed(5)}`}
+                sub="Gate402 fee"
+              />
+            </div>
           </div>
-          <div style={S.cardBody}>
-            {!isPro ? (
-              <div style={{ padding: '16px 20px', background: 'rgba(153,69,255,0.04)', border: '1px solid rgba(153,69,255,0.12)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 14, color: '#888', fontFamily: SANS }}>Upgrade to Pro to withdraw your earnings.</span>
-                <a href="/settings" style={{ ...S.btn, textDecoration: 'none' }}>Upgrade to Pro</a>
+        </Card>
+
+        {/* ── Receiving Wallet ── */}
+        <Card style={{ marginBottom: 'var(--space-md)' }}>
+          <div style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 20 }}>
+            Receiving Wallet
+          </div>
+
+          {!walletAddr ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ padding: 14, background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: '#f87171', marginBottom: 4, fontFamily: SANS }}>No wallet configured</div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: SANS }}>Payments cannot be received until you add a Solana wallet address.</div>
               </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div>
-                  <div style={S.label}>Sending to</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 13, fontFamily: MONO, color: '#ccc' }}>
-                      {walletAddr ? `${walletAddr.slice(0, 8)}...${walletAddr.slice(-4)}` : 'No wallet configured'}
-                    </span>
-                    {walletAddr && (
-                      <button onClick={() => setEditingAddr(v => !v)} style={{ fontSize: 12, color: '#555', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontFamily: SANS }}>
-                        Change
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={S.label}>Amount</div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      style={S.input}
-                      type="number"
-                      value={withdrawAmount}
-                      onChange={e => setWithdrawAmount(e.target.value)}
-                      min="0.001"
-                      max={available}
-                      step="0.001"
-                      placeholder="0.0000"
-                    />
-                    <button
-                      onClick={() => setWithdrawAmount(available.toFixed(4))}
-                      style={{ ...S.btnGhost, whiteSpace: 'nowrap', flexShrink: 0 }}
-                    >
-                      Max
-                    </button>
-                  </div>
-                </div>
-
-                <div style={{ fontSize: 12, color: '#555', fontFamily: SANS }}>Network fee: ~$0.001 SOL</div>
-
-                {withdrawMsg && (
-                  <div style={{
-                    fontSize: 13, padding: '10px 14px', borderRadius: 6, fontFamily: MONO,
-                    background: withdrawMsg.type === 'ok' ? 'rgba(62,207,142,0.06)' : 'rgba(239,68,68,0.06)',
-                    border: `1px solid ${withdrawMsg.type === 'ok' ? 'rgba(62,207,142,0.2)' : 'rgba(239,68,68,0.2)'}`,
-                    color: withdrawMsg.type === 'ok' ? '#3ecf8e' : '#f87171',
-                  }}>
-                    {withdrawMsg.text}
-                  </div>
-                )}
-
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 12px', fontSize: 13, color: 'var(--text-primary)', fontFamily: MONO, outline: 'none' }}
+                  type="text"
+                  value={newAddr}
+                  onChange={e => setNewAddr(e.target.value)}
+                  placeholder="Enter Solana address..."
+                />
                 <button
-                  onClick={handleWithdraw}
-                  disabled={withdrawing || available === 0 || !walletAddr}
-                  style={{ ...S.btn, opacity: (withdrawing || available === 0 || !walletAddr) ? 0.4 : 1, cursor: (withdrawing || available === 0 || !walletAddr) ? 'not-allowed' : 'pointer' }}
+                  onClick={handleSaveAddr}
+                  disabled={savingAddr || !newAddr.trim()}
+                  style={{ padding: '8px 16px', background: 'var(--green)', color: '#000', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', opacity: (!newAddr.trim() || savingAddr) ? 0.4 : 1, fontFamily: SANS, flexShrink: 0 }}
                 >
-                  {withdrawing ? 'Sending...' : 'Withdraw to wallet'}
+                  {savingAddr ? 'Saving...' : 'Add wallet'}
                 </button>
-
-                <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6, fontFamily: SANS }}>
-                  Payments go directly to your wallet on-chain. Gate402 never holds your funds.
-                </div>
               </div>
-            )}
-          </div>
-        </div>
-
-        <div style={S.card}>
-          <div style={S.cardHeader}>
-            <span style={{ fontSize: 15, fontWeight: 500, color: '#fff', fontFamily: SANS }}>Receiving Wallet</span>
-          </div>
-          <div style={S.cardBody}>
-            {!walletAddr ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ padding: '16px', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 8, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: '#f87171', marginBottom: 4, fontFamily: SANS }}>No wallet configured</div>
-                    <div style={{ fontSize: 13, color: '#555', fontFamily: SANS }}>Payments cannot be received until you add a Solana wallet address.</div>
-                  </div>
-                </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                 <div>
-                  <div style={S.label}>Solana wallet address</div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input style={S.input} type="text" value={newAddr} onChange={e => setNewAddr(e.target.value)} placeholder="Enter Solana address..." />
-                    <button onClick={handleSaveAddr} disabled={savingAddr || !newAddr.trim()} style={{ ...S.btn, flexShrink: 0, opacity: (!newAddr.trim() || savingAddr) ? 0.4 : 1 }}>
-                      {savingAddr ? 'Saving...' : 'Add wallet'}
-                    </button>
+                  <div style={{ fontSize: 13, fontFamily: MONO, color: 'var(--text-primary)', marginBottom: 4 }}>
+                    {walletAddr.slice(0, 12)}...{walletAddr.slice(-8)}
                   </div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-                  <div>
-                    <div style={S.label}>Current</div>
-                    <span style={{ fontSize: 13, fontFamily: MONO, color: '#ccc' }}>
-                      {walletAddr.slice(0, 8)}...{walletAddr.slice(-4)}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={handleCopy} style={{ ...S.btnGhost, color: copied ? '#3ecf8e' : '#666', borderColor: copied ? 'rgba(62,207,142,0.3)' : '#1a1a1a' }}>
-                      {copied ? 'Copied' : 'Copy'}
-                    </button>
-                    <a
-                      href={`https://explorer.solana.com/address/${walletAddr}?cluster=${network}`}
-                      target="_blank" rel="noopener noreferrer"
-                      style={{ ...S.btnGhost, textDecoration: 'none', color: '#3ecf8e', borderColor: 'rgba(62,207,142,0.2)' }}
-                    >
-                      View on Explorer
-                    </a>
-                  </div>
-                </div>
-
-                <div>
-                  <span style={{ ...S.tag, background: 'rgba(62,207,142,0.08)', border: '1px solid rgba(62,207,142,0.15)', color: '#3ecf8e' }}>
+                  <span style={{ fontSize: 11, fontFamily: MONO, color: 'var(--green)' }}>
                     Solana {network.charAt(0).toUpperCase() + network.slice(1)}
                   </span>
                 </div>
-
-                {editingAddr && (
-                  <div>
-                    <div style={S.label}>New address</div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <input style={S.input} type="text" value={newAddr} onChange={e => setNewAddr(e.target.value)} placeholder="New Solana address..." />
-                      <button onClick={handleSaveAddr} disabled={savingAddr || !newAddr.trim()} style={{ ...S.btn, flexShrink: 0, opacity: (!newAddr.trim() || savingAddr) ? 0.4 : 1 }}>
-                        {savingAddr ? 'Saving...' : 'Update'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {!editingAddr && (
-                  <button onClick={() => setEditingAddr(true)} style={{ ...S.btnGhost, width: 'fit-content' }}>
-                    Update wallet address
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={handleCopy}
+                    style={{ padding: '7px 14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12, color: copied ? 'var(--green)' : 'var(--text-muted)', cursor: 'pointer', fontFamily: SANS }}
+                  >
+                    {copied ? 'Copied' : 'Copy'}
                   </button>
-                )}
+                  <a
+                    href={`https://explorer.solana.com/address/${walletAddr}?cluster=${network}`}
+                    target="_blank" rel="noopener noreferrer"
+                    style={{ padding: '7px 14px', background: 'transparent', border: '1px solid rgba(0,188,125,0.2)', borderRadius: 6, fontSize: 12, color: 'var(--green)', textDecoration: 'none', fontFamily: SANS }}
+                  >
+                    Explorer →
+                  </a>
+                  <button
+                    onClick={() => setEditingAddr(v => !v)}
+                    style={{ padding: '7px 14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: SANS }}
+                  >
+                    Change
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
-        </div>
 
-        {isPro && hasMetering && (
-          <div style={S.card}>
-            <div style={S.cardHeader}>
-              <span style={{ fontSize: 15, fontWeight: 500, color: '#fff', fontFamily: SANS }}>Revenue Breakdown</span>
+              {editingAddr && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 12px', fontSize: 13, color: 'var(--text-primary)', fontFamily: MONO, outline: 'none' }}
+                    type="text"
+                    value={newAddr}
+                    onChange={e => setNewAddr(e.target.value)}
+                    placeholder="New Solana address..."
+                  />
+                  <button
+                    onClick={handleSaveAddr}
+                    disabled={savingAddr || !newAddr.trim()}
+                    style={{ padding: '8px 16px', background: 'var(--green)', color: '#000', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', opacity: (!newAddr.trim() || savingAddr) ? 0.4 : 1, fontFamily: SANS, flexShrink: 0 }}
+                  >
+                    {savingAddr ? 'Saving...' : 'Update'}
+                  </button>
+                </div>
+              )}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
-              {[
-                { label: 'Request-based', value: '$0.031', sub: '14 transactions' },
-                { label: 'Token-based', value: '$0.008', sub: '8,200 tokens' },
-                { label: 'Compute-based', value: '$0.003', sub: '34 seconds' },
-              ].map((c, i) => (
-                <div key={i} style={{ padding: '24px', borderRight: i < 2 ? '1px solid #1a1a1a' : undefined }}>
-                  <div style={S.label}>{c.label}</div>
-                  <div style={{ fontSize: 28, fontWeight: 500, color: '#fff', letterSpacing: '-0.42px', fontFamily: SANS, marginBottom: 4 }}>{c.value}</div>
-                  <div style={{ fontSize: 12, color: '#555', fontFamily: SANS }}>{c.sub}</div>
+          )}
+        </Card>
+
+        {/* ── Revenue by Endpoint ── */}
+        <Card style={{ marginBottom: 'var(--space-md)', padding: 0 }}>
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
+            <span style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              Revenue by Endpoint
+            </span>
+          </div>
+
+          {loading ? (
+            <div style={{ padding: '32px 24px', color: 'var(--text-muted)', fontSize: 12, fontFamily: MONO }}>Loading...</div>
+          ) : epRevenue.length === 0 ? (
+            <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12, fontFamily: MONO }}>
+              No revenue yet — make your first paid call
+            </div>
+          ) : (
+            <div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 100px 110px', padding: '10px 24px', borderBottom: '1px solid var(--border)' }}>
+                {['Endpoint', 'Calls', 'Gross', 'Net (99%)'].map(h => (
+                  <span key={h} style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>
+                ))}
+              </div>
+              {epRevenue.map((ep, i) => {
+                const epNet = ep.value * 0.99
+                return (
+                  <div
+                    key={i}
+                    style={{ display: 'grid', gridTemplateColumns: '1fr 80px 100px 110px', padding: '12px 24px', borderBottom: i < epRevenue.length - 1 ? '1px solid var(--border)' : 'none', alignItems: 'center' }}
+                  >
+                    <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ep.name}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-secondary)' }}>{ep.calls}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-secondary)' }}>${ep.value.toFixed(5)}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--green)' }}>${epNet.toFixed(5)}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </Card>
+
+        {/* ── Recent Transactions ── */}
+        <Card style={{ padding: 0 }}>
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              Recent Transactions
+            </span>
+          </div>
+
+          {loading ? (
+            <div style={{ padding: '32px 24px', color: 'var(--text-muted)', fontSize: 12, fontFamily: MONO }}>Loading...</div>
+          ) : txns.length === 0 ? (
+            <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12, fontFamily: MONO }}>
+              No transactions yet
+            </div>
+          ) : (
+            <div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 90px 90px 70px 80px', padding: '10px 24px', borderBottom: '1px solid var(--border)' }}>
+                {['Endpoint', 'Gross', 'Net', 'Fee', 'Status', 'Time'].map(h => (
+                  <span key={h} style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>
+                ))}
+              </div>
+              {txns.map((tx, i) => (
+                <div
+                  key={tx.id}
+                  style={{ display: 'grid', gridTemplateColumns: '1fr 90px 90px 90px 70px 80px', padding: '12px 24px', borderBottom: i < txns.length - 1 ? '1px solid var(--border)' : 'none', alignItems: 'center' }}
+                >
+                  <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.endpoint}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-secondary)' }}>${tx.totalAmount?.toFixed(5)}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--green)' }}>${tx.providerAmount?.toFixed(5)}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)' }}>${tx.platformFee?.toFixed(5)}</span>
+                  <span style={{
+                    fontFamily: MONO, fontSize: 10,
+                    color: tx.status === 'verified' || tx.status === 'demo' ? 'var(--green)' : 'var(--text-muted)',
+                    textTransform: 'uppercase', letterSpacing: '0.05em',
+                  }}>
+                    {tx.status}
+                  </span>
+                  <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)' }}>{timeAgo(tx.createdAt)}</span>
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        <div style={S.card}>
-          <div style={S.cardHeader}>
-            <span style={{ fontSize: 15, fontWeight: 500, color: '#fff', fontFamily: SANS }}>Recent Transactions</span>
-            {isPro ? (
-              <button onClick={handleExport} style={{ ...S.btnGhost, fontSize: 12 }}>Export CSV</button>
-            ) : (
-              <span style={{ fontSize: 12, color: '#555', fontFamily: SANS }}>Export CSV — Pro only</span>
-            )}
-          </div>
-          <div>
-            {txns.length === 0 ? (
-              <div style={{ padding: '40px 24px', textAlign: 'center', color: '#555', fontSize: 13, fontFamily: SANS }}>
-                No transactions yet.
-              </div>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #1a1a1a' }}>
-                    {['Date', 'Endpoint', 'Gross', 'Net', 'Fee', 'Status'].map(h => (
-                      <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontFamily: SANS, color: '#555', letterSpacing: '0.08em', fontWeight: 400 }}>{h.toUpperCase()}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {txns.map((tx, i) => (
-                    <tr key={i} style={{ borderBottom: i < txns.length - 1 ? '1px solid #111' : undefined }}>
-                      <td style={{ padding: '12px 16px', fontSize: 12, color: '#555', fontFamily: MONO }}>{tx.date}</td>
-                      <td style={{ padding: '12px 16px', fontSize: 13, color: '#ccc', fontFamily: MONO }}>{tx.endpoint}</td>
-                      <td style={{ padding: '12px 16px', fontSize: 13, color: '#fff', fontFamily: MONO }}>${tx.gross?.toFixed(5)}</td>
-                      <td style={{ padding: '12px 16px', fontSize: 13, color: '#3ecf8e', fontFamily: MONO }}>${tx.net?.toFixed(5)}</td>
-                      <td style={{ padding: '12px 16px', fontSize: 12, color: '#555', fontFamily: MONO }}>${tx.fee?.toFixed(5)}</td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{ ...S.tag, background: 'rgba(62,207,142,0.08)', border: '1px solid rgba(62,207,142,0.15)', color: '#3ecf8e' }}>
-                          {tx.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-
-        {withdrawals.length > 0 && (
-          <div style={S.card}>
-            <div style={S.cardHeader}>
-              <span style={{ fontSize: 15, fontWeight: 500, color: '#fff', fontFamily: SANS }}>Withdrawal History</span>
-            </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid #1a1a1a' }}>
-                  {['Date', 'Amount', 'To Wallet', 'Tx Hash', 'Status'].map(h => (
-                    <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontFamily: SANS, color: '#555', letterSpacing: '0.08em', fontWeight: 400 }}>{h.toUpperCase()}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {withdrawals.map((w, i) => (
-                  <tr key={i} style={{ borderBottom: i < withdrawals.length - 1 ? '1px solid #111' : undefined }}>
-                    <td style={{ padding: '12px 16px', fontSize: 12, color: '#555', fontFamily: MONO }}>{w.date}</td>
-                    <td style={{ padding: '12px 16px', fontSize: 13, color: '#fff', fontFamily: MONO }}>${w.amount?.toFixed(4)} USDC</td>
-                    <td style={{ padding: '12px 16px', fontSize: 12, color: '#ccc', fontFamily: MONO }}>{w.toWallet?.slice(0, 8)}...{w.toWallet?.slice(-4)}</td>
-                    <td style={{ padding: '12px 16px', fontSize: 12, color: '#555', fontFamily: MONO }}>{w.txHash?.slice(0, 8)}...</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{ ...S.tag, background: 'rgba(62,207,142,0.08)', border: '1px solid rgba(62,207,142,0.15)', color: '#3ecf8e' }}>
-                        {w.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {withdrawals.length === 0 && isPro && (
-          <div style={{ padding: '24px', textAlign: 'center', color: '#555', fontSize: 13, fontFamily: SANS }}>
-            No withdrawals yet. Your earned USDC is waiting in your balance.
-          </div>
-        )}
+          )}
+        </Card>
 
       </PageContainer>
     </DashboardLayout>
