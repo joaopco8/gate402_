@@ -88,10 +88,11 @@ function LoadingDots() {
 }
 
 const sectionLabel: React.CSSProperties = {
-  fontSize: 11,
+  fontSize: 12,
   color: 'var(--text-muted)',
-  fontFamily: 'var(--font-code)',
-  letterSpacing: '0.08em',
+  fontFamily: 'var(--font-display)',
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
   marginBottom: 12,
 }
 
@@ -288,7 +289,7 @@ export default function PlaygroundPage() {
             gap: 14,
             alignItems: 'flex-start',
           }}>
-            <span style={{ color: '#ef4444', fontSize: 18, flexShrink: 0, lineHeight: 1.4 }}>✗</span>
+            <div style={{ width: 3, alignSelf: 'stretch', background: '#ef4444', borderRadius: 2, flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 500, color: '#ef4444', marginBottom: 6 }}>Payment required</div>
               <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 14 }}>
@@ -336,7 +337,7 @@ export default function PlaygroundPage() {
             gap: 14,
             alignItems: 'flex-start',
           }}>
-            <span style={{ color: 'var(--green)', fontSize: 18, flexShrink: 0, lineHeight: 1.4 }}>✓</span>
+            <div style={{ width: 3, alignSelf: 'stretch', background: 'var(--green)', borderRadius: 2, flexShrink: 0 }} />
             <div>
               <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--green)', marginBottom: 6 }}>Payment accepted</div>
               <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 14 }}>
@@ -357,11 +358,9 @@ export default function PlaygroundPage() {
 
         {/* Section 5 — Session History */}
         <div style={{ marginTop: 8 }}>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-code)', letterSpacing: '0.1em', marginBottom: 12 }}>
-            SESSION HISTORY
-          </div>
+          <div style={sectionLabel}>Session History</div>
           {history.length === 0 ? (
-            <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, padding: '24px 0', fontFamily: 'var(--font-code)' }}>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, padding: '24px 0', fontFamily: 'var(--font-display)' }}>
               No calls yet. Try calling an endpoint above.
             </div>
           ) : (
@@ -377,7 +376,7 @@ export default function PlaygroundPage() {
                   borderRadius: 6,
                   fontSize: 13,
                 }}>
-                  <span style={{ fontFamily: 'var(--font-code)', color: 'var(--text-secondary)', flex: 1 }}>
+                  <span style={{ fontFamily: 'var(--font-code)', color: 'var(--text-secondary)', flex: 1, fontSize: 13 }}>
                     {h.endpoint}
                   </span>
                   <StatusBadge status={h.status} />
@@ -385,8 +384,8 @@ export default function PlaygroundPage() {
                     {h.timeMs}ms
                   </span>
                   <span style={{
-                    fontFamily: 'var(--font-code)',
-                    fontSize: 11,
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 12,
                     color: h.paid ? 'var(--green)' : '#ef4444',
                     minWidth: 44,
                     textAlign: 'right',

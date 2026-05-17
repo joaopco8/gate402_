@@ -27,10 +27,10 @@ export default function PageHeader({ eyebrow, title, subtitle, action }: PageHea
           {eyebrow}
         </div>
         <h1 style={{
-          fontSize: 32,
-          fontWeight: 300,
+          fontSize: 28,
+          fontWeight: 600,
           color: 'var(--text-primary)',
-          letterSpacing: '-0.03em',
+          letterSpacing: '-0.42px',
           lineHeight: 1.1,
           marginBottom: subtitle ? 8 : 0,
         }}>

@@ -21,11 +21,11 @@ export default function Card({ children, style, accent, glass, hover }: CardProp
         background: glass ? 'rgba(13,13,13,0.6)' : 'var(--card)',
         backdropFilter: glass ? 'blur(12px)' : undefined,
         border: `1px solid ${accent
-          ? 'rgba(0,255,136,0.2)'
+          ? 'rgba(0,188,125,0.2)'
           : hovered
             ? 'var(--border-hover)'
             : 'var(--border)'}`,
-        borderRadius: 10,
+        borderRadius: 12,
         padding: 24,
         transition: 'border-color 200ms ease, box-shadow 200ms ease',
         boxShadow: hovered

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -8,19 +9,44 @@
   --color-3: 210 100% 63%;
   --color-4: 195 100% 63%;
   --color-5: 90 100% 63%;
-  --bg:           #0A0A0A;
-  --surface:      #111111;
-  --card:         #0d0d0d;
+  --bg:           #000000;
+  --surface:      #0a0a0a;
+  --card:         #0a0a0a;
+  --card-raised:  #111111;
   --border:       #1a1a1a;
-  --border-hover: #2a2a2a;
+  --border-hover: #242424;
   --text-primary:   #ffffff;
-  --text-secondary: #666666;
-  --text-muted:     #333333;
-  --green:  #00ff88;
+  --text-secondary: #888888;
+  --text-muted:     #555555;
+  --text-faint:     #333333;
+  --green:       #00bc7d;
+  --green-deep:  #00a36d;
   --purple: #9945FF;
   --blue:   #3b82f6;
   --font-display: var(--font-space), system-ui, sans-serif;
   --font-code:    var(--font-mono-jb), monospace;
+
+  /* spacing */
+  --space-xxs: 2px;
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  12px;
+  --space-lg:  16px;
+  --space-xl:  24px;
+  --space-xxl: 32px;
+  --space-huge: 64px;
+
+  /* radius */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* shadows */
+  --shadow-1: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-2: 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-3: 0 16px 48px rgba(0,0,0,0.6);
 
   /* shadcn/ui color tokens — dark theme (Tailwind v4 --color-* format) */
   --color-background:           oklch(0.09 0 0);
@@ -93,26 +119,58 @@ a { text-decoration: none; color: inherit; }
 ::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: #2a2a2a; }
 
-::selection { background: rgba(0,255,136,0.15); color: #fff; }
+::selection { background: rgba(0,188,125,0.15); color: #fff; }
 
 @keyframes rainbow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0%   { background-position: 0%; }
+  100% { background-position: 200%; }
 }
 
 @keyframes glow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
 @layer utilities {
+  /*
+   * animate-rainbow: animated rainbow border trick.
+   * Uses two background-image layers so background-clip can separate them:
+   *   layer 1 (solid dark) → clipped to padding-box = fills content area
+   *   layer 2 (rainbow gradient) → clipped to border-box = shows as border
+   * The outer div must have:
+   *   [background-clip:padding-box,border-box,border-box]
+   *   [background-origin:border-box]
+   *   [border:..._solid_transparent]
+   */
   .animate-rainbow {
-    background: linear-gradient(90deg, hsl(var(--color-1)), hsl(var(--color-5)), hsl(var(--color-3)), hsl(var(--color-4)), hsl(var(--color-2)));
-    background-size: 200%;
-    animation: rainbow 3s linear infinite;
+    animation: rainbow 2s linear infinite;
+    background-image:
+      linear-gradient(oklch(0.09 0 0), oklch(0.09 0 0)),
+      linear-gradient(90deg,
+        hsl(var(--color-1)),
+        hsl(var(--color-5)),
+        hsl(var(--color-3)),
+        hsl(var(--color-4)),
+        hsl(var(--color-2))
+      );
+    background-size: auto, 200%;
   }
+}
+
+@theme inline {
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to   { height: var(--radix-accordion-content-height); }
+}
+
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to   { height: 0; }
 }
 
 @keyframes fadeInUp {

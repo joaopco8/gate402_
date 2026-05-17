@@ -77,7 +77,7 @@ const NAV_ITEMS = [
   { label: 'Settings',   href: '/settings',   Icon: IconSettings },
 ]
 
-const SIDEBAR_EXPANDED = 280
+const SIDEBAR_EXPANDED = 220
 const SIDEBAR_COLLAPSED = 56
 
 interface SidebarProps {
@@ -107,7 +107,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   async function handleLogout() {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/login')
+    router.push('/auth/login')
   }
 
   const initial = email ? email[0].toUpperCase() : '?'
@@ -120,7 +120,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
       position: 'fixed',
       top: 0,
       left: mobileOpen ? 0 : undefined,
-      background: '#0A0A0A',
+      background: '#000000',
       borderRight: '1px solid #1a1a1a',
       display: 'flex',
       flexDirection: 'column',
@@ -184,12 +184,12 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   gap: 10,
                   padding: '9px 12px',
                   margin: '1px 8px',
-                  fontSize: 15,
-                  fontFamily: 'Space Grotesk, sans-serif',
+                  fontSize: 14,
+                  fontFamily: 'var(--font-display)',
                   fontWeight: 400,
                   color: active ? '#fff' : '#888',
                   background: active ? '#0a0a0a' : 'transparent',
-                  borderLeft: active ? '2px solid #00ff88' : '2px solid transparent',
+                  borderLeft: active ? '2px solid #00bc7d' : '2px solid transparent',
                   borderRadius: 6,
                   transition: 'all 150ms ease',
                   cursor: 'pointer',
@@ -213,7 +213,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   setTooltip(null)
                 }}
               >
-                <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: active ? '#00ff88' : 'currentColor' }}>
+                <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: active ? '#00bc7d' : 'currentColor' }}>
                   <Icon />
                 </span>
                 {!collapsed && <span>{label}</span>}
@@ -230,7 +230,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   borderRadius: 6,
                   padding: '6px 10px',
                   fontSize: 12,
-                  fontFamily: 'Space Grotesk, sans-serif',
+                  fontFamily: 'var(--font-display)',
                   color: '#fff',
                   whiteSpace: 'nowrap',
                   pointerEvents: 'none',
@@ -253,13 +253,13 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
             <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 49 }} />
             <div style={{
               position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, right: 0,
-              background: '#0A0A0A', border: '1px solid #1a1a1a', borderRadius: 8,
+              background: '#000000', border: '1px solid #1a1a1a', borderRadius: 8,
               zIndex: 50, overflow: 'hidden',
             }}>
               {/* Account header */}
               <div style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a' }}>
                 <div style={{
-                  fontSize: 12, color: '#fff', fontFamily: 'Space Grotesk, sans-serif',
+                  fontSize: 12, color: '#fff', fontFamily: 'var(--font-display)',
                   fontWeight: 500, marginBottom: 6,
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
@@ -268,8 +268,8 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                 {isPro ? (
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', gap: 5,
-                    background: 'rgba(0,255,136,0.08)', color: '#00ff88',
-                    border: '1px solid rgba(0,255,136,0.2)', borderRadius: 4,
+                    background: 'rgba(0,188,125,0.08)', color: '#00bc7d',
+                    border: '1px solid rgba(0,188,125,0.2)', borderRadius: 4,
                     padding: '2px 8px', fontSize: 10,
                     fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em',
                   }}>✦ PRO</span>
@@ -284,11 +284,11 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   <a href="/checkout" onClick={() => setMenuOpen(false)} style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '9px 12px', margin: '1px 8px', borderRadius: 6,
-                    fontSize: 14, fontFamily: 'Space Grotesk, sans-serif', fontWeight: 400,
-                    color: '#00ff88', textDecoration: 'none',
+                    fontSize: 14, fontFamily: 'var(--font-display)', fontWeight: 400,
+                    color: '#00bc7d', textDecoration: 'none',
                     borderLeft: '2px solid transparent', transition: 'all 150ms ease',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.borderLeftColor = '#00ff88' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.borderLeftColor = '#00bc7d' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderLeftColor = 'transparent' }}
                   >
                     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -301,7 +301,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   <a href="/checkout" onClick={() => setMenuOpen(false)} style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '9px 12px', margin: '1px 8px', borderRadius: 6,
-                    fontSize: 14, fontFamily: 'Space Grotesk, sans-serif', fontWeight: 400,
+                    fontSize: 14, fontFamily: 'var(--font-display)', fontWeight: 400,
                     color: '#888', textDecoration: 'none',
                     borderLeft: '2px solid transparent', transition: 'all 150ms ease',
                   }}
@@ -317,7 +317,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                 <a href="/settings" onClick={() => setMenuOpen(false)} style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '9px 12px', margin: '1px 8px', borderRadius: 6,
-                  fontSize: 14, fontFamily: 'Space Grotesk, sans-serif', fontWeight: 400,
+                  fontSize: 14, fontFamily: 'var(--font-display)', fontWeight: 400,
                   color: '#888', textDecoration: 'none',
                   borderLeft: '2px solid transparent', transition: 'all 150ms ease',
                 }}
@@ -334,7 +334,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                 <button onClick={() => { setMenuOpen(false); handleLogout() }} style={{
                   display: 'flex', alignItems: 'center', gap: 10, width: '100%',
                   padding: '9px 12px', margin: '1px 8px', borderRadius: 6,
-                  fontSize: 14, fontFamily: 'Space Grotesk, sans-serif', fontWeight: 400,
+                  fontSize: 14, fontFamily: 'var(--font-display)', fontWeight: 400,
                   color: '#888', background: 'transparent', border: 'none', cursor: 'pointer',
                   borderLeft: '2px solid transparent', transition: 'all 150ms ease',
                   boxSizing: 'border-box',

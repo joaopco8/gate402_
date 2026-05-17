@@ -11,19 +11,12 @@ import PageHeader from '../components/PageHeader'
 import Card from '../components/Card'
 import { useUser } from '../hooks/useUser'
 
-const cardStyle: React.CSSProperties = {
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
-  borderRadius: 8,
-  padding: 24,
-  marginBottom: 16,
-}
-
 const labelStyle: React.CSSProperties = {
-  fontSize: 11,
+  fontSize: 12,
   color: 'var(--text-muted)',
-  fontFamily: 'var(--font-code)',
-  letterSpacing: '0.08em',
+  fontFamily: 'var(--font-display)',
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
   marginBottom: 12,
 }
 
@@ -40,9 +33,10 @@ const valueBoxStyle: React.CSSProperties = {
 }
 
 const subtextStyle: React.CSSProperties = {
-  fontSize: 12,
+  fontSize: 13,
   color: 'var(--text-muted)',
-  fontFamily: 'var(--font-code)',
+  fontFamily: 'var(--font-display)',
+  lineHeight: 1.5,
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -58,19 +52,19 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={handleCopy}
       style={{
-        background: copied ? 'rgba(0,255,136,0.08)' : 'transparent',
-        border: `1px solid ${copied ? 'rgba(0,255,136,0.3)' : 'var(--border)'}`,
+        background: copied ? 'rgba(62,207,142,0.08)' : 'transparent',
+        border: `1px solid ${copied ? 'rgba(62,207,142,0.3)' : 'var(--border)'}`,
         borderRadius: 6,
         padding: '6px 14px',
-        fontSize: 12,
-        fontFamily: 'var(--font-code)',
-        color: copied ? 'var(--green)' : 'var(--text-secondary)',
+        fontSize: 13,
+        fontFamily: 'var(--font-display)',
+        color: copied ? '#3ecf8e' : 'var(--text-secondary)',
         cursor: 'pointer',
         transition: 'all 150ms',
         marginBottom: 10,
       }}
     >
-      {copied ? 'Copied ✓' : 'Copy'}
+      {copied ? 'Copied' : 'Copy'}
     </button>
   )
 }
@@ -180,7 +174,7 @@ export default function SettingsPage() {
   async function handleSignOut() {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/login')
+    router.push('/auth/login')
   }
 
   const skeletonBox = (
@@ -219,9 +213,9 @@ export default function SettingsPage() {
                 background: 'transparent',
                 border: '1px solid var(--border)',
                 borderRadius: 6,
-                padding: '5px 12px',
-                fontSize: 11,
-                fontFamily: 'var(--font-code)',
+                padding: '6px 14px',
+                fontSize: 13,
+                fontFamily: 'var(--font-display)',
                 color: 'var(--text-muted)',
                 cursor: rotatingKey ? 'not-allowed' : 'pointer',
                 opacity: rotatingKey ? 0.5 : 1,
@@ -286,16 +280,17 @@ export default function SettingsPage() {
                 onClick={handleSaveWallet}
                 disabled={savingWallet || !walletInput.trim()}
                 style={{
-                  background: 'rgba(0,255,136,0.1)',
-                  border: '1px solid rgba(0,255,136,0.3)',
+                  background: '#3ecf8e',
+                  border: 'none',
                   borderRadius: 6,
                   padding: '8px 20px',
-                  fontSize: 12,
-                  fontFamily: 'var(--font-code)',
-                  color: 'var(--green)',
+                  fontSize: 14,
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 500,
+                  color: '#111',
                   cursor: savingWallet || !walletInput.trim() ? 'not-allowed' : 'pointer',
                   opacity: !walletInput.trim() ? 0.5 : 1,
-                  transition: 'all 150ms',
+                  transition: 'opacity 150ms',
                 }}
               >
                 {savingWallet ? 'Saving...' : 'Save wallet'}
@@ -309,15 +304,15 @@ export default function SettingsPage() {
           <div style={labelStyle}>NETWORK</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <span style={{
-              background: 'rgba(0,255,136,0.1)',
+              background: 'rgba(0,188,125,0.1)',
               color: 'var(--green)',
-              border: '1px solid rgba(0,255,136,0.25)',
-              borderRadius: 4,
-              padding: '2px 8px',
-              fontSize: 11,
-              fontFamily: 'var(--font-code)',
+              border: '1px solid rgba(0,188,125,0.25)',
+              borderRadius: 9999,
+              padding: '2px 10px',
+              fontSize: 12,
+              fontFamily: 'var(--font-display)',
               fontWeight: 500,
-              letterSpacing: '0.08em',
+              letterSpacing: '0.04em',
             }}>
               {loading ? '...' : (userData?.network ?? 'devnet').toUpperCase()}
             </span>
@@ -332,12 +327,12 @@ export default function SettingsPage() {
               onClick={() => handleNetworkSwitch('devnet')}
               disabled={loading || togglingNetwork || userData?.network === 'devnet'}
               style={{
-                background: userData?.network === 'devnet' ? 'rgba(0,255,136,0.1)' : 'transparent',
-                border: `1px solid ${userData?.network === 'devnet' ? 'rgba(0,255,136,0.3)' : 'var(--border)'}`,
+                background: userData?.network === 'devnet' ? 'rgba(0,188,125,0.1)' : 'transparent',
+                border: `1px solid ${userData?.network === 'devnet' ? 'rgba(0,188,125,0.3)' : 'var(--border)'}`,
                 borderRadius: 6,
                 padding: '7px 16px',
-                fontSize: 12,
-                fontFamily: 'var(--font-code)',
+                fontSize: 13,
+                fontFamily: 'var(--font-display)',
                 color: userData?.network === 'devnet' ? 'var(--green)' : 'var(--text-muted)',
                 cursor: userData?.network === 'devnet' ? 'default' : 'pointer',
                 transition: 'all 150ms',
@@ -349,12 +344,12 @@ export default function SettingsPage() {
               onClick={() => handleNetworkSwitch('mainnet')}
               disabled={loading || togglingNetwork || userData?.network === 'mainnet'}
               style={{
-                background: userData?.network === 'mainnet' ? 'rgba(0,255,136,0.1)' : 'transparent',
-                border: `1px solid ${userData?.network === 'mainnet' ? 'rgba(0,255,136,0.3)' : 'var(--border)'}`,
+                background: userData?.network === 'mainnet' ? 'rgba(0,188,125,0.1)' : 'transparent',
+                border: `1px solid ${userData?.network === 'mainnet' ? 'rgba(0,188,125,0.3)' : 'var(--border)'}`,
                 borderRadius: 6,
                 padding: '7px 16px',
-                fontSize: 12,
-                fontFamily: 'var(--font-code)',
+                fontSize: 13,
+                fontFamily: 'var(--font-display)',
                 color: userData?.network === 'mainnet' ? 'var(--green)' : 'var(--text-muted)',
                 cursor: loading || togglingNetwork || userData?.network === 'mainnet' ? 'not-allowed' : 'pointer',
                 opacity: loading || togglingNetwork ? 0.5 : 1,
@@ -409,7 +404,7 @@ export default function SettingsPage() {
               }} />
             </button>
           </div>
-          <div style={{ marginTop: 12, fontSize: 11, fontFamily: 'var(--font-code)', color: '#333' }}>
+          <div style={{ marginTop: 12, fontSize: 12, fontFamily: 'var(--font-display)', color: '#555' }}>
             {loading ? '...' : resolvedEmailAlerts ? 'Alerts enabled' : 'Alerts disabled'}
           </div>
         </Card>
@@ -428,8 +423,8 @@ export default function SettingsPage() {
                 border: '1px solid var(--border)',
                 borderRadius: 6,
                 padding: '7px 16px',
-                fontSize: 12,
-                fontFamily: 'var(--font-code)',
+                fontSize: 13,
+                fontFamily: 'var(--font-display)',
                 color: 'var(--text-secondary)',
                 cursor: 'pointer',
                 transition: 'all 150ms',
@@ -446,8 +441,8 @@ export default function SettingsPage() {
                 border: '1px solid rgba(255,68,68,0.3)',
                 borderRadius: 6,
                 padding: '7px 16px',
-                fontSize: 12,
-                fontFamily: 'var(--font-code)',
+                fontSize: 13,
+                fontFamily: 'var(--font-display)',
                 color: 'rgba(255,68,68,0.6)',
                 cursor: 'pointer',
                 transition: 'all 150ms',

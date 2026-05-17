@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         width: 600,
         height: 600,
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,255,136,0.04) 0%, transparent 65%)',
+        background: 'radial-gradient(circle, rgba(0,188,125,0.04) 0%, transparent 65%)',
         pointerEvents: 'none',
         zIndex: 0,
         animation: 'orbFloat 8s ease-in-out infinite',
