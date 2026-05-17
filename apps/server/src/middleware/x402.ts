@@ -85,7 +85,23 @@ async function getCachedEndpoint(
   return result;
 }
 
-async function findEndpointRecord(fullPath: string, shortPath: string) {
+async function findEndpointRecord(fullPath: string, shortPath: string, apiKey?: string) {
+  // When apiKey is present, always resolve to the correct owner's endpoint
+  if (apiKey) {
+    const user = await prisma.user.findUnique({
+      where: { apiKey },
+      include: {
+        endpoints: {
+          where: { path: { in: [fullPath, shortPath] }, active: true },
+        },
+      },
+    });
+    if (user?.endpoints?.length) {
+      const ep = user.endpoints.find(e => e.path === fullPath) ?? user.endpoints[0];
+      return { ...ep, user };
+    }
+  }
+
   const record = await prisma.endpoint.findFirst({
     where: { path: fullPath, active: true },
     include: { user: true },
@@ -112,6 +128,9 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       ? (req.body as { params?: { name?: string } })?.params?.name
       : undefined;
     const toolPath = mcpToolName ? `/tools/${mcpToolName}` : undefined;
+
+    console.log('[x402] looking for endpoint:', req.path)
+    console.log('[x402] api-key header:', apiKey?.slice(0, 8))
 
     // 1. Busca pricing (Redis cache → DB fallback)
     const pricing = await getCachedEndpoint(fullPath, shortPath, apiKey, toolPath);
@@ -283,7 +302,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
 
       // 6c. Legacy ApiCall (mantém dashboard existente funcionando)
       try {
-        await prisma.apiCall.create({
+        const apiCall = await prisma.apiCall.create({
           data: {
             endpointId,
             txHash: txHashProviderToLog,
@@ -293,14 +312,17 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
             userId,
           },
         });
+        console.log('[x402] ApiCall created for userId:', apiCall.userId)
       } catch (e) {
         console.error('[x402] Failed to log api call:', e);
       }
 
       // 6d. Transaction + Splits — fresh endpoint lookup with user relation
       console.log('[transaction] creating record...');
-      const endpointForTx = await findEndpointRecord(fullPath, shortPath);
-      console.log('[transaction] endpoint found:', !!endpointForTx);
+      const endpointForTx = await findEndpointRecord(fullPath, shortPath, apiKey);
+      console.log('[x402] endpoint found:', endpointForTx?.id)
+      console.log('[x402] endpoint userId:', (endpointForTx as any)?.userId)
+      console.log('[x402] endpoint user:', endpointForTx?.user?.id)
       console.log('[transaction] user found:', !!endpointForTx?.user);
       console.log('[transaction] userId:', endpointForTx?.user?.id ?? null);
       console.log('[transaction] endpointId:', endpointForTx?.id ?? null);
