@@ -49,7 +49,7 @@ export function useDashboardData(userId: string | null, isPro: boolean) {
           fetch(`${SERVER_URL}/api/endpoints`, { headers }),
         ])
 
-        const [metrics, rawCalls, rawPerDay, endpoints] = await Promise.all([
+        const [metrics, rawCalls, rawPerDay, endpoints]: [any, any[], any[], any[]] = await Promise.all([
           metricsRes.ok ? metricsRes.json() : {},
           callsRes.ok ? callsRes.json() : [],
           perDayRes.ok ? perDayRes.json() : [],
