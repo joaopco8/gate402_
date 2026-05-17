@@ -15,19 +15,9 @@ export function ProBanner({ isPro }: { isPro: boolean }) {
       marginBottom: 24,
       gap: 16,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{
-          fontFamily: 'var(--font-code)', fontSize: 10,
-          color: '#555', letterSpacing: '0.1em',
-          background: '#1a1a1a',
-          border: '1px solid #222',
-          borderRadius: 3, padding: '2px 8px',
-          whiteSpace: 'nowrap',
-        }}>FREE PLAN</span>
-        <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-          Upgrade to unlock analytics, CSV export, wallet management, and unlimited endpoints.
-        </span>
-      </div>
+      <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+        Upgrade to unlock analytics, CSV export, wallet management, and unlimited endpoints.
+      </span>
       <a href="/billing" style={{
         flexShrink: 0,
         padding: '7px 16px',

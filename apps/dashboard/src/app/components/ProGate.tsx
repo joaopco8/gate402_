@@ -27,24 +27,13 @@ export function ProGate({ isPro, feature, children }: ProGateProps) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'rgba(0,0,0,0.6)',
+        background: 'rgba(13,13,13,0.75)',
         borderRadius: 8,
         backdropFilter: 'blur(2px)',
-        gap: 12,
+        gap: 10,
       }}>
         <div style={{
-          fontFamily: 'monospace',
-          fontSize: 10,
-          color: '#9945FF',
-          letterSpacing: '0.12em',
-          background: 'rgba(153,69,255,0.1)',
-          border: '1px solid rgba(153,69,255,0.2)',
-          borderRadius: 4,
-          padding: '3px 10px',
-        }}>PRO</div>
-
-        <div style={{
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: 600,
           color: '#fff',
           textAlign: 'center',
@@ -52,7 +41,7 @@ export function ProGate({ isPro, feature, children }: ProGateProps) {
 
         <div style={{
           fontSize: 12,
-          color: '#666',
+          color: '#555',
           textAlign: 'center',
           maxWidth: 200,
         }}>Available on the Pro plan</div>
@@ -62,13 +51,13 @@ export function ProGate({ isPro, feature, children }: ProGateProps) {
           style={{
             marginTop: 4,
             padding: '8px 20px',
-            background: '#9945FF',
-            color: '#fff',
+            background: '#00bc7d',
+            color: '#000',
             borderRadius: 6,
             fontSize: 13,
             fontWeight: 500,
             textDecoration: 'none',
-            fontFamily: 'sans-serif',
+            fontFamily: 'var(--font-display)',
           }}
         >
           Upgrade to Pro — $99/mo
