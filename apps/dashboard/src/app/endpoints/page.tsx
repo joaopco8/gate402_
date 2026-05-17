@@ -298,9 +298,9 @@ export default function EndpointsPage() {
     if (supabaseId) loadEndpoints(supabaseId)
   }
 
-  const badgeColor = count >= 3 ? '#f87171' : count >= 2 ? '#f59e0b' : 'var(--text-muted)'
+  const badgeColor = count >= 3 ? '#ef4444' : count >= 2 ? '#f59e0b' : 'var(--text-muted)'
   const badgeBg = count >= 3 ? 'rgba(239,68,68,0.08)' : count >= 2 ? 'rgba(245,158,11,0.08)' : 'var(--surface)'
-  const badgeBorder = count >= 3 ? 'rgba(239,68,68,0.2)' : count >= 2 ? 'rgba(245,158,11,0.2)' : 'var(--border)'
+  const badgeBorder = count >= 3 ? 'rgba(239,68,68,0.25)' : count >= 2 ? 'rgba(245,158,11,0.2)' : 'var(--border)'
 
   return (
     <DashboardLayout>
@@ -347,8 +347,8 @@ export default function EndpointsPage() {
         </div>
 
         {atLimit && (
-          <div style={{ marginBottom: 'var(--space-md)', padding: '12px 16px', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13, color: '#f59e0b', fontFamily: SANS }}>Free plan: 3/3 endpoints used</span>
+          <div style={{ marginBottom: 'var(--space-md)', padding: '12px 16px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 13, color: '#ef4444', fontFamily: SANS }}>Free plan: 3/3 endpoints used</span>
             <a href="/billing" style={{ fontSize: 13, color: 'var(--green)', fontFamily: SANS, textDecoration: 'none' }}>Upgrade to Pro →</a>
           </div>
         )}
