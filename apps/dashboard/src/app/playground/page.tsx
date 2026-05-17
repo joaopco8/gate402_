@@ -19,49 +19,34 @@ interface Endpoint { id: string; path: string; priceUsdc: number }
 
 interface CallResult {
   status: number
+  statusText: string
   data: unknown
   headers: Record<string, string>
   timeMs: number
   endpoint: string
   method: string
-  paid: boolean
+  type: 'unpaid' | 'paid' | 'error'
   curlCmd: string
   timestamp: number
 }
 
-// ── Syntax highlight ──────────────────────────────────────────────────────────
+// ── JSON display with syntax highlight ───────────────────────────────────────
 
-function syntaxHighlight(json: string): React.ReactNode[] {
-  return json.split('\n').map((line, i) => {
-    const m = line.match(/^(\s*)("[\w\s]+")(: )(.*)/)
-    if (m) {
-      const [, indent, key, colon, val] = m
-      const rawKey = key.replace(/"/g, '')
-      let valueEl: React.ReactNode = val
-      if (rawKey === 'error') {
-        valueEl = <span style={{ color: '#ef4444' }}>{val}</span>
-      } else if (rawKey === 'total' || rawKey === 'amount' || rawKey === 'price') {
-        valueEl = <span style={{ color: '#f59e0b' }}>{val}</span>
-      } else if (rawKey === 'currency' || rawKey === 'network') {
-        valueEl = <span style={{ color: '#00bc7d' }}>{val}</span>
-      } else if (val.startsWith('"')) {
-        valueEl = <span style={{ color: '#a3e635' }}>{val}</span>
-      } else if (!isNaN(Number(val.replace(',', '')))) {
-        valueEl = <span style={{ color: '#f59e0b' }}>{val}</span>
-      } else if (val === 'true,' || val === 'true' || val === 'false,' || val === 'false') {
-        valueEl = <span style={{ color: '#f59e0b' }}>{val}</span>
-      }
-      return (
-        <div key={i}>
-          {indent}
-          <span style={{ color: '#8b8b8b' }}>{key}</span>
-          <span style={{ color: '#444' }}>{colon}</span>
-          {valueEl}
-        </div>
-      )
-    }
-    return <div key={i} style={{ color: '#444' }}>{line}</div>
-  })
+function JsonDisplay({ data }: { data: unknown }) {
+  const json = JSON.stringify(data, null, 2)
+  const highlighted = json
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"([^"]+)":/g, '<span style="color:#888">"$1":</span>')
+    .replace(/: "([^"]+)"/g, ': <span style="color:#00bc7d">"$1"</span>')
+    .replace(/: (-?\d+\.?\d*)/g, ': <span style="color:#f59e0b">$1</span>')
+    .replace(/: (true|false)/g, ': <span style="color:#f59e0b">$1</span>')
+    .replace(/: (null)/g, ': <span style="color:#555">$1</span>')
+  return (
+    <pre
+      style={{ margin: 0, fontFamily: MONO, fontSize: 13, lineHeight: 1.7, color: '#ccc', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+      dangerouslySetInnerHTML={{ __html: highlighted }}
+    />
+  )
 }
 
 // ── Status badge ──────────────────────────────────────────────────────────────
@@ -96,7 +81,7 @@ export default function PlaygroundPage() {
   const [selectedPath, setSelectedPath] = useState('')
   const [method, setMethod] = useState<'GET' | 'POST'>('GET')
   const [body, setBody] = useState('{\n  "key": "value"\n}')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<'unpaid' | 'paid' | null>(null)
   const [response, setResponse] = useState<CallResult | null>(null)
   const [activeTab, setActiveTab] = useState<'response' | 'headers' | 'request'>('response')
   const [history, setHistory] = useState<CallResult[]>([])
@@ -121,54 +106,99 @@ export default function PlaygroundPage() {
 
   const selectedEp = endpoints.find(e => e.path === selectedPath)
 
-  async function callEndpoint(withPayment: boolean) {
+  async function callWithoutPayment() {
     if (!selectedPath) return
-    setLoading(true)
+    setLoading('unpaid')
+    setActiveTab('response')
     const start = Date.now()
-    const payloadHeader = withPayment ? `demo_playground_${Date.now()}` : undefined
-    const curlParts = [
-      `curl -s ${SERVER}${selectedPath}`,
-      payloadHeader ? `  -H "X-Payment-Payload: ${payloadHeader}"` : null,
-      supabaseId ? `  -H "x-user-id: ${supabaseId}"` : null,
+    const url = `${SERVER}${selectedPath}`
+    const curlCmd = [
+      `curl ${url}`,
       method === 'POST' ? `  -X POST` : null,
       method === 'POST' ? `  -H "Content-Type: application/json"` : null,
-      method === 'POST' ? `  -d '${body}'` : null,
+      method === 'POST' && body ? `  -d '${body}'` : null,
     ].filter(Boolean).join(' \\\n')
 
     try {
       const headers: Record<string, string> = {}
-      if (payloadHeader) headers['X-Payment-Payload'] = payloadHeader
-      if (supabaseId) headers['x-user-id'] = supabaseId
-      if (method === 'POST') headers['Content-Type'] = 'application/json'
-
-      const res = await fetch(`${SERVER}${selectedPath}`, {
-        method,
-        headers,
-        body: method === 'POST' ? body : undefined,
-      })
-
+      if (method === 'POST' && body) headers['Content-Type'] = 'application/json'
+      const res = await fetch(url, { method, headers, body: method === 'POST' ? body : undefined })
       const data = await res.json()
       const resHeaders: Record<string, string> = {}
       res.headers.forEach((v, k) => { resHeaders[k] = v })
-
       const result: CallResult = {
-        status: res.status, data, headers: resHeaders,
-        timeMs: Date.now() - start, endpoint: selectedPath,
-        method, paid: withPayment, curlCmd: curlParts, timestamp: Date.now(),
+        status: res.status, statusText: res.statusText, data, headers: resHeaders,
+        timeMs: Date.now() - start, endpoint: selectedPath, method,
+        type: 'unpaid', curlCmd, timestamp: Date.now(),
       }
       setResponse(result)
-      setActiveTab('response')
       setHistory(prev => [result, ...prev].slice(0, 20))
-    } catch {
+    } catch (e: unknown) {
       const result: CallResult = {
-        status: 0, data: { error: `Could not connect to ${SERVER}` }, headers: {},
-        timeMs: Date.now() - start, endpoint: selectedPath,
-        method, paid: false, curlCmd: curlParts, timestamp: Date.now(),
+        status: 0, statusText: 'Network Error',
+        data: { error: (e as Error).message ?? `Could not connect to ${SERVER}` },
+        headers: {}, timeMs: Date.now() - start, endpoint: selectedPath, method,
+        type: 'error', curlCmd, timestamp: Date.now(),
       }
       setResponse(result)
       setHistory(prev => [result, ...prev].slice(0, 20))
     } finally {
-      setLoading(false)
+      setLoading(null)
+    }
+  }
+
+  async function payAndCall() {
+    if (!selectedPath) return
+    setLoading('paid')
+    setActiveTab('response')
+    const start = Date.now()
+    const demoHash = `demo_playground_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+    const url = `${SERVER}${selectedPath}`
+
+    // Fetch apiKey for the logged-in user
+    let apiKey = ''
+    if (supabaseId) {
+      try {
+        const meRes = await fetch(`${SERVER}/api/users/me`, { headers: { 'x-user-id': supabaseId } })
+        if (meRes.ok) { const me = await meRes.json(); apiKey = me.apiKey ?? '' }
+      } catch { /* ignore */ }
+    }
+
+    const curlCmd = [
+      `curl ${url}`,
+      `  -H "X-Payment-Payload: ${demoHash}"`,
+      apiKey ? `  -H "x-api-key: ${apiKey}"` : null,
+      method === 'POST' ? `  -X POST` : null,
+      method === 'POST' ? `  -H "Content-Type: application/json"` : null,
+      method === 'POST' && body ? `  -d '${body}'` : null,
+    ].filter(Boolean).join(' \\\n')
+
+    try {
+      const headers: Record<string, string> = { 'X-Payment-Payload': demoHash }
+      if (apiKey) headers['x-api-key'] = apiKey
+      if (method === 'POST' && body) headers['Content-Type'] = 'application/json'
+      const res = await fetch(url, { method, headers, body: method === 'POST' ? body : undefined })
+      const data = await res.json()
+      const resHeaders: Record<string, string> = {}
+      res.headers.forEach((v, k) => { resHeaders[k] = v })
+      const result: CallResult = {
+        status: res.status, statusText: res.statusText, data, headers: resHeaders,
+        timeMs: Date.now() - start, endpoint: selectedPath, method,
+        type: 'paid', curlCmd, timestamp: Date.now(),
+      }
+      setResponse(result)
+      setHistory(prev => [result, ...prev].slice(0, 20))
+    } catch (e: unknown) {
+      const result: CallResult = {
+        status: 0, statusText: 'Network Error',
+        data: { error: (e as Error).message ?? `Could not connect to ${SERVER}` },
+        headers: {}, timeMs: Date.now() - start, endpoint: selectedPath, method,
+        type: 'error', curlCmd, timestamp: Date.now(),
+      }
+      setResponse(result)
+      setHistory(prev => [result, ...prev].slice(0, 20))
+    } finally {
+      setLoading(null)
     }
   }
 
@@ -269,21 +299,21 @@ export default function PlaygroundPage() {
             {/* Card 3 — Actions */}
             <Card>
               <button
-                onClick={() => callEndpoint(false)}
-                disabled={loading || !selectedPath}
-                style={{ width: '100%', padding: '11px 0', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, fontSize: 13, color: loading ? 'var(--text-muted)' : 'var(--text-primary)', fontFamily: SANS, fontWeight: 500, cursor: loading || !selectedPath ? 'not-allowed' : 'pointer', opacity: !selectedPath ? 0.4 : 1, marginBottom: 8 }}
+                onClick={callWithoutPayment}
+                disabled={loading !== null || !selectedPath}
+                style={{ width: '100%', padding: '11px 0', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, fontSize: 13, color: loading ? 'var(--text-muted)' : 'var(--text-primary)', fontFamily: SANS, fontWeight: 500, cursor: loading !== null || !selectedPath ? 'not-allowed' : 'pointer', opacity: !selectedPath ? 0.4 : 1, marginBottom: 8 }}
               >
-                {loading ? 'Calling...' : 'Call without payment →'}
+                {loading === 'unpaid' ? 'Calling...' : 'Call without payment →'}
               </button>
 
               <div style={{ textAlign: 'center', fontSize: 11, color: '#333', fontFamily: MONO, marginBottom: 8 }}>or</div>
 
               <button
-                onClick={() => callEndpoint(true)}
-                disabled={loading || !selectedPath}
-                style={{ width: '100%', padding: '11px 0', background: !selectedPath ? 'var(--surface)' : 'var(--green)', border: 'none', borderRadius: 6, fontSize: 13, color: '#000', fontFamily: SANS, fontWeight: 600, cursor: loading || !selectedPath ? 'not-allowed' : 'pointer', opacity: loading || !selectedPath ? 0.5 : 1 }}
+                onClick={payAndCall}
+                disabled={loading !== null || !selectedPath}
+                style={{ width: '100%', padding: '11px 0', background: !selectedPath ? 'var(--surface)' : 'var(--green)', border: 'none', borderRadius: 6, fontSize: 13, color: '#000', fontFamily: SANS, fontWeight: 600, cursor: loading !== null || !selectedPath ? 'not-allowed' : 'pointer', opacity: loading !== null || !selectedPath ? 0.5 : 1 }}
               >
-                {loading ? 'Paying...' : 'Pay and call →'}
+                {loading === 'paid' ? 'Paying...' : 'Pay and call →'}
               </button>
             </Card>
           </div>
@@ -338,7 +368,7 @@ export default function PlaygroundPage() {
                 <div style={{ padding: 20 }}>
                   {activeTab === 'response' && (
                     <div style={codeBlockStyle}>
-                      {syntaxHighlight(JSON.stringify(response.data, null, 2))}
+                      <JsonDisplay data={response.data} />
                     </div>
                   )}
 
@@ -393,15 +423,15 @@ export default function PlaygroundPage() {
                     onClick={() => setExpandedHistory(expandedHistory === i ? null : i)}
                     style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', cursor: 'pointer', background: expandedHistory === i ? 'rgba(255,255,255,0.02)' : 'transparent' }}
                   >
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: h.status === 200 ? 'var(--green)' : '#f59e0b', flexShrink: 0 }} />
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: h.status === 200 ? 'var(--green)' : h.status === 402 ? '#f59e0b' : '#888', flexShrink: 0 }} />
                     <span style={{ fontFamily: MONO, fontSize: 13, color: 'var(--text-primary)', flex: 1 }}>{h.endpoint}</span>
                     <span style={{
                       fontSize: 11, fontFamily: MONO, padding: '2px 8px', borderRadius: 20,
-                      background: h.paid ? 'rgba(0,188,125,0.08)' : 'rgba(245,158,11,0.08)',
-                      border: h.paid ? '1px solid rgba(0,188,125,0.2)' : '1px solid rgba(245,158,11,0.2)',
-                      color: h.paid ? 'var(--green)' : '#f59e0b',
+                      background: h.type === 'paid' ? 'rgba(0,188,125,0.08)' : 'rgba(245,158,11,0.08)',
+                      border: h.type === 'paid' ? '1px solid rgba(0,188,125,0.2)' : '1px solid rgba(245,158,11,0.2)',
+                      color: h.type === 'paid' ? 'var(--green)' : '#f59e0b',
                     }}>
-                      {h.paid ? 'paid' : 'unpaid'}
+                      {h.type === 'paid' ? 'paid' : 'unpaid'}
                     </span>
                     <span style={{ fontFamily: MONO, fontSize: 11, color: '#555', minWidth: 40, textAlign: 'right' }}>{h.timeMs}ms</span>
                     <span style={{ fontFamily: MONO, fontSize: 11, color: '#444', minWidth: 70, textAlign: 'right' }}>{timeAgo(h.timestamp)}</span>
@@ -411,10 +441,10 @@ export default function PlaygroundPage() {
                   {expandedHistory === i && (
                     <div style={{ padding: '0 16px 16px' }}>
                       <div style={codeBlockStyle}>
-                        {syntaxHighlight(JSON.stringify(h.data, null, 2))}
+                        <JsonDisplay data={h.data} />
                       </div>
                       <button
-                        onClick={() => { setResponse(h); setActiveTab('response'); setExpandedHistory(null) }}
+                        onClick={() => { setResponse(h); setActiveTab('response'); setExpandedHistory(null); }}
                         style={{ marginTop: 10, padding: '6px 14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12, color: 'var(--text-muted)', fontFamily: SANS, cursor: 'pointer' }}
                       >
                         Use this response
