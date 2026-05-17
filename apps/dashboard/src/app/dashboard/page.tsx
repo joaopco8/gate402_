@@ -43,15 +43,34 @@ function generateSmoothPath(points: number[], w: number, h: number): string {
 }
 
 // ── StatsCard ─────────────────────────────────────────────────────────────────
+// Colors match stats-widget.tsx exactly:
+//   positive → #22C55E (success-stroke)
+//   negative → #F97316 (destructive-stroke / orange)
+
+function ArrowUpIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 3 }}>
+      <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+    </svg>
+  )
+}
+function ArrowDownIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 3 }}>
+      <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+    </svg>
+  )
+}
 
 function StatsCard({ label, value, sub, sparkData, change, loading }: {
   label: string; value: string; sub?: string; sparkData: number[]; change: number | null; loading?: boolean
 }) {
   const lineRef = useRef<SVGPathElement>(null)
   const areaRef = useRef<SVGPathElement>(null)
-  const svgW = 100, svgH = 48
+  const svgW = 150, svgH = 60
   const isPositive = change === null || change >= 0
-  const strokeColor = isPositive ? '#00bc7d' : '#ef4444'
+  // Exact colors from stats-widget.tsx
+  const strokeColor = isPositive ? '#22C55E' : '#F97316'
   const gradId = `sg-${label.replace(/\W+/g, '')}`
 
   const linePath = useMemo(() => generateSmoothPath(sparkData, svgW, svgH), [sparkData])
@@ -68,46 +87,60 @@ function StatsCard({ label, value, sub, sparkData, change, loading }: {
     area.style.transition = 'none'
     area.style.opacity = '0'
     path.getBoundingClientRect()
-    path.style.transition = 'stroke-dashoffset 0.8s ease-in-out'
+    path.style.transition = 'stroke-dashoffset 0.8s ease-in-out, stroke 0.5s ease'
     path.style.strokeDashoffset = '0'
-    area.style.transition = 'opacity 0.8s ease-in-out 0.2s'
+    area.style.transition = 'opacity 0.8s ease-in-out 0.2s, fill 0.5s ease'
     area.style.opacity = '1'
   }, [linePath])
 
   return (
     <Card>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <span style={{ fontFamily: 'var(--font-code)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              {label}
-            </span>
+      {/* Layout: left side content + right side chart — matches stats-widget flex justify-between */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+
+        {/* Left: label row + value (matches stats-widget left flex-col w-1/2) */}
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+          {/* Label + change badge on same line — matches "This Week" + "36% ↑" */}
+          <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-muted)', fontSize: 14, marginBottom: 8 }}>
+            <span>{label}</span>
             {change !== null && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 600, color: isPositive ? '#00bc7d' : '#ef4444', fontFamily: 'var(--font-code)' }}>
-                {isPositive ? '↑' : '↓'}{Math.abs(change).toFixed(0)}%
+              <span style={{
+                display: 'flex', alignItems: 'center',
+                marginLeft: 8, fontWeight: 600,
+                color: strokeColor,
+                fontSize: 14,
+              }}>
+                {Math.abs(change).toFixed(0)}%
+                {isPositive ? <ArrowUpIcon /> : <ArrowDownIcon />}
               </span>
             )}
           </div>
+          {/* Value — text-4xl font-bold equivalent */}
           {loading
-            ? <Skeleton height={28} width={100} />
-            : <div style={{ fontSize: 26, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: 4 }}>{value}</div>
+            ? <Skeleton height={36} width={120} />
+            : <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-1px', lineHeight: 1.1 }}>{value}</div>
           }
           {sub && !loading && (
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{sub}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{sub}</div>
           )}
         </div>
 
+        {/* Right: sparkline SVG — matches stats-widget w-1/2 h-16 */}
         {!loading && sparkData.length >= 2 && (
-          <div style={{ width: 100, height: 48, flexShrink: 0 }}>
+          <div style={{ width: '45%', height: 64, flexShrink: 0 }}>
             <svg viewBox={`0 0 ${svgW} ${svgH}`} style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
               <defs>
-                <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={strokeColor} stopOpacity={0.35} />
-                  <stop offset="100%" stopColor={strokeColor} stopOpacity={0} />
+                <linearGradient id={`${gradId}-s`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#22C55E" stopOpacity={0.4}/>
+                  <stop offset="100%" stopColor="#22C55E" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id={`${gradId}-d`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#F97316" stopOpacity={0.4}/>
+                  <stop offset="100%" stopColor="#F97316" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <path ref={areaRef} d={areaPath} fill={`url(#${gradId})`} />
-              <path ref={lineRef} d={linePath} fill="none" stroke={strokeColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path ref={areaRef} d={areaPath} fill={`url(#${gradId}-${isPositive ? 's' : 'd'})`} />
+              <path ref={lineRef} d={linePath} fill="none" stroke={strokeColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
         )}
