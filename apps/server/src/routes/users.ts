@@ -89,6 +89,31 @@ router.get('/users/me', async (req, res) => {
       return res.status(404).json({ error: 'User not found' })
     }
 
+    const planLimits = {
+      free: {
+        maxEndpoints: 3,
+        recentCallsLimit: 5,
+        chartDays: 7,
+        hasAnalytics: false,
+        hasMetering: false,
+        hasExport: false,
+        hasLatency: false,
+        hasWallet: false,
+        hasMRR: false,
+      },
+      pro: {
+        maxEndpoints: -1,
+        recentCallsLimit: 50,
+        chartDays: 90,
+        hasAnalytics: true,
+        hasMetering: true,
+        hasExport: true,
+        hasLatency: true,
+        hasWallet: true,
+        hasMRR: true,
+      },
+    }
+
     return res.json({
       id: user.id,
       apiKey: user.apiKey,
@@ -96,6 +121,7 @@ router.get('/users/me', async (req, res) => {
       plan: user.plan,
       network: user.network,
       emailAlerts: user.emailAlerts,
+      limits: planLimits[user.plan as keyof typeof planLimits] || planLimits.free,
       totalCalls: user._count.apiCalls,
       totalEndpoints: user._count.endpoints,
       createdAt: user.createdAt,

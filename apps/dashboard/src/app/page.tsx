@@ -283,8 +283,8 @@ function Nav() {
 
       {/* CTAs — direita */}
       <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-        <a href="/login" style={{ fontSize: 14, color: '#666', fontFamily: 'var(--font-space)' }}>Sign in</a>
-        <a href="/login" style={{
+        <a href="/auth/login" style={{ fontSize: 14, color: '#666', fontFamily: 'var(--font-space)' }}>Sign in</a>
+        <a href="/auth/login" style={{
           fontSize: 14,
           fontFamily: 'var(--font-space)',
           fontWeight: 500,
@@ -916,7 +916,7 @@ function CodeSection() {
               </div>
             ))}
           </div>
-          <a href="/login" className="btn-primary">npm install gate402 →</a>
+          <a href="/auth/login" className="btn-primary">npm install gate402 →</a>
         </div>
 
         {/* Right: code block */}
@@ -1384,7 +1384,7 @@ function Pricing() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
-        window.location.href = '/login?intent=checkout'
+        window.location.href = '/auth/login?intent=checkout'
         return
       }
 
@@ -1975,20 +1975,36 @@ function InstallSection() {
   }
 
   return (
-    <div style={{ borderTop: '1px solid #1a1a1a', borderBottom: '1px solid #1a1a1a', background: '#111111' }}>
+    <div style={{ borderTop: '1px solid #1a1a1a', background: '#111111' }}>
+      <div style={{ textAlign: 'center', padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 32px) clamp(40px, 6vw, 64px)' }}>
+        <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 500, marginBottom: 12, lineHeight: 1.15, fontFamily: 'var(--font-space)' }}>
+          <span style={{ color: '#fff' }}>Start building.</span>{' '}
+          <span style={{ color: '#898989' }}>Pick your entry point.</span>
+        </h2>
+        <p style={{ fontSize: 16, color: '#898989', maxWidth: 480, margin: '0 auto', lineHeight: 1.65, fontFamily: 'var(--font-space)' }}>
+          Whether you&apos;re monetizing an API, building an agent, or wiring up an MCP server — one package gets you there.
+        </p>
+      </div>
+      <div style={{ borderTop: '1px solid #1a1a1a' }} />
       <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-        }}
+        style={{ display: 'grid' }}
         className="install-grid"
       >
         <style>{`
           .install-grid { grid-template-columns: repeat(4, 1fr); }
-          @media (max-width: 768px) { .install-grid { grid-template-columns: repeat(2, 1fr); } }
-          @media (max-width: 480px) { .install-grid { grid-template-columns: 1fr; } }
-          .install-panel { transition: background 200ms; }
+          .install-panel { transition: background 200ms; border-right: 1px solid #1a1a1a; }
+          .install-panel:last-child { border-right: none; }
           .install-panel:hover { background: rgba(255,255,255,0.015); }
+          @media (max-width: 768px) {
+            .install-grid { grid-template-columns: repeat(2, 1fr); }
+            .install-panel:nth-child(even) { border-right: none; }
+            .install-panel:nth-child(1), .install-panel:nth-child(2) { border-bottom: 1px solid #1a1a1a; }
+          }
+          @media (max-width: 480px) {
+            .install-grid { grid-template-columns: 1fr; }
+            .install-panel { border-right: none; border-bottom: 1px solid #1a1a1a; }
+            .install-panel:last-child { border-bottom: none; }
+          }
         `}</style>
         {INSTALL_PANELS.map((panel, i) => (
           <div
@@ -1996,7 +2012,6 @@ function InstallSection() {
             className="install-panel"
             style={{
               padding: 'clamp(32px, 4vw, 48px) clamp(24px, 3vw, 40px)',
-              borderRight: i < 3 ? '1px solid #1a1a1a' : undefined,
               position: 'relative',
             }}
           >
@@ -2080,6 +2095,10 @@ export default function LandingPage() {
       <div style={{ textAlign: 'center', padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 32px) 0', background: '#111111', borderTop: '1px solid #222222' }}>
         <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 500, marginBottom: 12, lineHeight: 1.15, fontFamily: 'var(--font-space)' }}><span style={{ color: '#898989' }}>Three building blocks.</span> <span style={{ color: '#fff' }}>Infinite APIs.</span></h2>
         <p style={{ fontSize: 16, color: '#898989', maxWidth: 540, margin: '0 auto', lineHeight: 1.65, fontFamily: 'var(--font-space)' }}>Gate402 connects API providers, AI agents, and Solana settlement in one lightweight middleware layer.</p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 28 }}>
+          <a href="/docs" className="btn-primary" style={{ fontFamily: 'var(--font-space)' }}>Read docs →</a>
+          <a href="https://www.npmjs.com/package/gate402" target="_blank" rel="noreferrer" className="btn-ghost" style={{ fontFamily: 'var(--font-space)' }}>View on npm</a>
+        </div>
       </div>
       </BlurReveal>
       <BlurReveal>
@@ -2130,6 +2149,10 @@ export default function LandingPage() {
       <div style={{ textAlign: 'center', padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 32px) 0', background: '#111111', borderTop: '1px solid #222222' }}>
         <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 500, marginBottom: 12, lineHeight: 1.15, fontFamily: 'var(--font-space)' }}><span style={{ color: '#fff' }}>Any stack.</span> <span style={{ color: '#898989' }}>Any language.</span></h2>
         <p style={{ fontSize: 16, color: '#898989', maxWidth: 540, margin: '0 auto', lineHeight: 1.65, fontFamily: 'var(--font-space)' }}>From Express to Python to Rust — drop Gate402 in without rewriting your business logic.</p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 28 }}>
+          <a href="/auth/login" className="btn-primary" style={{ fontFamily: 'var(--font-space)' }}>Get started →</a>
+          <a href="/docs#api-installation" className="btn-ghost" style={{ fontFamily: 'var(--font-space)' }}>View docs</a>
+        </div>
       </div>
       </BlurReveal>
       <BlurReveal><BentoGrid /></BlurReveal>
@@ -2139,6 +2162,10 @@ export default function LandingPage() {
       <div style={{ textAlign: 'center', padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 32px) 0', background: '#111111', borderTop: '1px solid #222222' }}>
         <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 500, marginBottom: 12, lineHeight: 1.15, fontFamily: 'var(--font-space)' }}><span style={{ color: '#898989' }}>From 402 to paid in</span> <span style={{ color: '#fff' }}>400ms.</span></h2>
         <p style={{ fontSize: 16, color: '#898989', maxWidth: 540, margin: '0 auto', lineHeight: 1.65, fontFamily: 'var(--font-space)' }}>Real-time payment flows for every role in the stack — provider, agent, and MCP server.</p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 28 }}>
+          <a href="/auth/login" className="btn-primary" style={{ fontFamily: 'var(--font-space)' }}>Try for free →</a>
+          <a href="/#pricing" className="btn-ghost" style={{ fontFamily: 'var(--font-space)' }}>View pricing</a>
+        </div>
       </div>
       </BlurReveal>
       <BlurReveal><RuixenSection /></BlurReveal>

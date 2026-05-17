@@ -85,9 +85,17 @@ router.get('/calls/per-day', async (req, res) => {
 // GET /api/calls/recent?limit=10
 router.get('/calls/recent', async (req, res) => {
   try {
-    const internalId = await getInternalUserId(req.headers['x-user-id'] as string | undefined);
+    const supabaseId = req.headers['x-user-id'] as string | undefined;
+    const internalId = await getInternalUserId(supabaseId);
     const where = internalId ? { userId: internalId } : {};
-    const limit = Math.max(1, Math.min(100, parseInt(req.query.limit as string) || 10));
+
+    const user = supabaseId
+      ? await prisma.user.findUnique({ where: { supabaseId }, select: { plan: true } })
+      : null;
+    const planLimit = user?.plan === 'pro' ? 50 : 5;
+    const requested = parseInt(req.query.limit as string) || planLimit;
+    const limit = Math.max(1, Math.min(planLimit, requested));
+
     const calls = await prisma.apiCall.findMany({
       where,
       take: limit,

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -91,7 +91,7 @@ function CodeBlock({ lang, code }: { lang: string; code: string }) {
         <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#444' }}>{lang}</span>
         <button
           onClick={() => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-          style={{ background: 'none', border: 'none', fontFamily: 'monospace', fontSize: 11, color: copied ? '#00ff88' : '#444', cursor: 'pointer' }}
+          style={{ background: 'none', border: 'none', fontFamily: 'monospace', fontSize: 11, color: copied ? '#00bc7d' : '#444', cursor: 'pointer' }}
         >
           {copied ? 'Copied ✓' : 'Copy'}
         </button>
@@ -108,7 +108,7 @@ function Callout({ type = 'info', children }: { type?: 'info' | 'warning' | 'dan
     info:    { border: '#3b82f6', bg: 'rgba(59,130,246,0.05)', icon: 'ℹ' },
     warning: { border: '#f59e0b', bg: 'rgba(245,158,11,0.05)', icon: '⚠' },
     danger:  { border: '#ef4444', bg: 'rgba(239,68,68,0.05)',  icon: '✕' },
-    success: { border: '#00ff88', bg: 'rgba(0,255,136,0.05)',  icon: '✓' },
+    success: { border: '#00bc7d', bg: 'rgba(0,188,125,0.05)',  icon: '✓' },
   }
   const c = colors[type]
   return (
@@ -127,7 +127,7 @@ function Terminal({ title = 'bash', lines }: {
     command: { color: '#fff', fontSize: 13, lineHeight: '22px' },
     output:  { color: '#666', fontSize: 13, lineHeight: '22px', paddingLeft: 16 },
     comment: { color: '#333', fontSize: 12, lineHeight: '22px', fontStyle: 'italic' },
-    success: { color: '#00ff88', fontSize: 13, lineHeight: '22px' },
+    success: { color: '#00bc7d', fontSize: 13, lineHeight: '22px' },
     error:   { color: '#ef4444', fontSize: 13, lineHeight: '22px' },
     blank:   { height: 8 },
   }
@@ -137,14 +137,14 @@ function Terminal({ title = 'bash', lines }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderBottom: '1px solid #1a1a1a', background: '#0d0d0d' }}>
         <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ef4444' }} />
         <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#f59e0b' }} />
-        <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#00ff88' }} />
+        <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#00bc7d' }} />
         <span style={{ marginLeft: 'auto', fontSize: 11, color: '#333', letterSpacing: '0.05em' }}>{title}</span>
       </div>
       <div style={{ padding: '16px 20px' }}>
         {lines.map((line, i) => (
           <div key={i} style={lineStyles[line.type]}>
             {line.type !== 'blank' && (
-              <span style={{ color: line.type === 'command' ? '#00ff88' : 'inherit' }}>{prefix[line.type]}</span>
+              <span style={{ color: line.type === 'command' ? '#00bc7d' : 'inherit' }}>{prefix[line.type]}</span>
             )}
             {line.text}
           </div>
@@ -166,9 +166,9 @@ function PropTable({ rows }: {
       </div>
       {rows.map((row, i) => (
         <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 0.5fr 1fr 2fr', padding: '12px 16px', gap: 16, borderBottom: i < rows.length - 1 ? '1px solid #111' : 'none', background: i % 2 === 0 ? '#0a0a0a' : '#0d0d0d', alignItems: 'start' }}>
-          <code style={{ fontFamily: 'monospace', fontSize: 12, color: '#00ff88' }}>{row.prop}</code>
+          <code style={{ fontFamily: 'monospace', fontSize: 12, color: '#00bc7d' }}>{row.prop}</code>
           <code style={{ fontFamily: 'monospace', fontSize: 11, color: '#9945FF' }}>{row.type}</code>
-          <span style={{ fontSize: 12, color: row.required ? '#00ff88' : '#444' }}>{row.required ? 'Yes' : 'No'}</span>
+          <span style={{ fontSize: 12, color: row.required ? '#00bc7d' : '#444' }}>{row.required ? 'Yes' : 'No'}</span>
           <code style={{ fontFamily: 'monospace', fontSize: 11, color: '#666' }}>{row.default || '—'}</code>
           <span style={{ fontSize: 13, color: '#666', lineHeight: 1.5 }}>{row.description}</span>
         </div>
@@ -182,7 +182,7 @@ function StepList({ steps }: { steps: Array<{ title: string; description: string
     <div style={{ margin: '20px 0' }}>
       {steps.map((step, i) => (
         <div key={i} style={{ display: 'flex', gap: 20, marginBottom: 32, alignItems: 'flex-start' }}>
-          <div style={{ width: 32, height: 32, flexShrink: 0, border: '1px solid #1a1a1a', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'monospace', fontSize: 11, color: '#00ff88', background: '#0a0a0a' }}>
+          <div style={{ width: 32, height: 32, flexShrink: 0, border: '1px solid #1a1a1a', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'monospace', fontSize: 11, color: '#00bc7d', background: '#0a0a0a' }}>
             {String(i + 1).padStart(2, '0')}
           </div>
           <div style={{ flex: 1 }}>
@@ -198,22 +198,203 @@ function StepList({ steps }: { steps: Array<{ title: string; description: string
 // ─── Section heading helpers ──────────────────────────────────────────────────
 
 const H2 = ({ id, children }: { id: string; children: React.ReactNode }) => (
-  <h2 id={id} style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 300, fontSize: 28, color: '#fff', borderBottom: '1px solid #1a1a1a', paddingBottom: 16, marginTop: 72, marginBottom: 24, scrollMarginTop: 24 }}>
+  <h2 id={id} style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 500, fontSize: 'clamp(1.4rem, 2.5vw, 1.75rem)', color: '#fff', borderBottom: '1px solid #1a1a1a', paddingBottom: 16, marginTop: 72, marginBottom: 24, scrollMarginTop: 24, lineHeight: 1.2 }}>
     {children}
   </h2>
 )
 
 const H3 = ({ id, children }: { id?: string; children: React.ReactNode }) => (
-  <h3 id={id} style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 400, fontSize: 18, color: '#fff', marginTop: 36, marginBottom: 12, scrollMarginTop: 24 }}>
+  <h3 id={id} style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 500, fontSize: 16, color: '#fff', marginTop: 36, marginBottom: 10, scrollMarginTop: 24, letterSpacing: '-0.01em' }}>
     {children}
   </h3>
 )
 
 const P = ({ children }: { children: React.ReactNode }) => (
-  <p style={{ color: '#666', fontSize: 15, lineHeight: 1.8, marginBottom: 12 }}>{children}</p>
+  <p style={{ color: '#898989', fontSize: 15, lineHeight: 1.8, marginBottom: 12 }}>{children}</p>
 )
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
+
+function DocsSidebar({
+  activeId, isMobile, sidebarOpen, setSidebarOpen, scrollTo,
+}: {
+  activeId: string
+  isMobile: boolean
+  sidebarOpen: boolean
+  setSidebarOpen: (v: boolean) => void
+  scrollTo: (id: string) => void
+}) {
+  const [search, setSearch] = useState('')
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const q = search.toLowerCase()
+  const filtered = NAV_GROUPS.map(g => ({
+    ...g,
+    items: g.items.filter(i => !q || i.label.toLowerCase().includes(q)),
+  })).filter(g => g.items.length > 0)
+
+  return (
+    <aside style={{
+      width: 260,
+      flexShrink: 0,
+      borderRight: '1px solid #1a1a1a',
+      position: 'fixed',
+      top: 0,
+      left: isMobile ? (sidebarOpen ? 0 : -260) : 0,
+      height: '100vh',
+      background: '#101010',
+      zIndex: 50,
+      transition: isMobile ? 'left 0.25s cubic-bezier(0.4,0,0.2,1)' : 'none',
+      display: 'flex',
+      flexDirection: 'column',
+    }}>
+      {/* ── Header ── */}
+      <div style={{ padding: '20px 16px 12px', borderBottom: '1px solid #1a1a1a', flexShrink: 0 }}>
+        <a href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+          <img src="/logo-gate.png" alt="Gate402" style={{ height: 20, width: 'auto', display: 'block' }} />
+          <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#444', background: '#111', border: '1px solid #1a1a1a', borderRadius: 3, padding: '2px 6px', letterSpacing: '0.06em' }}>DOCS</span>
+        </a>
+
+        {/* Search */}
+        <div style={{ position: 'relative' }}>
+          <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+            width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="#444" strokeWidth="1.5" strokeLinecap="round">
+            <circle cx="6.5" cy="6.5" r="4.5" /><path d="M10.5 10.5L13.5 13.5" />
+          </svg>
+          <input
+            ref={inputRef}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search docs..."
+            style={{
+              width: '100%',
+              background: '#111',
+              border: '1px solid #222',
+              borderRadius: 8,
+              padding: '7px 10px 7px 30px',
+              fontSize: 13,
+              color: '#ccc',
+              fontFamily: "'Space Grotesk', sans-serif",
+              outline: 'none',
+              boxSizing: 'border-box',
+              transition: 'border-color 0.15s',
+            }}
+            onFocus={e => (e.currentTarget.style.borderColor = '#333')}
+            onBlur={e => (e.currentTarget.style.borderColor = '#222')}
+          />
+          {search && (
+            <button onClick={() => setSearch('')} style={{
+              position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', color: '#444', cursor: 'pointer', fontSize: 14, lineHeight: 1,
+            }}>×</button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Nav ── */}
+      <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 0 24px' }}>
+        {/* ← Home link */}
+        <div style={{ padding: '6px 16px 10px' }}>
+          <a href="/" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            fontFamily: 'monospace', fontSize: 12, color: '#444', textDecoration: 'none', transition: 'color 0.15s',
+          }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#888')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#444')}
+          >
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7 1L2 5.5 7 10" />
+            </svg>
+            Home
+          </a>
+        </div>
+
+        {filtered.map(group => {
+          const isCollapsed = collapsed[group.group]
+          return (
+            <div key={group.group} style={{ marginBottom: 4 }}>
+              {/* Group header */}
+              <button
+                onClick={() => setCollapsed(c => ({ ...c, [group.group]: !c[group.group] }))}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  width: '100%', padding: '6px 16px',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontFamily: 'monospace', fontSize: 10, color: '#444',
+                  letterSpacing: '0.1em', textTransform: 'uppercase',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#888')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#444')}
+              >
+                <span>{group.group}</span>
+                <svg
+                  width="12" height="12" viewBox="0 0 12 12" fill="none"
+                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                  style={{ transition: 'transform 0.2s', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', flexShrink: 0 }}
+                >
+                  <path d="M2 4l4 4 4-4" />
+                </svg>
+              </button>
+
+              {/* Items */}
+              {!isCollapsed && group.items.map(item => {
+                const active = activeId === item.id
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollTo(item.id)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      width: '100%', textAlign: 'left',
+                      padding: '6px 16px 6px 20px',
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      fontSize: 13,
+                      color: active ? '#00bc7d' : '#666',
+                      background: active ? 'rgba(0,188,125,0.05)' : 'transparent',
+                      border: 'none',
+                      borderLeft: `2px solid ${active ? '#00bc7d' : 'transparent'}`,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                      borderRadius: '0 6px 6px 0',
+                      marginRight: 8,
+                    }}
+                    onMouseEnter={e => {
+                      if (!active) {
+                        e.currentTarget.style.background = '#1c1c1c'
+                        e.currentTarget.style.color = '#ccc'
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (!active) {
+                        e.currentTarget.style.background = 'transparent'
+                        e.currentTarget.style.color = '#666'
+                      }
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                )
+              })}
+            </div>
+          )
+        })}
+
+        {filtered.length === 0 && (
+          <div style={{ padding: '24px 16px', fontFamily: 'monospace', fontSize: 12, color: '#333', textAlign: 'center' }}>
+            No results for "{search}"
+          </div>
+        )}
+      </nav>
+
+      {/* ── Footer ── */}
+      <div style={{ borderTop: '1px solid #1a1a1a', padding: '12px 16px', flexShrink: 0 }}>
+        <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#2a2a2a', letterSpacing: '0.06em' }}>gate402 · v0.1.0</span>
+      </div>
+    </aside>
+  )
+}
 
 export default function DocsPage() {
   const [activeId, setActiveId] = useState('introduction')
@@ -245,7 +426,7 @@ export default function DocsPage() {
   const isMobile = width > 0 && width < 900
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#000', fontFamily: "'Space Grotesk', sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#0A0A0A', fontFamily: "'Space Grotesk', sans-serif" }}>
 
       {/* ── Mobile overlay ── */}
       {isMobile && sidebarOpen && (
@@ -253,72 +434,13 @@ export default function DocsPage() {
       )}
 
       {/* ── Sidebar ── */}
-      <aside style={{
-        width: 260,
-        flexShrink: 0,
-        borderRight: '1px solid #1a1a1a',
-        position: 'fixed',
-        top: 0,
-        left: isMobile ? (sidebarOpen ? 0 : -260) : 0,
-        height: '100vh',
-        overflowY: 'auto',
-        padding: '24px 0',
-        background: '#000',
-        zIndex: 50,
-        transition: isMobile ? 'left 0.25s cubic-bezier(0.4,0,0.2,1)' : 'none',
-      }}>
-        {/* Logo */}
-        <div style={{ padding: '0 20px', marginBottom: 8 }}>
-          <a href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600, fontSize: 16, color: '#fff' }}>gate402</span>
-            <span style={{ fontFamily: "monospace", fontSize: 10, color: '#444', background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 3, padding: '2px 6px' }}>DOCS</span>
-          </a>
-        </div>
-
-        {/* ← Home */}
-        <div style={{ padding: '0 20px', marginBottom: 32 }}>
-          <a href="/" style={{ fontFamily: 'monospace', fontSize: 12, color: '#444', textDecoration: 'none', transition: 'color 0.15s' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#888')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#444')}
-          >
-            ← Home
-          </a>
-        </div>
-
-        {/* Nav groups */}
-        {NAV_GROUPS.map(group => (
-          <div key={group.group}>
-            <div style={{ fontFamily: 'monospace', fontSize: 10, color: '#333', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '24px 20px 8px' }}>
-              {group.group}
-            </div>
-            {group.items.map(item => {
-              const active = activeId === item.id
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => scrollTo(item.id)}
-                  style={{
-                    display: 'block', width: '100%', textAlign: 'left',
-                    padding: '6px 20px',
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: 14,
-                    color: active ? '#00ff88' : '#666',
-                    background: active ? '#0a0a0a' : 'transparent',
-                    border: 'none',
-                    borderLeft: `2px solid ${active ? '#00ff88' : 'transparent'}`,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={e => { if (!active) { e.currentTarget.style.background = '#0a0a0a'; e.currentTarget.style.color = '#fff' } }}
-                  onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#666' } }}
-                >
-                  {item.label}
-                </button>
-              )
-            })}
-          </div>
-        ))}
-      </aside>
+      <DocsSidebar
+        activeId={activeId}
+        isMobile={isMobile}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        scrollTo={scrollTo}
+      />
 
       {/* ── Mobile header ── */}
       {isMobile && (
@@ -338,7 +460,7 @@ export default function DocsPage() {
         marginTop: isMobile ? 52 : 0,
         minWidth: 0,
       }}>
-        <div style={{ maxWidth: 860, margin: '0 auto', padding: isMobile ? '32px 20px 80px' : '64px 64px 80px' }}>
+        <div style={{ maxWidth: 1080, padding: isMobile ? '32px 20px 80px' : '64px clamp(32px, 5vw, 64px) 80px' }}>
 
           {/* ══ INTRODUCTION ══ */}
           <section id="introduction">
@@ -353,7 +475,7 @@ export default function DocsPage() {
               ))}
             </div>
 
-            <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 300, fontSize: isMobile ? 32 : 42, color: '#fff', marginBottom: 12, lineHeight: 1.1 }}>
+            <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 500, fontSize: isMobile ? 36 : 52, color: '#fff', marginBottom: 12, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
               Gate402
             </h1>
             <P>Billing infrastructure for AI agents. Drop-in middleware that adds a paywall to any HTTP API or MCP server. Agents pay in USDC on Solana — no banks, no credit cards, no human intervention.</P>
@@ -365,9 +487,9 @@ export default function DocsPage() {
                 { pkg: 'create-gate402-mcp', label: 'For MCP Developers', desc: 'Monetize any MCP tool call' },
               ].map(card => (
                 <div key={card.pkg} style={{ border: '1px solid #1a1a1a', borderRadius: 8, padding: 20, background: '#0a0a0a' }}>
-                  <code style={{ fontSize: 12, color: '#00ff88', fontFamily: 'monospace' }}>npm install {card.pkg}</code>
+                  <code style={{ fontSize: 12, color: '#00bc7d', fontFamily: 'monospace' }}>npm install {card.pkg}</code>
                   <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginTop: 12 }}>{card.label}</div>
-                  <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{card.desc}</div>
+                  <div style={{ fontSize: 12, color: '#898989', marginTop: 4 }}>{card.desc}</div>
                 </div>
               ))}
             </div>
@@ -484,7 +606,7 @@ app.listen(3000)`} />,
             ].map((r, i) => (
               <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: '10px 16px', gap: 16, borderBottom: i < 2 ? '1px solid #111' : 'none', background: i % 2 === 0 ? '#0a0a0a' : '#0d0d0d' }}>
                 <code style={{ fontFamily: 'monospace', fontSize: 12, color: '#ccc' }}>{r.pay}</code>
-                <code style={{ fontFamily: 'monospace', fontSize: 12, color: '#00ff88' }}>{r.you}</code>
+                <code style={{ fontFamily: 'monospace', fontSize: 12, color: '#00bc7d' }}>{r.you}</code>
                 <code style={{ fontFamily: 'monospace', fontSize: 12, color: '#444' }}>{r.fee}</code>
               </div>
             ))}
@@ -506,7 +628,7 @@ app.listen(3000)`} />,
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
             {['Node.js 18+', 'Express 4+ (or Flask/FastAPI)', 'Gate402 account at gate402.dev', 'Solana wallet (Phantom, Backpack, or any)'].map(item => (
               <div key={item} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <span style={{ color: '#00ff88', fontFamily: 'monospace', fontSize: 12 }}>→</span>
+                <span style={{ color: '#00bc7d', fontFamily: 'monospace', fontSize: 12 }}>→</span>
                 <span style={{ color: '#666', fontSize: 14 }}>{item}</span>
               </div>
             ))}
@@ -913,7 +1035,7 @@ curl https://api.gate402.dev/api/metrics \\
           ].map(ep => (
             <div key={ep.path + ep.method} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 8, padding: 18, marginBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
-                <span style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 600, color: ep.method === 'GET' ? '#00ff88' : ep.method === 'POST' ? '#3b82f6' : '#ef4444', background: ep.method === 'GET' ? 'rgba(0,255,136,0.1)' : ep.method === 'POST' ? 'rgba(59,130,246,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${ep.method === 'GET' ? 'rgba(0,255,136,0.2)' : ep.method === 'POST' ? 'rgba(59,130,246,0.2)' : 'rgba(239,68,68,0.2)'}`, borderRadius: 4, padding: '2px 8px', flexShrink: 0 }}>{ep.method}</span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 600, color: ep.method === 'GET' ? '#00bc7d' : ep.method === 'POST' ? '#3b82f6' : '#ef4444', background: ep.method === 'GET' ? 'rgba(0,188,125,0.1)' : ep.method === 'POST' ? 'rgba(59,130,246,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${ep.method === 'GET' ? 'rgba(0,188,125,0.2)' : ep.method === 'POST' ? 'rgba(59,130,246,0.2)' : 'rgba(239,68,68,0.2)'}`, borderRadius: 4, padding: '2px 8px', flexShrink: 0 }}>{ep.method}</span>
                 <code style={{ fontFamily: 'monospace', fontSize: 13, color: '#ccc' }}>{ep.path}</code>
                 {ep.auth && <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#9945FF', background: 'rgba(153,69,255,0.1)', border: '1px solid rgba(153,69,255,0.2)', borderRadius: 3, padding: '2px 6px' }}>Auth</span>}
               </div>
@@ -940,7 +1062,7 @@ curl https://api.gate402.dev/api/metrics \\
             ].map((row, i) => (
               <div key={i} style={{ display: 'grid', gridTemplateColumns: '80px 120px 1fr', padding: '12px 16px', gap: 16, borderBottom: i < 6 ? '1px solid #111' : 'none', background: i % 2 === 0 ? '#0a0a0a' : '#0d0d0d', alignItems: 'start' }}>
                 <span style={{ fontFamily: 'monospace', fontSize: 12, color: row.status === 402 ? '#f59e0b' : row.status === 401 ? '#ef4444' : '#ef4444' }}>{row.status}</span>
-                <code style={{ fontFamily: 'monospace', fontSize: 11, color: '#00ff88' }}>{row.code}</code>
+                <code style={{ fontFamily: 'monospace', fontSize: 11, color: '#00bc7d' }}>{row.code}</code>
                 <span style={{ fontSize: 13, color: '#555', lineHeight: 1.5 }}>{row.desc}</span>
               </div>
             ))}

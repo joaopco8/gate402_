@@ -33,6 +33,24 @@ export async function requirePro(req: Request, res: Response, next: NextFunction
   next()
 }
 
+export async function attachPlan(req: Request, res: Response, next: NextFunction) {
+  const apiKey = req.headers['x-api-key'] as string
+  const supabaseId = req.headers['x-user-id'] as string
+
+  if (supabaseId || apiKey) {
+    const user = supabaseId
+      ? await prisma.user.findUnique({ where: { supabaseId } }).catch(() => null)
+      : await prisma.user.findUnique({ where: { apiKey } }).catch(() => null)
+
+    if (user) {
+      ;(req as any).userPlan = user.plan
+      ;(req as any).userId = user.id
+    }
+  }
+
+  next()
+}
+
 export async function requireAccount(req: Request, res: Response, next: NextFunction) {
   const apiKey = req.headers['x-api-key'] as string
   const supabaseId = req.headers['x-user-id'] as string

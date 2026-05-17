@@ -74,6 +74,22 @@ router.post('/endpoints', async (req, res) => {
   const user = await prisma.user.findUnique({ where: { supabaseId } })
   if (!user) return res.status(404).json({ error: 'User not found' })
 
+  if (user.plan === 'free') {
+    const endpointCount = await prisma.endpoint.count({
+      where: { userId: user.id, active: true },
+    })
+    if (endpointCount >= 3) {
+      return res.status(403).json({
+        error: 'Endpoint limit reached',
+        code: 'UPGRADE_REQUIRED',
+        message: 'Free plan allows up to 3 endpoints. Upgrade to Pro for unlimited.',
+        upgradeUrl: 'https://gate402.dev/billing',
+        currentCount: endpointCount,
+        limit: 3,
+      })
+    }
+  }
+
   const existing = await prisma.endpoint.findFirst({
     where: { path, userId: user.id },
   })

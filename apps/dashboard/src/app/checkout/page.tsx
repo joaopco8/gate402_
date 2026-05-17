@@ -10,7 +10,7 @@ export default function CheckoutPage() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
-        window.location.href = '/login?next=/checkout'
+        window.location.href = '/auth/login?next=/checkout'
         return
       }
 
@@ -35,7 +35,7 @@ export default function CheckoutPage() {
 
   return (
     <div style={{
-      background: '#000',
+      background: '#0A0A0A',
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',

@@ -18,7 +18,7 @@ const cardStyle: React.CSSProperties = {
 }
 
 const labelStyle: React.CSSProperties = {
-  color: '#00ff88',
+  color: '#00bc7d',
   fontSize: 11,
   textTransform: 'uppercase',
   letterSpacing: '0.1em',
@@ -26,7 +26,7 @@ const labelStyle: React.CSSProperties = {
 }
 
 const primaryBtn: React.CSSProperties = {
-  background: '#00ff88',
+  background: '#00bc7d',
   color: '#000',
   border: 'none',
   borderRadius: 8,
@@ -61,7 +61,7 @@ function StepIndicator({ current }: { current: number }) {
             width: 28,
             height: 4,
             borderRadius: 2,
-            background: n <= current ? '#00ff88' : '#222',
+            background: n <= current ? '#00bc7d' : '#222',
             transition: 'background 0.3s',
           }}
         />
@@ -200,9 +200,9 @@ app.use(gate402({
                 onClick={handleCopy}
                 disabled={loading || !userData?.apiKey}
                 style={{
-                  background: copied ? '#00ff8820' : '#1a1a1a',
-                  border: `1px solid ${copied ? '#00ff8840' : '#333'}`,
-                  color: copied ? '#00ff88' : '#888',
+                  background: copied ? '#00bc7d20' : '#1a1a1a',
+                  border: `1px solid ${copied ? '#00bc7d40' : '#333'}`,
+                  color: copied ? '#00bc7d' : '#888',
                   borderRadius: 6,
                   padding: '8px 16px',
                   fontFamily: 'monospace',

@@ -62,6 +62,16 @@ app.use('/api', adminRouter);
 app.use('/api/verify-payment', requirePro);
 app.use('/api/endpoints/pricing', requirePro);
 
+// Pro-only analytics & features
+app.use('/api/analytics/revenue', requirePro);
+app.use('/api/analytics/top-agents', requirePro);
+app.use('/api/analytics/latency', requirePro);
+app.use('/api/analytics/success-rate', requirePro);
+app.use('/api/analytics/export', requirePro);
+app.use('/api/analytics/failed', requirePro);
+app.use('/api/metering', requirePro);
+app.use('/api/wallet/withdraw', requirePro);
+
 // Account required for dashboard routes (/api/users/sync is exempt — it creates new accounts)
 app.use('/api/metrics', requireAccount);
 app.use('/api/calls', requireAccount);

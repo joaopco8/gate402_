@@ -1,0 +1,5 @@
+Date,Endpoint,Gross (USDC),Net (USDC),Fee (USDC),Status,TxHash
+2026-05-14T19:42:37.726Z,/api/weather,0.001,0.00099,0.00001,verified,demo_1778787756601_3t5myc
+2026-05-14T14:28:40.766Z,/api/weather,0.001,0.00099,0.00001,verified,demo_1778768919526_hboirs
+2026-05-14T13:37:06.737Z,/api/weather,0.001,0.00099,0.00001,verified,demo_1778765825610_zl16bt
+2026-05-14T13:24:49.990Z,/api/weather,0.001,0.00099,0.00001,demo,demo_1778765088718_ufh1ov

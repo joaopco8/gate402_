@@ -71,18 +71,26 @@ pub async fn gateway(
     let endpoints = match cache::get(&redis, &endpoints_cache_key).await {
         Some(cached) => serde_json::from_str::<Vec<db::Endpoint>>(&cached).unwrap_or_default(),
         None => {
-            let eps = db::get_endpoints_for_user(&db_pool, user.id).await;
+            let eps = db::get_endpoints_for_user(&db_pool, &user.id).await;
             let serialized = serde_json::to_string(&eps).unwrap_or_default();
             cache::set(&redis, &endpoints_cache_key, &serialized, 60).await;
             eps
         }
     };
 
+    info!("[handler] Endpoints loaded: {}", endpoints.len());
+    for ep in &endpoints {
+        info!("[handler] Endpoint: path={} price={}", ep.path, ep.price_usdc);
+    }
+    info!("[handler] Looking for path: {}", endpoint_path);
+
     let endpoint = endpoints.iter().find(|e| e.path == endpoint_path);
+    info!("[handler] Endpoint match: {}", endpoint.is_some());
 
     let endpoint = match endpoint {
         Some(e) => e,
         None => {
+            warn!("[handler] No endpoint found for path: {}", endpoint_path);
             let proxy = ProxyClient::new();
             let origin_url = &config.gate402_api_url;
             return match proxy.forward(origin_url, endpoint_path_raw.as_str(), &req, body, None).await {

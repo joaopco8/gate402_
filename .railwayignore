@@ -1,0 +1,9 @@
+node_modules
+.git
+dist
+*.tgz
+apps/dashboard
+apps/landing
+packages/sdk-agent/dist
+packages/sdk/dist
+packages/create-gate402-mcp/dist

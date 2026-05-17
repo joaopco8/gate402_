@@ -2,14 +2,14 @@
 
 export default function PrivacyPage() {
   return (
-    <div style={{ background: '#000', minHeight: '100vh', fontFamily: 'monospace', color: '#ccc' }}>
+    <div style={{ background: '#0A0A0A', minHeight: '100vh', fontFamily: 'monospace', color: '#ccc' }}>
 
       {/* Header */}
       <header style={{
         position: 'sticky',
         top: 0,
         zIndex: 50,
-        background: '#000',
+        background: '#0A0A0A',
         borderBottom: '1px solid #1a1a1a',
         display: 'flex',
         alignItems: 'center',
