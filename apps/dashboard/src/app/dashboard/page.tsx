@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useRef, useMemo, useEffect } from 'react'
-import { BarChart, Bar, CartesianGrid, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { ComposedChart, Area, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
 import PageHeader from '../components/PageHeader'
@@ -151,66 +151,95 @@ function StatsCard({ label, value, sub, sparkData, change, loading }: {
 
 // ── MiniChart ────────────────────────────────────────────────────────────────
 
+const LINE_COLOR = '#00bc7d'
+
 const CHART_CSS = `
-  .g402-chart .recharts-cartesian-axis-tick text {
-    fill: var(--text-muted);
-    font-size: 12px;
-  }
-  .g402-chart .recharts-cartesian-grid line[stroke='#ccc'],
-  .g402-chart .recharts-cartesian-grid line {
-    stroke: var(--border);
-    stroke-opacity: 0.5;
-  }
-  .g402-chart .recharts-rectangle.recharts-tooltip-cursor {
-    fill: var(--surface);
-    opacity: 0.6;
-  }
-  .g402-chart .recharts-curve.recharts-tooltip-cursor { stroke: var(--border); }
-  .g402-chart .recharts-layer,
-  .g402-chart .recharts-sector,
-  .g402-chart .recharts-surface { outline: none; }
+  .g402-chart .recharts-cartesian-axis-tick text { fill: var(--text-muted); font-size: 12px; }
+  .g402-chart .recharts-layer, .g402-chart .recharts-sector, .g402-chart .recharts-surface { outline: none; }
+  .g402-chart .recharts-curve.recharts-tooltip-cursor { stroke: ${LINE_COLOR}; stroke-dasharray: none; }
 `
+
+interface TooltipPayload { value: number }
+interface MiniTooltipProps { active?: boolean; payload?: TooltipPayload[]; label?: string }
+
+function MiniTooltip({ active, payload }: MiniTooltipProps) {
+  if (!active || !payload?.length) return null
+  return (
+    <div style={{ background: '#18181b', color: '#fff', borderRadius: 8, padding: '8px 12px', fontSize: 12, fontFamily: 'var(--font-code)', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}>
+      <div style={{ fontSize: 10, color: '#a1a1aa', marginBottom: 2 }}>Total</div>
+      <div style={{ fontWeight: 600 }}>{payload[0].value} calls</div>
+    </div>
+  )
+}
 
 function MiniChart({ data }: { data: Array<{ date: string; count: number }> }) {
   if (!data?.length) return (
-    <div style={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--font-code)' }}>
+    <div style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--font-code)' }}>
       no data yet
     </div>
   )
   return (
     <>
       <style>{CHART_CSS}</style>
-      <div className="g402-chart" style={{ width: '100%', height: 220 }}>
+      <div className="g402-chart" style={{ width: '100%', height: 280 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 4, right: 12, left: 12, bottom: 0 }}>
-            <CartesianGrid vertical={false} />
+          <ComposedChart data={data} margin={{ top: 25, right: 25, left: 0, bottom: 25 }} style={{ overflow: 'visible' }}>
+            <defs>
+              <linearGradient id="g402LineGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={LINE_COLOR} stopOpacity={0.15} />
+                <stop offset="100%" stopColor={LINE_COLOR} stopOpacity={0} />
+              </linearGradient>
+              <filter id="g402DotShadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="2" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,0.5)" />
+              </filter>
+            </defs>
+
+            <CartesianGrid
+              strokeDasharray="4 12"
+              stroke="var(--border)"
+              strokeOpacity={1}
+              horizontal={true}
+              vertical={false}
+            />
+
             <XAxis
               dataKey="date"
-              tickLine={false}
               axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value: string) =>
-                new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-              }
+              tickLine={false}
+              tick={{ fontSize: 12, fill: 'var(--text-muted)' }}
+              tickMargin={12}
+              dy={10}
+              tickFormatter={(v: string) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             />
+
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 12, fill: 'var(--text-muted)' }}
+              tickMargin={12}
+              domain={[0, 'dataMax + 1']}
+              tickCount={5}
+              allowDecimals={false}
+            />
+
             <Tooltip
-              contentStyle={{
-                background: 'var(--card)',
-                border: '1px solid var(--border)',
-                borderRadius: 8,
-                fontSize: 12,
-                fontFamily: 'var(--font-code)',
-                color: 'var(--text-primary)',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-              }}
-              formatter={(value: unknown) => [`${value} calls`, '']}
-              labelFormatter={(label: unknown) =>
-                new Date(String(label)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-              }
+              content={<MiniTooltip />}
+              cursor={{ stroke: LINE_COLOR, strokeWidth: 1, strokeDasharray: 'none' }}
             />
-            <Bar dataKey="count" fill="#00bc7d" radius={[4, 4, 0, 0]} />
-          </BarChart>
+
+            {/* Gradient area under the line */}
+            <Area type="linear" dataKey="count" stroke="transparent" fill="url(#g402LineGrad)" strokeWidth={0} dot={false} />
+
+            {/* Main line */}
+            <Line
+              type="linear"
+              dataKey="count"
+              stroke={LINE_COLOR}
+              strokeWidth={3}
+              dot={false}
+              activeDot={{ r: 6, fill: LINE_COLOR, stroke: '#fff', strokeWidth: 2, filter: 'url(#g402DotShadow)' }}
+            />
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
     </>
@@ -390,7 +419,7 @@ export default function DashboardPage() {
                 {data?.callsPerDay?.reduce((s, d) => s + d.count, 0) || 0} total
               </span>
             </div>
-            {loading ? <Skeleton height={220} /> : <MiniChart data={data?.callsPerDay || []} />}
+            {loading ? <Skeleton height={280} /> : <MiniChart data={data?.callsPerDay || []} />}
           </Card>
 
           <ProGate isPro={isPro} feature="MRR Projection">
