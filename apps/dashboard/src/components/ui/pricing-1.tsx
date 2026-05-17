@@ -4,74 +4,96 @@ import React from "react";
 const Pricing1 = () => {
   const pricingPlans = [
     {
-      title: "Starter",
+      title: "Free",
       popular: false,
-      description:
-        "Perfect for individuals or small teams just getting started with their projects.",
-      price: "$499",
+      description: "For developers getting started.",
+      price: "$0",
+      priceLabel: "forever",
+      cta: "Read the docs",
+      ctaHref: "/docs",
+      ctaStyle: "ghost",
       features: [
-        "Basic support",
-        "1 project included",
-        "Community access",
-        "Email support",
-        "Cancel anytime",
+        "npm install gate402",
+        "x402 middleware",
+        "Solana devnet + mainnet",
+        "Up to 3 endpoints",
+        "Last 5 calls visible",
+        "7-day chart",
+        "Community support",
+        "MIT licensed",
       ],
     },
     {
       title: "Pro",
       popular: true,
-      description:
-        "It is most ideal for growing teams who need more features and priority support .",
-      price: "$1,299",
+      description: "For developers monetizing at scale.",
+      price: "$99",
+      priceLabel: "monthly",
+      cta: "Start Pro",
+      ctaHref: "/checkout",
+      ctaStyle: "green",
       features: [
-        "Priority support",
-        "Up to 5 projects",
-        "Team collaboration",
-        "Advanced analytics",
-        "Monthly check-ins",
+        "Everything in Free",
+        "Unlimited endpoints",
+        "Last 50 calls visible",
+        "90-day analytics",
+        "Revenue breakdown gross/net",
+        "Top paying agents",
+        "Latency p50/p95/p99",
+        "CSV export + tax report",
+        "Wallet management",
+        "MRR projection",
+        "Metering engine",
+        "Priority email support",
         "Cancel anytime",
       ],
     },
     {
       title: "Enterprise",
       popular: false,
-      description:
-        "Best for large organizations requiring custom solutions and dedicated support.",
-      price: "Custom",
+      description: "For teams processing serious volume.",
+      price: "0.5%",
+      priceLabel: "of volume",
+      cta: "Talk to us",
+      ctaHref: "mailto:joaocamargo@gate402.dev",
+      ctaStyle: "green",
       features: [
-        "Dedicated account manager",
-        "Unlimited projects",
+        "Everything in Pro",
+        "Custom domain",
+        "White-label dashboard",
+        "SLA guarantee",
+        "Dedicated support",
         "Custom integrations",
-        "24/7 support",
-        "Onboarding & training",
+        "Onboarding call",
         "Cancel anytime",
       ],
     },
   ];
 
   return (
-    <section className="flex flex-col items-center justify-center gap-20  w-[95%] mx-auto py-20 bg-background text-foreground">
-      <div className="flex flex-col items-center gap-7 w-full">
-        <h2 className="font-medium text-2xl leading-6 text-center">
-          Simple and transparent pricing
+    <section className="flex flex-col items-center justify-center gap-12 w-full px-4 sm:px-6 mx-auto py-16 sm:py-20 bg-background text-foreground">
+      <div className="flex flex-col items-center gap-4 w-full">
+        <h2 className="font-medium text-center" style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', lineHeight: 1.15 }}>
+          <span style={{ color: '#fff' }}>Pricing that</span> <span style={{ color: '#898989' }}>scales with you.</span>
         </h2>
+        <p className="text-center" style={{ fontSize: 16, color: '#898989', lineHeight: 1.65, maxWidth: 480 }}>
+          Start free. Upgrade when you need more. No hidden fees. No minimums. Cancel anytime.
+        </p>
       </div>
 
-      <div className="flex justify-between flex-wrap max-w-4xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-0 w-full max-w-4xl">
         {pricingPlans.map((plan, index) => (
           <div
             key={index}
-            className={`flex-1 border border-primary/10 rounded-none ${
-              index === 1 ? "border-t border-b border-l-0 border-r-0" : ""
-            }`}
+            className="border border-primary/10 rounded-none"
           >
-            <div className="p-[30px] flex flex-col h-full gap-6 justify-between">
+            <div className="p-5 sm:p-7 flex flex-col h-full gap-6 justify-between">
               <div className="flex flex-col gap-6">
                 <div className="p-0 flex flex-col gap-4">
                   <div className="font-medium text-xl leading-5">
                     {plan.title}{" "}
                     {plan.popular && (
-                      <span className="text-sm leading-[14px] opacity-80 font-normal">
+                      <span className="text-sm leading-[14px] font-normal" style={{ color: '#00bc7d' }}>
                         // most popular
                       </span>
                     )}
@@ -83,12 +105,12 @@ const Pricing1 = () => {
                     <span className="font-medium text-base leading-4">
                       {plan.price}
                     </span>
-                    <span> monthly</span>
+                    <span> {plan.priceLabel}</span>
                   </div>
                 </div>
                 <hr />
 
-                <div className="flex flex-col h-[165px] justify-between">
+                <div className="flex flex-col gap-2">
                   {plan.features.map((feature, featureIndex) => (
                     <div
                       key={featureIndex}
@@ -104,15 +126,17 @@ const Pricing1 = () => {
               </div>
               <hr />
               <div className="p-0 ">
-                <button
-                  className={`w-[120px] h-10 rounded-none ${
-                    index === 1
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "bg-secondary text-secondary-foreground border border-[#0000001a] hover:bg-gray-50"
-                  }`}
+                <a
+                  href={plan.ctaHref}
+                  className="w-full h-10 rounded-none flex items-center justify-center text-sm font-medium transition-opacity hover:opacity-90"
+                  style={
+                    plan.ctaStyle === 'green'
+                      ? { backgroundColor: '#00bc7d', color: '#111111' }
+                      : { backgroundColor: 'transparent', border: '1px solid #333', color: '#d1d5db' }
+                  }
                 >
-                  Book a call
-                </button>
+                  {plan.cta}
+                </a>
               </div>
             </div>
           </div>

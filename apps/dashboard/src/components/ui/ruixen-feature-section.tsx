@@ -3,7 +3,8 @@
 import { cn } from "@/lib/utils"
 import { CardContent } from "@/components/ui/card";
 import { TbHeartPlus } from "react-icons/tb";
-import Image from "next/image";
+import { SiSolana } from "react-icons/si";
+import { Link2Icon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
@@ -30,35 +31,59 @@ export const Highlight = ({
 const CARDS = [
   {
     id: 0,
-    name: "Sarah Chen",
-    designation: "Frontend Developer",
+    name: "Provider side — 3 lines. Done.",
+    designation: "",
     content: (
-      <p>
-        <Highlight>Ruixen UI</Highlight> has completely transformed our development workflow. The components are beautifully crafted and{" "}
-        <Highlight>incredibly easy to integrate</Highlight> into any modern React application.
-      </p>
+      <div style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10.5, lineHeight: 1.6, color: '#a3e635', background: '#1a1a1a', borderRadius: 8, padding: '8px 10px', overflow: 'hidden' }}>
+        <span style={{ color: '#6b7280' }}>{'// 3 lines to monetize your API'}</span>{'\n'}
+        <span style={{ color: '#818cf8' }}>import</span>{' { gate402 } '}<span style={{ color: '#818cf8' }}>from</span>{' '}<span style={{ color: '#86efac' }}>&apos;gate402&apos;</span>{'\n\n'}
+        <span style={{ color: '#f472b6' }}>app</span><span style={{ color: '#e5e7eb' }}>.use(gate402({'{'}</span>{'\n'}
+        {'  '}<span style={{ color: '#e5e7eb' }}>endpoints: {'{'} </span><span style={{ color: '#86efac' }}>&apos;/api/analyze&apos;</span><span style={{ color: '#e5e7eb' }}>: </span><span style={{ color: '#fb923c' }}>0.005</span><span style={{ color: '#e5e7eb' }}> {'}'}</span>{'\n'}
+        <span style={{ color: '#e5e7eb' }}>{'}))'}</span>{'\n\n'}
+        <span style={{ color: '#f472b6' }}>app</span><span style={{ color: '#e5e7eb' }}>.post(</span><span style={{ color: '#86efac' }}>&apos;/api/analyze&apos;</span><span style={{ color: '#e5e7eb' }}>, (req, res) </span><span style={{ color: '#818cf8' }}>=&gt;</span><span style={{ color: '#e5e7eb' }}> {'{'}</span>{'\n'}
+        {'  '}<span style={{ color: '#e5e7eb' }}>res.json(analyzeData(req.body))</span>{'\n'}
+        <span style={{ color: '#e5e7eb' }}>{'})'}</span>
+      </div>
     ),
   },
   {
     id: 1,
-    name: "Alex Rodriguez",
-    designation: "UI/UX Designer",
+    name: "MCP side — per-tool pricing.",
+    designation: "",
     content: (
-      <p>
-        The <Highlight>design system</Highlight> behind Ruixen UI is both elegant and consistent. From layout to interactivity, every detail is thoughtfully built with{" "}
-        <Highlight>accessibility and usability</Highlight> in mind.
-      </p>
+      <div style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10.5, lineHeight: 1.6, color: '#a3e635', background: '#1a1a1a', borderRadius: 8, padding: '8px 10px', overflow: 'hidden' }}>
+        <span style={{ color: '#6b7280' }}>{'// Charge per tool call on your MCP server'}</span>{'\n'}
+        <span style={{ color: '#818cf8' }}>import</span>{' { gate402MCP } '}<span style={{ color: '#818cf8' }}>from</span>{' '}<span style={{ color: '#86efac' }}>&apos;gate402&apos;</span>{'\n\n'}
+        <span style={{ color: '#f472b6' }}>app</span><span style={{ color: '#e5e7eb' }}>.use(gate402MCP({'{'}</span>{'\n'}
+        {'  '}<span style={{ color: '#e5e7eb' }}>defaultToolPrice: </span><span style={{ color: '#fb923c' }}>0.001</span><span style={{ color: '#e5e7eb' }}>,</span>{'\n'}
+        {'  '}<span style={{ color: '#e5e7eb' }}>toolPricing: {'{'}</span>{'\n'}
+        {'    '}<span style={{ color: '#86efac' }}>&apos;search_legal&apos;</span><span style={{ color: '#e5e7eb' }}>:     </span><span style={{ color: '#fb923c' }}>0.005</span><span style={{ color: '#e5e7eb' }}>,</span>{'\n'}
+        {'    '}<span style={{ color: '#86efac' }}>&apos;analyze_contract&apos;</span><span style={{ color: '#e5e7eb' }}>: </span><span style={{ color: '#fb923c' }}>0.020</span><span style={{ color: '#e5e7eb' }}>,</span>{'\n'}
+        {'  '}<span style={{ color: '#e5e7eb' }}>{'}'}</span>{'\n'}
+        <span style={{ color: '#e5e7eb' }}>{'}))'}</span>{'\n\n'}
+        <span style={{ color: '#6b7280' }}>{'// tools/call → charged'}</span>{'\n'}
+        <span style={{ color: '#6b7280' }}>{'// initialize → free'}</span>{'\n'}
+        <span style={{ color: '#6b7280' }}>{'// tools/list → free'}</span>
+      </div>
     ),
   },
   {
     id: 2,
-    name: "David Kim",
-    designation: "Product Manager",
+    name: "Agent side — pays itself.",
+    designation: "",
     content: (
-      <p>
-        After adopting <Highlight>Ruixen UI</Highlight>, our team shipped features 40% faster. The rich component library and{" "}
-        <Highlight>clear documentation</Highlight> have made it an essential tool in our product development.
-      </p>
+      <div style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10.5, lineHeight: 1.6, color: '#a3e635', background: '#1a1a1a', borderRadius: 8, padding: '8px 10px', overflow: 'hidden' }}>
+        <span style={{ color: '#6b7280' }}>{'// Agent pays automatically on HTTP 402'}</span>{'\n'}
+        <span style={{ color: '#818cf8' }}>import</span>{' { Gate402Agent } '}<span style={{ color: '#818cf8' }}>from</span>{' '}<span style={{ color: '#86efac' }}>&apos;gate402-agent&apos;</span>{'\n\n'}
+        <span style={{ color: '#818cf8' }}>const</span>{' agent = '}<span style={{ color: '#818cf8' }}>new</span>{' '}<span style={{ color: '#f472b6' }}>Gate402Agent</span><span style={{ color: '#e5e7eb' }}>({'{'}</span>{'\n'}
+        {'  '}<span style={{ color: '#e5e7eb' }}>privateKey: process.env.</span><span style={{ color: '#fb923c' }}>AGENT_WALLET_KEY</span><span style={{ color: '#e5e7eb' }}>,</span>{'\n'}
+        {'  '}<span style={{ color: '#e5e7eb' }}>limits: {'{ '}</span><span style={{ color: '#e5e7eb' }}>maxPerDay: </span><span style={{ color: '#fb923c' }}>10.00</span><span style={{ color: '#e5e7eb' }}>{' }'}</span>{'\n'}
+        <span style={{ color: '#e5e7eb' }}>{'})' }</span>{'\n\n'}
+        <span style={{ color: '#818cf8' }}>const</span>{' data = '}<span style={{ color: '#818cf8' }}>await</span>{' agent.'}<span style={{ color: '#f472b6' }}>fetch</span><span style={{ color: '#e5e7eb' }}>({'('}</span>{'\n'}
+        {'  '}<span style={{ color: '#86efac' }}>&apos;https://api.meuservico.dev/analyze&apos;</span>{'\n'}
+        <span style={{ color: '#e5e7eb' }}>{')' }</span>{'\n'}
+        <span style={{ color: '#6b7280' }}>{'// Paid 0.00495 USDC. Received data.'}</span>
+      </div>
     ),
   },
 ];
@@ -66,15 +91,15 @@ const CARDS = [
 
 const integrations = [
   {
-    name: "Figma",
-    desc: "Design collaboratively in real-time with intuitive UI tools",
-    icon: "🎨",
+    name: "Solana + USDC",
+    desc: "Settlement in 400ms. Fees under $0.001. The only chain where micropayments make sense.",
+    icon: <SiSolana className="w-4 h-4 sm:w-5 sm:h-5 text-[#9945FF]" />,
   },
   {
-    name: "Vercel",
-    desc: "Deploy your projects seamlessly with global scale",
-    icon: "🚀",
-  }
+    name: "x402 Protocol",
+    desc: "The open standard backed by Google, Cloudflare, Stripe, and Coinbase. Gate402 is production-ready today.",
+    icon: <Link2Icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#00bc7d]" />,
+  },
 ];
 
 
@@ -83,41 +108,33 @@ export default function RuixenSection() {
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
       <div className="grid grid-cols-1 lg:grid-cols-2 relative">
         {/* Left Block */}
-        <div className="flex flex-col items-start justify-center border border-gray-200 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col items-start justify-center border border-white/[0.06] p-4 sm:p-6 lg:p-8">
           {/* Card */}
           <div className="relative w-full mb-4 sm:mb-6">
-            <div className="absolute inset-x-0 -bottom-2 h-16 sm:h-20 lg:h-24 bg-gradient-to-t from-white dark:from-gray-900 to-transparent z-10"></div>
-            <CardStack items={CARDS} />
+<CardStack items={CARDS} />
           </div>
 
           {/* Content */}
           <h3 className="text-lg sm:text-xl lg:text-2xl font-normal text-gray-900 dark:text-white leading-relaxed">
-            Intuitive Dashboard Experience <span className="text-primary">Ruixen UI</span>{" "}
-            <span className="text-gray-500 dark:text-gray-400 text-sm sm:text-base lg:text-lg"> Simplify your development workflow with our beautifully designed components that provide actionable insights out of the box.</span>
+            Real-time Payment Dashboard <span className="text-primary">gate402</span>{" "}
+            <span className="text-gray-500 dark:text-gray-400 text-sm sm:text-base lg:text-lg"> Every USDC that lands in your wallet appears here the moment it arrives. No refresh. No delay. No intermediary.</span>
           </h3>
         </div>
 
         {/* Right Block */}
-        <div className="flex flex-col items-center justify-start border border-gray-200 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col items-center justify-start border border-white/[0.06] p-4 sm:p-6 lg:p-8">
           {/* Content */}
           <h3 className="text-lg sm:text-xl lg:text-2xl font-normal text-gray-900 dark:text-white mb-4 sm:mb-6 leading-relaxed">
-            Seamless Integration Ecosystem <span className="text-primary">Ruixen UI</span>{" "}
-            <span className="text-gray-500 dark:text-gray-400 text-sm sm:text-base lg:text-lg"> Integrate effortlessly with your favorite tools using Ruixen&apos;s smart API-ready architecture and eliminate silos in seconds.</span>
+            The x402 ecosystem is already in production.{" "}
+            <span className="text-gray-500 dark:text-gray-400 text-sm sm:text-base lg:text-lg"> Gate402 connects your API to every agent, framework, and runtime that speaks the x402 protocol.</span>
           </h3>
-          <div
-            className={cn(
-              "group relative mt-auto w-full inline-flex animate-rainbow cursor-pointer items-center justify-center rounded-xl border-0 bg-white dark:bg-black px-4 sm:px-6 lg:px-8 py-2 font-medium text-primary-foreground transition-colors [background-clip:padding-box,border-box,border-box] [background-origin:border-box] [border:calc(0.08*1rem)_solid_transparent] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
-
-              // before styles
-              "before:absolute before:bottom-[8%] before:left-1/2 before:z-0 before:h-1/5 before:w-3/5 before:-translate-x-1/2 before:animate-rainbow before:bg-[linear-gradient(90deg,hsl(var(--color-1)),hsl(var(--color-5)),hsl(var(--color-3)),hsl(var(--color-4)),hsl(var(--color-2)))] before:bg-[length:200%] before:[filter:blur(calc(0.8*1rem))]",
-            )}
-          >
+          <div className="mt-auto w-full">
             {/* Integration List */}
-            <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-2xl sm:rounded-3xl z-10 w-full">
+            <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 border border-white/[0.06] rounded-2xl sm:rounded-3xl z-10 w-full" style={{ background: '#1a1a1a' }}>
               {integrations.map((item, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-2 sm:p-3 border border-gray-200 dark:border-gray-700 rounded-xl sm:rounded-2xl hover:bg-muted/50 transition"
+                  className="flex items-center justify-between p-2 sm:p-3 border border-white/[0.06] rounded-xl sm:rounded-2xl hover:bg-muted/50 transition"
                 >
                   <div className="flex items-center gap-2 sm:gap-3 flex-1">
                     <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-muted flex items-center justify-center text-sm sm:text-lg flex-shrink-0">
@@ -128,7 +145,7 @@ export default function RuixenSection() {
                       <p className="text-xs text-muted-foreground line-clamp-1 sm:line-clamp-2">{item.desc}</p>
                     </div>
                   </div>
-                  <button className="rounded-full border border-gray-200 dark:border-gray-700 p-1.5 sm:p-2 text-xs font-semibold flex-shrink-0 ml-2"><TbHeartPlus className="w-3 h-3 sm:w-4 sm:h-4" /></button>
+                  <button className="rounded-full border border-white/[0.06] p-1.5 sm:p-2 text-xs font-semibold flex-shrink-0 ml-2"><TbHeartPlus className="w-3 h-3 sm:w-4 sm:h-4" /></button>
                 </div>
               ))}
             </CardContent>
@@ -139,33 +156,33 @@ export default function RuixenSection() {
       {/* Stats and Testimonial Section */}
       <div className="mt-12 sm:mt-16 lg:mt-20 grid gap-8 lg:grid-cols-2 lg:gap-12 xl:gap-16">
         <div className="flex justify-center items-center p-4 sm:p-6">
-          <div className="grid grid-cols-3 gap-6 sm:gap-8 lg:gap-6 xl:gap-8 w-full text-center sm:text-left">
-            <div className="space-y-2 sm:space-y-3">
-              <div className="text-2xl sm:text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white">+1200</div>
-              <p className="text-sm sm:text-base text-gray-700 dark:text-gray-400">Stars on GitHub</p>
-            </div>
-            <div className="space-y-2 sm:space-y-3">
-              <div className="text-2xl sm:text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white">22M</div>
-              <p className="text-sm sm:text-base text-gray-700 dark:text-gray-400">Active Users</p>
-            </div>
-            <div className="space-y-2 sm:space-y-3">
-              <div className="text-2xl sm:text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white">+500</div>
-              <p className="text-sm sm:text-base text-gray-700 dark:text-gray-400">Powered Apps</p>
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 w-full divide-y sm:divide-y-0 divide-x-0 sm:divide-x divide-gray-200 dark:divide-gray-700">
+            {[
+              { value: "3",     label: "lines",      sub: "of code"    },
+              { value: "400ms", label: "settlement",  sub: "on Solana"  },
+              { value: "1%",    label: "platform",    sub: "fee only"   },
+              { value: "MIT",   label: "licensed",    sub: "open source"},
+            ].map((item) => (
+              <div key={item.value} className="flex-1 flex flex-col items-center px-4 space-y-1 text-center">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white">{item.value}</div>
+                <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{item.label}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-500">{item.sub}</p>
+              </div>
+            ))}
           </div>
         </div>
         <div className="relative">
-          <blockquote className="border-l-2 border-gray-200 dark:border-gray-700 pl-4 sm:pl-6 lg:pl-8 text-gray-700 dark:text-gray-400">
-            <p className="text-sm sm:text-base lg:text-lg leading-relaxed">Using Ruixen UI has been like unlocking a new level of productivity. It&apos;s the perfect fusion of simplicity and versatility, enabling us to create UIs.</p>
+          <blockquote className="border-l-2 border-white/[0.06] pl-4 sm:pl-6 lg:pl-8 text-gray-700 dark:text-gray-400">
+            <p className="text-sm sm:text-base lg:text-lg leading-relaxed">
+              &ldquo;The agentic economy needs a payment layer.<br />
+              HTTP 402 has existed since 1991.<br />
+              Gate402 is what finally makes it real.&rdquo;
+            </p>
             <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3">
-              <cite className="block font-medium text-sm sm:text-base text-gray-900 dark:text-white">Saurabh, CEO</cite>
-              <Image
-                className="h-8 sm:h-10 w-fit dark:invert"
-                src="https://opencv.org/wp-content/uploads/2022/05/logo.png"
-                alt="Company Logo"
-                height={40}
-                width={100}
-              />
+              <cite className="block font-medium text-sm sm:text-base text-gray-900 dark:text-white not-italic">
+                — The infrastructure the internet forgot to build,<br />
+                <span className="font-normal text-gray-500 dark:text-gray-500">until agents made it necessary.</span>
+              </cite>
             </div>
           </blockquote>
         </div>
@@ -218,9 +235,10 @@ export const CardStack = ({
         return (
           <motion.div
             key={card.id}
-            className="absolute dark:bg-black bg-white h-48 w-full md:h-48 md:w-96 rounded-3xl p-4 shadow-xl border border-neutral-200 dark:border-white/[0.1] flex flex-col justify-between"
+            className="absolute h-48 w-full md:h-48 md:w-96 rounded-3xl p-4 shadow-xl border border-white/[0.08] flex flex-col justify-between"
             style={{
               transformOrigin: "top center",
+              background: '#1a1a1a',
             }}
             animate={{
               top: index * -CARD_OFFSET,

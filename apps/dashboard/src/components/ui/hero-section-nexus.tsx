@@ -1,5 +1,7 @@
 "use client";
 
+import { LogoCloud } from "@/components/ui/logo-cloud-3";
+import { LandingNavbar } from "@/components/ui/landing-navbar";
 import React, {
     useEffect,
     useRef,
@@ -252,10 +254,10 @@ const ShinyText: React.FC<{ text: string }> = ({ text }) => (
         display: 'inline-block',
         backgroundColor: '#1a1a1a',
         border: '1px solid #374151',
-        color: '#0CF2A0',
+        color: '#00bc7d',
         padding: '4px 16px',
         borderRadius: '9999px',
-        fontSize: '0.75rem',
+        fontSize: '0.875rem',
         fontWeight: 500,
         cursor: 'pointer',
     }}>
@@ -324,7 +326,7 @@ const NavLink: React.FC<NavLinkProps> = ({ href = "#", children, hasDropdown = f
      {hasDropdown && <ChevronDownIcon isOpen={isDropdownOpen} />}
      {!hasDropdown && (
          <motion.div
-           style={{ position: 'absolute', bottom: '-2px', left: 0, right: 0, height: '1px', backgroundColor: '#0CF2A0', scaleX: 0 }}
+           style={{ position: 'absolute', bottom: '-2px', left: 0, right: 0, height: '1px', backgroundColor: '#00bc7d', scaleX: 0 }}
            whileHover={{ scaleX: 1 }}
            transition={{ duration: 0.3, ease: "easeOut" }}
          />
@@ -399,14 +401,6 @@ interface Dot {
 const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
    const canvasRef = useRef<HTMLCanvasElement>(null);
    const animationFrameId = useRef<number | null>(null);
-   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-   const [isScrolled, setIsScrolled] = useState<boolean>(false);
-
-   const { scrollY } = useScroll();
-   useMotionValueEvent(scrollY, "change", (latest) => {
-       setIsScrolled(latest > 10);
-   });
 
    const dotsRef = useRef<Dot[]>([]);
    const gridRef = useRef<Record<string, number[]>>({});
@@ -587,34 +581,6 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
        };
    }, [handleResize, handleMouseMove, animateDots]);
 
-   useEffect(() => {
-       if (isMobileMenuOpen) {
-           document.body.style.overflow = 'hidden';
-       } else {
-           document.body.style.overflow = 'unset';
-       }
-       return () => { document.body.style.overflow = 'unset'; };
-   }, [isMobileMenuOpen]);
-
-   const headerVariants: Variants = {
-       top: {
-           backgroundColor: "rgba(17, 17, 17, 0.8)",
-           borderBottomColor: "rgba(55, 65, 81, 0.5)",
-           boxShadow: 'none',
-       },
-       scrolled: {
-           backgroundColor: "rgba(17, 17, 17, 0.95)",
-           borderBottomColor: "rgba(75, 85, 99, 0.7)",
-           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-       }
-   };
-
-   const mobileMenuVariants: Variants = {
-       hidden: { opacity: 0, y: -20 },
-       visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
-       exit: { opacity: 0, y: -20, transition: { duration: 0.15, ease: "easeIn" } }
-   };
-
     const contentDelay = 0.3;
     const itemDelayIncrement = 0.1;
 
@@ -658,136 +624,7 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
             background: 'linear-gradient(to bottom, transparent 0%, #111111 90%), radial-gradient(ellipse at center, transparent 40%, #111111 95%)'
         }} />
 
-        <motion.header
-            variants={headerVariants}
-            initial="top"
-            animate={isScrolled ? "scrolled" : "top"}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                zIndex: 100,
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                borderBottom: '1px solid',
-                paddingLeft: '24px',
-                paddingRight: '24px',
-            }}
-        >
-            <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1280px', margin: '0 auto', height: '70px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-                    <img src="/logo-gate.png" alt="Gate402" style={{ height: 26, width: 'auto', display: 'block' }} />
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1, gap: '32px', padding: '0 16px' }} className="nav-desktop-links">
-                    <NavLink href="#">Product</NavLink>
-                    <NavLink href="#">Customers</NavLink>
-
-                    <div
-                        style={{ position: 'relative' }}
-                        onMouseEnter={() => setOpenDropdown('channels')}
-                        onMouseLeave={() => setOpenDropdown(null)}
-                    >
-                        <NavLink href="#" hasDropdown isDropdownOpen={openDropdown === 'channels'}>Channels</NavLink>
-                        <DropdownMenu isOpen={openDropdown === 'channels'}>
-                            <DropdownItem href="#">Slack</DropdownItem>
-                            <DropdownItem href="#">Microsoft Teams</DropdownItem>
-                            <DropdownItem href="#">Discord</DropdownItem>
-                            <DropdownItem href="#">Email</DropdownItem>
-                            <DropdownItem href="#">Web Chat</DropdownItem>
-                        </DropdownMenu>
-                    </div>
-
-                    <div
-                        style={{ position: 'relative' }}
-                        onMouseEnter={() => setOpenDropdown('resources')}
-                        onMouseLeave={() => setOpenDropdown(null)}
-                    >
-                        <NavLink href="#" hasDropdown isDropdownOpen={openDropdown === 'resources'}>Resources</NavLink>
-                        <DropdownMenu isOpen={openDropdown === 'resources'}>
-                            <DropdownItem href="#" icon={<ExternalLinkIcon/>}>Blog</DropdownItem>
-                            <DropdownItem href="#">Guides</DropdownItem>
-                            <DropdownItem href="#">Help Center</DropdownItem>
-                            <DropdownItem href="#">API Reference</DropdownItem>
-                        </DropdownMenu>
-                    </div>
-
-                    <NavLink href="#">Docs</NavLink>
-                    <NavLink href="/pricing">Pricing</NavLink>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, gap: '24px' }}>
-                    <span className="nav-desktop-links">
-                        <NavLink href="/login">Sign in</NavLink>
-                    </span>
-
-                    <motion.a
-                        href="/login?intent=signup"
-                        style={{ backgroundColor: '#0CF2A0', color: '#111111', padding: '6px 16px', borderRadius: '6px', fontSize: '0.875rem', fontWeight: 600, whiteSpace: 'nowrap', display: 'inline-block' }}
-                        whileHover={{ scale: 1.03, y: -1 }}
-                        whileTap={{ scale: 0.97 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                    >
-                        Sign up
-                    </motion.a>
-
-                    <motion.button
-                        style={{ background: 'none', border: 'none', color: '#d1d5db', cursor: 'pointer', zIndex: 50, padding: 0 }}
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        aria-label="Toggle menu"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="nav-mobile-toggle"
-                    >
-                        {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
-                    </motion.button>
-                </div>
-            </nav>
-
-            <style>{`
-                .nav-desktop-links { display: flex; }
-                .nav-mobile-toggle { display: none; }
-                @media (max-width: 768px) {
-                    .nav-desktop-links { display: none !important; }
-                    .nav-mobile-toggle { display: block !important; }
-                }
-            `}</style>
-
-            <AnimatePresence>
-                {isMobileMenuOpen && (
-                    <motion.div
-                        key="mobile-menu"
-                        variants={mobileMenuVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        style={{
-                            position: 'absolute',
-                            top: '100%',
-                            left: 0,
-                            right: 0,
-                            backgroundColor: 'rgba(17,17,17,0.97)',
-                            backdropFilter: 'blur(12px)',
-                            padding: '16px 0',
-                            borderTop: '1px solid rgba(55,65,81,0.3)',
-                        }}
-                    >
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '0 24px' }}>
-                            <NavLink href="#" onClick={() => setIsMobileMenuOpen(false)}>Product</NavLink>
-                            <NavLink href="#" onClick={() => setIsMobileMenuOpen(false)}>Customers</NavLink>
-                            <NavLink href="#" onClick={() => setIsMobileMenuOpen(false)}>Channels</NavLink>
-                            <NavLink href="#" onClick={() => setIsMobileMenuOpen(false)}>Resources</NavLink>
-                            <NavLink href="#" onClick={() => setIsMobileMenuOpen(false)}>Docs</NavLink>
-                            <NavLink href="/pricing" onClick={() => setIsMobileMenuOpen(false)}>Pricing</NavLink>
-                            <hr style={{ width: '100%', border: 'none', borderTop: '1px solid rgba(55,65,81,0.3)', margin: '4px 0' }}/>
-                            <NavLink href="/login" onClick={() => setIsMobileMenuOpen(false)}>Sign in</NavLink>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </motion.header>
+        <LandingNavbar />
 
         <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '48px 16px 80px', position: 'relative', zIndex: 10 }}>
 
@@ -795,7 +632,7 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
                 variants={bannerVariants}
                 initial="hidden"
                 animate="visible"
-                style={{ marginBottom: '24px' }}
+                style={{ marginBottom: '28px' }}
             >
                 <ShinyText text="First payment settled in 400ms." />
             </motion.div>
@@ -804,14 +641,14 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
                 variants={headlineVariants}
                 initial="hidden"
                 animate="visible"
-                className="text-4xl sm:text-5xl lg:text-[64px] font-semibold text-white leading-tight max-w-4xl"
+                className="text-5xl sm:text-6xl lg:text-[76px] font-semibold text-white leading-tight max-w-5xl"
                 style={{ marginBottom: '16px' }}
             >
                 Monetize your<br />
                 <span style={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'bottom' }}>
                     <RotatingText
                         texts={['API.', 'MCP.', 'agent tool.']}
-                        mainClassName="text-[#0CF2A0] mx-1"
+                        mainClassName="text-[#00bc7d] mx-1"
                         staggerFrom={"last"}
                         initial={{ y: "-100%", opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
@@ -830,8 +667,8 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
                 variants={subHeadlineVariants}
                 initial="hidden"
                 animate="visible"
-                className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl"
-                style={{ margin: '0 auto 32px' }}
+                className="text-lg sm:text-xl lg:text-2xl text-gray-400 max-w-2xl"
+                style={{ margin: '0 auto 36px' }}
             >
                 Drop-in billing for AI agents. Agents pay you in USDC on Solana, no banks, no credit cards, no humans.
             </motion.p>
@@ -840,11 +677,11 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
                 variants={formVariants}
                 initial="hidden"
                 animate="visible"
-                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '40px', flexWrap: 'wrap' }}
+                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '48px', flexWrap: 'wrap', padding: '0 16px' }}
             >
                 <motion.a
                     href="/docs"
-                    style={{ backgroundColor: 'transparent', color: '#fff', padding: '10px 24px', borderRadius: '6px', fontSize: '0.875rem', fontWeight: 500, border: '1px solid #374151', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                    style={{ backgroundColor: 'transparent', color: '#fff', padding: '12px 32px', borderRadius: '8px', fontSize: '1rem', fontWeight: 500, border: '1px solid #374151', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
                     whileHover={{ scale: 1.03, y: -1 }}
                     whileTap={{ scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 400, damping: 15 }}
@@ -853,7 +690,7 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
                 </motion.a>
                 <motion.a
                     href="/post-login"
-                    style={{ backgroundColor: '#0CF2A0', color: '#111111', padding: '10px 24px', borderRadius: '6px', fontSize: '0.875rem', fontWeight: 600, border: 'none', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                    style={{ backgroundColor: '#00bc7d', color: '#111111', padding: '12px 32px', borderRadius: '8px', fontSize: '1rem', fontWeight: 600, border: 'none', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
                     whileHover={{ scale: 1.03, y: -1 }}
                     whileTap={{ scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 400, damping: 15 }}
@@ -866,15 +703,21 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
                 variants={worksWithVariants}
                 initial="hidden"
                 animate="visible"
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '40px' }}
+                style={{ width: '100%', maxWidth: 640, marginBottom: '40px' }}
             >
-                <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#6b7280', letterSpacing: '0.05em', fontWeight: 500 }}>Backed by</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '28px' }}>
-                    <img src="/logos/google.png" alt="Google" style={{ height: 24, width: 'auto', opacity: 0.85, objectFit: 'contain' }} />
-<img src="/logos/stripe.png" alt="Stripe" style={{ height: 24, width: 'auto', opacity: 0.85, objectFit: 'contain' }} />
-                    <img src="/logos/coinbase.png" alt="Coinbase" style={{ height: 24, width: 'auto', opacity: 0.85, objectFit: 'contain' }} />
-                    <img src="/logos/microsoft.webp" alt="Microsoft" style={{ height: 24, width: 'auto', opacity: 0.85, objectFit: 'contain' }} />
-                </div>
+                <span style={{ display: 'block', textAlign: 'center', fontSize: '0.875rem', textTransform: 'uppercase', color: '#6b7280', letterSpacing: '0.05em', fontWeight: 500, marginBottom: 12 }}>Backed by</span>
+                <LogoCloud
+                    logos={[
+                        { src: '/logos/google.png', alt: 'Google' },
+                        { src: '/logos/stripe.png', alt: 'Stripe' },
+                        { src: '/logos/coinbase.png', alt: 'Coinbase' },
+                        { src: '/logos/microsoft.webp', alt: 'Microsoft' },
+                        { src: '/logos/cloudflare.png', alt: 'Cloudflare', className: 'h-7 md:h-8' },
+                        { src: '/logos/anthropic.png', alt: 'Anthropic' },
+                        { src: '/logos/solana.png', alt: 'Solana' },
+                        { src: '/logos/phantom.png', alt: 'Phantom' },
+                    ]}
+                />
             </motion.div>
 
             {children && (
