@@ -142,8 +142,8 @@ function MiniChart({ data }: { data: Array<{ date: string; count: number }> }) {
         <Tooltip
           cursor={{ fill: 'rgba(0,188,125,0.06)' }}
           contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12, fontFamily: 'var(--font-code)', color: 'var(--text-primary)' }}
-          formatter={(value: number) => [`${value} calls`, '']}
-          labelFormatter={(label: string) => new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          formatter={(value: unknown) => [`${value} calls`, '']}
+          labelFormatter={(label: unknown) => new Date(String(label)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         />
         <Bar dataKey="count" fill="#00bc7d" radius={[3, 3, 0, 0]} />
       </BarChart>
