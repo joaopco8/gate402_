@@ -66,7 +66,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main content */}
       <main style={{
-        marginLeft: isMobile ? 0 : 220,
+        marginLeft: isMobile ? 0 : 56,
         flex: 1,
         minHeight: '100vh',
         position: 'relative',

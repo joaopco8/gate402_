@@ -6,6 +6,7 @@ import { createClient } from '../../../lib/supabase/client'
 import { useUser } from '../hooks/useUser'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { CheckIcon } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 
@@ -60,16 +61,6 @@ const IconSettings = () => (
   </svg>
 )
 
-const IconChevron = ({ collapsed }: { collapsed: boolean }) => (
-  <svg
-    width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor"
-    strokeWidth="1.5" strokeLinecap="round"
-    style={{ transform: collapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms ease' }}
-  >
-    <path d="M8 3L5 6.5 8 10"/>
-  </svg>
-)
-
 const IconBilling = () => (
   <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <rect x="1" y="3" width="13" height="9" rx="1.5"/>
@@ -88,21 +79,38 @@ const NAV_ITEMS = [
   { label: 'Settings',   href: '/settings',   Icon: IconSettings },
 ]
 
-const SIDEBAR_EXPANDED = 220
-const SIDEBAR_COLLAPSED = 56
+// ─── Framer-motion variants ───────────────────────────────────────────────────
+
+const sidebarVariants = {
+  open:   { width: '220px' },
+  closed: { width: '56px' },
+}
+
+const labelVariants = {
+  open:   { opacity: 1, x: 0,   display: 'block', transition: { x: { stiffness: 1000, velocity: -100 } } },
+  closed: { opacity: 0, x: -12, transition: { x: { stiffness: 100 } },
+    transitionEnd: { display: 'none' } },
+}
+
+const transitionProps = {
+  type: 'tween' as const,
+  ease: 'easeOut',
+  duration: 0.2,
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 interface SidebarProps {
   mobileOpen?: boolean
   onClose?: () => void
 }
 
-export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
-  const pathname = usePathname()
-  const router   = useRouter()
-  const [email, setEmail] = useState<string | null>(null)
-  const [collapsed, setCollapsed] = useState(false)
-  const [tooltip, setTooltip] = useState<string | null>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
+export default function Sidebar({ onClose }: SidebarProps) {
+  const pathname  = usePathname()
+  const router    = useRouter()
+  const [email, setEmail]     = useState<string | null>(null)
+  const [collapsed, setCollapsed] = useState(true)
+  const [menuOpen, setMenuOpen]   = useState(false)
   const { userData } = useUser()
   const isPro = userData?.plan === 'pro' || userData?.plan === 'enterprise'
 
@@ -122,141 +130,104 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   }
 
   const initial = email ? email[0].toUpperCase() : '?'
-  const width = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED
 
   return (
-    <aside style={{
-      width,
-      height: '100vh',
-      position: 'fixed',
-      top: 0,
-      left: mobileOpen ? 0 : undefined,
-      background: '#0A0A0A',
-      borderRight: '1px solid #1a1a1a',
-      display: 'flex',
-      flexDirection: 'column',
-      zIndex: 50,
-      transition: 'width 200ms ease',
-      overflow: 'hidden',
-    }}>
-
-      {/* Logo + collapse toggle */}
+    <motion.aside
+      initial="closed"
+      animate={collapsed ? 'closed' : 'open'}
+      variants={sidebarVariants}
+      transition={transitionProps}
+      onMouseEnter={() => setCollapsed(false)}
+      onMouseLeave={() => { setCollapsed(true); setMenuOpen(false) }}
+      style={{
+        height: '100vh',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        background: '#0A0A0A',
+        borderRight: '1px solid #1a1a1a',
+        display: 'flex',
+        flexDirection: 'column',
+        zIndex: 50,
+        overflow: 'hidden',
+        flexShrink: 0,
+      }}
+    >
+      {/* Logo */}
       <div style={{
-        padding: '20px 0',
+        padding: '0 14px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: collapsed ? 'center' : 'space-between',
-        paddingLeft: collapsed ? 0 : 20,
-        paddingRight: collapsed ? 0 : 12,
         minHeight: 64,
         borderBottom: '1px solid #1a1a1a',
+        gap: 10,
+        overflow: 'hidden',
       }}>
-        {!collapsed && (
-          <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-            <img src="/logo-gate.png" alt="Gate402" style={{ height: 22, width: 'auto', display: 'block' }} />
-          </a>
-        )}
-        <button
-          onClick={() => setCollapsed(c => !c)}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#444',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 28,
-            height: 28,
-            borderRadius: 6,
-            flexShrink: 0,
-            transition: 'color 150ms, background 150ms',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = '#111' }}
-          onMouseLeave={e => { e.currentTarget.style.color = '#444'; e.currentTarget.style.background = 'transparent' }}
-        >
-          <IconChevron collapsed={collapsed} />
-        </button>
+        <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
+          <img src="/logo-gate.png" alt="Gate402" style={{ height: 22, width: 'auto', display: 'block', flexShrink: 0 }} />
+          <motion.span
+            variants={labelVariants}
+            style={{ fontSize: 14, fontWeight: 600, color: '#fff', fontFamily: 'var(--font-display)', whiteSpace: 'nowrap' }}
+          >
+            Gate402
+          </motion.span>
+        </a>
       </div>
 
       {/* Nav */}
       <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto', overflowX: 'hidden' }}>
         {NAV_ITEMS.map(({ label, href, Icon }) => {
-          const active = pathname === href
+          const active = pathname === href || pathname?.startsWith(href + '/')
           return (
-            <div key={href} style={{ position: 'relative' }}>
-              <a
-                href={href}
-                onClick={onClose}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  padding: '9px 12px',
-                  margin: '1px 8px',
-                  fontSize: 14,
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: 400,
-                  color: active ? '#fff' : '#888',
-                  background: active ? '#0a0a0a' : 'transparent',
-                  borderLeft: active ? '2px solid #00bc7d' : '2px solid transparent',
-                  borderRadius: 6,
-                  transition: 'all 150ms ease',
-                  cursor: 'pointer',
-                  textDecoration: 'none',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  justifyContent: collapsed ? 'center' : 'flex-start',
-                }}
-                onMouseEnter={e => {
-                  if (!active) {
-                    e.currentTarget.style.color = '#fff'
-                    e.currentTarget.style.background = '#0f0f0f'
-                  }
-                  if (collapsed) setTooltip(label)
-                }}
-                onMouseLeave={e => {
-                  if (!active) {
-                    e.currentTarget.style.color = '#888'
-                    e.currentTarget.style.background = 'transparent'
-                  }
-                  setTooltip(null)
-                }}
-              >
-                <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: active ? '#00bc7d' : 'currentColor' }}>
-                  <Icon />
-                </span>
-                {!collapsed && <span>{label}</span>}
-              </a>
-
-              {/* Tooltip when collapsed */}
-              {collapsed && tooltip === label && (
-                <div style={{
-                  position: 'fixed',
-                  left: SIDEBAR_COLLAPSED + 8,
-                  transform: 'translateY(-50%)',
-                  background: '#111',
-                  border: '1px solid #1a1a1a',
-                  borderRadius: 6,
-                  padding: '6px 10px',
-                  fontSize: 12,
-                  fontFamily: 'var(--font-display)',
-                  color: '#fff',
-                  whiteSpace: 'nowrap',
-                  pointerEvents: 'none',
-                  zIndex: 200,
-                }}>
-                  {label}
-                </div>
-              )}
-            </div>
+            <a
+              key={href}
+              href={href}
+              onClick={onClose}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '9px 14px',
+                margin: '1px 6px',
+                fontSize: 14,
+                fontFamily: 'var(--font-display)',
+                fontWeight: 400,
+                color: active ? '#fff' : '#666',
+                background: active ? '#111' : 'transparent',
+                borderLeft: active ? '2px solid #00bc7d' : '2px solid transparent',
+                borderRadius: 6,
+                transition: 'color 150ms ease, background 150ms ease, border-color 150ms ease',
+                cursor: 'pointer',
+                textDecoration: 'none',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => {
+                if (!active) {
+                  e.currentTarget.style.color = '#fff'
+                  e.currentTarget.style.background = '#111'
+                }
+              }}
+              onMouseLeave={e => {
+                if (!active) {
+                  e.currentTarget.style.color = '#666'
+                  e.currentTarget.style.background = 'transparent'
+                }
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: active ? '#00bc7d' : 'inherit' }}>
+                <Icon />
+              </span>
+              <motion.span variants={labelVariants} style={{ overflow: 'hidden' }}>
+                {label}
+              </motion.span>
+            </a>
           )
         })}
       </nav>
 
       {/* Bottom user section */}
-      <div style={{ borderTop: '1px solid #1a1a1a', padding: collapsed ? '12px 0' : '14px 16px', position: 'relative' }}>
+      <div style={{ borderTop: '1px solid #1a1a1a', padding: '12px 8px', position: 'relative' }}>
 
         {/* User popup menu */}
         {menuOpen && !collapsed && (
@@ -285,24 +256,24 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   </span>
                 </div>
                 <div>
-                <div style={{
-                  fontSize: 12, color: '#fff', fontFamily: 'var(--font-display)',
-                  fontWeight: 500, marginBottom: 6,
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {email ?? '...'}
-                </div>
-                {isPro ? (
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                    background: 'rgba(0,188,125,0.08)', color: '#00bc7d',
-                    border: '1px solid rgba(0,188,125,0.2)', borderRadius: 4,
-                    padding: '2px 8px', fontSize: 10,
-                    fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em',
-                  }}>✦ PRO</span>
-                ) : (
-                  <span style={{ fontSize: 10, color: '#444', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.06em' }}>FREE PLAN</span>
-                )}
+                  <div style={{
+                    fontSize: 12, color: '#fff', fontFamily: 'var(--font-display)',
+                    fontWeight: 500, marginBottom: 4,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {email ?? '...'}
+                  </div>
+                  {isPro ? (
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      background: 'rgba(0,188,125,0.08)', color: '#00bc7d',
+                      border: '1px solid rgba(0,188,125,0.2)', borderRadius: 4,
+                      padding: '2px 8px', fontSize: 10,
+                      fontFamily: 'var(--font-code)',
+                    }}>✦ Pro</span>
+                  ) : (
+                    <span style={{ fontSize: 10, color: '#444', fontFamily: 'var(--font-code)' }}>Free plan</span>
+                  )}
                 </div>
               </div>
 
@@ -326,7 +297,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   </a>
                 )}
                 {isPro && (
-                  <a href="/checkout" onClick={() => setMenuOpen(false)} style={{
+                  <a href="/billing" onClick={() => setMenuOpen(false)} style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '9px 12px', margin: '1px 8px', borderRadius: 6,
                     fontSize: 14, fontFamily: 'var(--font-display)', fontWeight: 400,
@@ -336,9 +307,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.color = '#fff' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888' }}
                   >
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="1" y="3" width="13" height="9" rx="1.5"/><path d="M1 6h13"/>
-                    </svg>
+                    <IconBilling />
                     Manage plan
                   </a>
                 )}
@@ -385,20 +354,17 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           onClick={() => !collapsed && setMenuOpen(o => !o)}
           style={{
             display: 'flex', alignItems: 'center',
-            gap: collapsed ? 0 : 10,
-            justifyContent: collapsed ? 'center' : 'flex-start',
-            cursor: collapsed ? 'default' : 'pointer',
-            borderRadius: 6, padding: '4px 4px',
+            gap: 10,
+            cursor: 'pointer',
+            borderRadius: 6, padding: '6px 6px',
             transition: 'background 150ms',
             background: menuOpen ? '#111' : 'transparent',
+            overflow: 'hidden',
           }}
-          onMouseEnter={e => { if (!collapsed) e.currentTarget.style.background = '#111' }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#111' }}
           onMouseLeave={e => { if (!menuOpen) e.currentTarget.style.background = 'transparent' }}
         >
-          <div
-            title={collapsed ? (email ?? undefined) : undefined}
-            style={{ position: 'relative', flexShrink: 0 }}
-          >
+          <div style={{ position: 'relative', flexShrink: 0 }} title={collapsed ? (email ?? undefined) : undefined}>
             <Avatar className="size-7 ring-2 ring-[#00bc7d] ring-offset-2 ring-offset-black">
               <AvatarFallback className="bg-[#111] text-[#888] text-[11px] font-mono">
                 {initial}
@@ -414,20 +380,18 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
             </span>
           </div>
 
-          {!collapsed && (
-            <>
-              <span style={{
-                fontSize: 12, color: '#666',
-                overflow: 'hidden', textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap', flex: 1,
-              }}>
-                {email ?? '...'}
-              </span>
-              <span style={{ color: '#333', fontSize: 12, flexShrink: 0 }}>⋯</span>
-            </>
-          )}
+          <motion.div variants={labelVariants} style={{ display: 'flex', alignItems: 'center', flex: 1, gap: 6, overflow: 'hidden' }}>
+            <span style={{
+              fontSize: 12, color: '#666',
+              overflow: 'hidden', textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap', flex: 1,
+            }}>
+              {email ?? '...'}
+            </span>
+            <span style={{ color: '#333', fontSize: 12, flexShrink: 0 }}>⋯</span>
+          </motion.div>
         </div>
       </div>
-    </aside>
+    </motion.aside>
   )
 }
