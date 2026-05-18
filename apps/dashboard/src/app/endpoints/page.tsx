@@ -313,18 +313,18 @@ function EditModal({ ep, supabaseId, onClose, onSaved }: { ep: Endpoint; supabas
 
 function ActionsMenu({ ep, supabaseId, onRefresh, onEdit }: { ep: Endpoint; supabaseId: string; onRefresh: () => void; onEdit: () => void }) {
   const [open, setOpen] = useState(false)
-  const [confirming, setConfirming] = useState(false)
+  const [deleteStep, setDeleteStep] = useState<'idle' | 'confirm' | 'deleting'>('idle')
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
+    function onMouseDown(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false)
-        setConfirming(false)
+        setDeleteStep('idle')
       }
     }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
+    document.addEventListener('mousedown', onMouseDown)
+    return () => document.removeEventListener('mousedown', onMouseDown)
   }, [])
 
   async function toggleActive() {
@@ -337,43 +337,90 @@ function ActionsMenu({ ep, supabaseId, onRefresh, onEdit }: { ep: Endpoint; supa
     onRefresh()
   }
 
-  async function handleDelete() {
-    if (!confirming) { setConfirming(true); return }
-    setOpen(false); setConfirming(false)
-    await fetch(`${SERVER_URL}/api/endpoints/${ep.id}`, {
-      method: 'DELETE',
-      headers: { 'x-user-id': supabaseId },
-    })
-    onRefresh()
+  async function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (deleteStep === 'idle') {
+      setDeleteStep('confirm')
+      return
+    }
+    if (deleteStep === 'confirm') {
+      setDeleteStep('deleting')
+      try {
+        await fetch(`${SERVER_URL}/api/endpoints/${ep.id}`, {
+          method: 'DELETE',
+          headers: { 'x-user-id': supabaseId },
+        })
+      } finally {
+        setOpen(false)
+        setDeleteStep('idle')
+        onRefresh()
+      }
+    }
+  }
+
+  const itemStyle: React.CSSProperties = {
+    display: 'block', width: '100%', textAlign: 'left',
+    padding: '9px 14px', background: 'none', border: 'none',
+    fontSize: 13, cursor: 'pointer', fontFamily: SANS,
+    color: 'var(--text-primary)', borderRadius: 4,
   }
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onClick={() => setOpen(v => !v)}
-        style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-muted)', cursor: 'pointer', padding: '4px 10px', fontSize: 16, lineHeight: 1 }}
+        onClick={() => { setOpen(v => !v); setDeleteStep('idle') }}
+        style={{
+          background: 'var(--surface)', border: '1px solid var(--border)',
+          borderRadius: 6, color: 'var(--text-secondary)', cursor: 'pointer',
+          padding: '5px 12px', fontSize: 14, lineHeight: 1,
+          display: 'flex', alignItems: 'center', gap: 2,
+        }}
       >
-        ⋯
+        •••
       </button>
+
       {open && (
-        <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, background: '#0d0d0d', border: '1px solid var(--border)', borderRadius: 8, minWidth: 170, zIndex: 100, overflow: 'hidden' }}>
+        <div style={{
+          position: 'absolute', right: 0, top: 'calc(100% + 4px)',
+          background: '#0e0e0e', border: '1px solid var(--border)',
+          borderRadius: 8, minWidth: 180, zIndex: 200,
+          padding: '4px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+        }}>
           <button
-            onClick={() => { setOpen(false); onEdit() }}
-            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 13, cursor: 'pointer', fontFamily: SANS }}
+            onClick={() => { setOpen(false); setDeleteStep('idle'); onEdit() }}
+            style={itemStyle}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
           >
-            Edit price
+            Edit price & description
           </button>
+
           <button
             onClick={toggleActive}
-            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 13, cursor: 'pointer', fontFamily: SANS }}
+            style={itemStyle}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
           >
             {ep.active ? 'Deactivate' : 'Activate'}
           </button>
+
+          <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+
           <button
             onClick={handleDelete}
-            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', background: 'none', border: 'none', color: confirming ? '#f87171' : 'var(--text-muted)', fontSize: 13, cursor: 'pointer', fontFamily: SANS }}
+            disabled={deleteStep === 'deleting'}
+            style={{
+              ...itemStyle,
+              color: deleteStep === 'idle' ? '#f87171' : '#fca5a5',
+              fontWeight: deleteStep === 'confirm' ? 600 : 400,
+              opacity: deleteStep === 'deleting' ? 0.5 : 1,
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
           >
-            {confirming ? 'Click again to confirm' : 'Delete'}
+            {deleteStep === 'idle' && 'Delete endpoint'}
+            {deleteStep === 'confirm' && '⚠ Confirm delete'}
+            {deleteStep === 'deleting' && 'Deleting...'}
           </button>
         </div>
       )}
