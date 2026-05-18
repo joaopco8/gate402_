@@ -131,7 +131,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
       position: 'fixed',
       top: 0,
       left: mobileOpen ? 0 : undefined,
-      background: '#0D0D0D',
+      background: '#0A0A0A',
       borderRight: '1px solid #1a1a1a',
       display: 'flex',
       flexDirection: 'column',
@@ -264,7 +264,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
             <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 49 }} />
             <div style={{
               position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, right: 0,
-              background: '#0D0D0D', border: '1px solid #1a1a1a', borderRadius: 8,
+              background: '#0A0A0A', border: '1px solid #1a1a1a', borderRadius: 8,
               zIndex: 50, overflow: 'hidden',
             }}>
               {/* Account header */}

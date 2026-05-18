@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { motion, useAnimation } from 'framer-motion'
 import { HiOutlineShieldCheck, HiOutlineShieldExclamation } from 'react-icons/hi'
-import { LuServerCog, LuActivity, LuWallet } from 'react-icons/lu'
+import { LuServerCog } from 'react-icons/lu'
 import { createClient } from '../../../lib/supabase/client'
 import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
@@ -67,7 +67,7 @@ function EndpointStatCard({
       style={{
         height: '28rem',
         width: '100%',
-        background: '#030303',
+        background: '#0A0A0A',
         border: '1px solid rgba(38,38,38,0.5)',
         gap: 16,
       }}
@@ -76,16 +76,16 @@ function EndpointStatCard({
       <div className="absolute inset-x-0 top-10 flex h-48 items-center justify-center">
         <div className="relative flex h-full w-full items-center justify-center">
 
-          {/* Central icon */}
+          {/* Central icon — 80% bigger: 80→144, icon 32→58 */}
           <motion.div
             className="z-10 flex items-center justify-center rounded-full"
-            style={{ width: 80, height: 80, background: '#171717', border: '1px solid #404040', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}
+            style={{ width: 144, height: 144, background: '#111', border: '1px solid #404040', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}
             animate={{
               borderColor: isThrottled ? 'rgba(239,68,68,0.5)' : 'rgba(52,211,153,0.5)',
               transition: { duration: 0.5, ease: 'easeInOut' },
             }}
           >
-            <Icon style={{ width: 32, height: 32, color: '#a3a3a3' }} />
+            <Icon style={{ width: 58, height: 58, color: '#a3a3a3' }} />
           </motion.div>
 
           {/* Animated dots */}
@@ -527,13 +527,13 @@ export default function EndpointsPage() {
               }
             />
             <EndpointStatCard
-              icon={LuActivity}
+              icon={LuServerCog}
               isThrottled={false}
               cardTitle={`${endpoints.reduce((s, e) => s + (e.totalCalls ?? 0), 0).toLocaleString()} Total Calls`}
               cardDescription="Cumulative paid API calls received across all your registered endpoints."
             />
             <EndpointStatCard
-              icon={LuWallet}
+              icon={LuServerCog}
               isThrottled={false}
               cardTitle={`$${endpoints.reduce((s, e) => s + (e.netRevenue ?? 0), 0).toFixed(4)} Net Revenue`}
               cardDescription="Total USDC earned after the 1% platform fee. Paid directly to your Solana wallet."
