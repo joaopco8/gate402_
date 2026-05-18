@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import { Space_Grotesk, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
         {children}
       </body>
+      <GoogleAnalytics gaId="G-NS4QRRXMQ2" />
     </html>
   );
 }
