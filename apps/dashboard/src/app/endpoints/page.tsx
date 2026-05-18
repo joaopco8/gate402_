@@ -3,6 +3,9 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
+import { motion, useAnimation } from 'framer-motion'
+import { HiOutlineShieldCheck, HiOutlineShieldExclamation } from 'react-icons/hi'
+import { LuServerCog, LuActivity, LuWallet } from 'react-icons/lu'
 import { createClient } from '../../../lib/supabase/client'
 import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
@@ -24,6 +27,121 @@ interface Endpoint {
   revenue: number
   netRevenue: number
   createdAt: string
+}
+
+// ── Endpoint Stat Card — 100% css/animation from api-rate-limiting-card ──────
+
+function EndpointStatCard({
+  cardTitle,
+  cardDescription,
+  isThrottled,
+  icon: Icon,
+}: {
+  cardTitle: string
+  cardDescription: string
+  isThrottled: boolean
+  icon: React.ElementType
+}) {
+  const controls = useAnimation()
+
+  useEffect(() => {
+    let alive = true
+    const sequence = async () => {
+      while (alive) {
+        await controls.start((i: number) => ({
+          opacity: [0, 1, 0],
+          x: [-120, 0, 120],
+          y: [Math.random() * 80 - 40, 0, Math.random() * 80 - 40],
+          transition: { duration: 2, ease: 'easeInOut', delay: i * 0.3 },
+        }))
+        await new Promise(r => setTimeout(r, 1000))
+      }
+    }
+    sequence()
+    return () => { alive = false }
+  }, [controls])
+
+  return (
+    <div
+      className="relative flex flex-col justify-between overflow-hidden rounded-md"
+      style={{
+        height: '28rem',
+        width: '100%',
+        background: '#030303',
+        border: '1px solid rgba(38,38,38,0.5)',
+        gap: 16,
+      }}
+    >
+      {/* Animation canvas */}
+      <div className="absolute inset-x-0 top-10 flex h-48 items-center justify-center">
+        <div className="relative flex h-full w-full items-center justify-center">
+
+          {/* Central icon */}
+          <motion.div
+            className="z-10 flex items-center justify-center rounded-full"
+            style={{ width: 80, height: 80, background: '#171717', border: '1px solid #404040', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}
+            animate={{
+              borderColor: isThrottled ? 'rgba(239,68,68,0.5)' : 'rgba(52,211,153,0.5)',
+              transition: { duration: 0.5, ease: 'easeInOut' },
+            }}
+          >
+            <Icon style={{ width: 32, height: 32, color: '#a3a3a3' }} />
+          </motion.div>
+
+          {/* Animated dots */}
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={i}
+              custom={i}
+              animate={controls}
+              style={{
+                position: 'absolute', left: '50%', top: '50%',
+                width: 8, height: 8, borderRadius: '50%',
+                background: isThrottled ? '#ef4444' : '#10b981',
+              }}
+            />
+          ))}
+
+          {/* Shield overlay */}
+          <motion.div
+            className="absolute flex items-center justify-center"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{
+              opacity: isThrottled ? 1 : 0,
+              scale: isThrottled ? 1 : 0.8,
+              transition: { duration: 0.3, ease: 'easeOut' },
+            }}
+          >
+            <HiOutlineShieldExclamation style={{ width: 128, height: 128, color: 'rgba(239,68,68,0.5)' }} />
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Text */}
+      <div className="absolute bottom-0 w-full" style={{ padding: '0 16px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <motion.div
+            animate={{ color: isThrottled ? '#ef4444' : '#10b981' }}
+            transition={{ duration: 0.5 }}
+            style={{ display: 'flex', alignItems: 'center' }}
+          >
+            {isThrottled
+              ? <HiOutlineShieldExclamation style={{ width: 16, height: 16 }} />
+              : <HiOutlineShieldCheck style={{ width: 16, height: 16 }} />}
+          </motion.div>
+          <motion.p
+            style={{ fontSize: 12, fontWeight: 500, margin: 0 }}
+            animate={{ color: isThrottled ? '#ef4444' : '#10b981' }}
+            transition={{ duration: 0.5 }}
+          >
+            {isThrottled ? 'Attention Required' : 'All Systems Normal'}
+          </motion.p>
+        </div>
+        <div style={{ marginTop: 12, fontSize: 14, fontWeight: 600, color: '#ffffff' }}>{cardTitle}</div>
+        <div style={{ marginTop: 8, fontSize: 12, color: '#a3a3a3', lineHeight: 1.5 }}>{cardDescription}</div>
+      </div>
+    </div>
+  )
 }
 
 // ── Modal shell ───────────────────────────────────────────────────────────────
@@ -345,6 +463,34 @@ export default function EndpointsPage() {
           <div style={{ marginBottom: 'var(--space-md)', padding: '12px 16px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13, color: '#fff', fontFamily: SANS }}>Free plan: 3/3 endpoints used</span>
             <a href="/billing" style={{ fontSize: 13, color: '#fff', fontFamily: SANS, textDecoration: 'none' }}>Upgrade to Pro →</a>
+          </div>
+        )}
+
+        {/* ── 3 stat cards ── */}
+        {!loading && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
+            <EndpointStatCard
+              icon={LuServerCog}
+              isThrottled={!isPro && count >= 3}
+              cardTitle={`${endpoints.filter(e => e.active).length} / ${count} Active`}
+              cardDescription={
+                count === 0
+                  ? 'No endpoints yet. Add your first to start receiving payments from AI agents.'
+                  : `${endpoints.filter(e => e.active).length} endpoint${endpoints.filter(e => e.active).length !== 1 ? 's' : ''} active and accepting paid calls right now.`
+              }
+            />
+            <EndpointStatCard
+              icon={LuActivity}
+              isThrottled={false}
+              cardTitle={`${endpoints.reduce((s, e) => s + (e.totalCalls ?? 0), 0).toLocaleString()} Total Calls`}
+              cardDescription="Cumulative paid API calls received across all your registered endpoints."
+            />
+            <EndpointStatCard
+              icon={LuWallet}
+              isThrottled={false}
+              cardTitle={`$${endpoints.reduce((s, e) => s + (e.netRevenue ?? 0), 0).toFixed(4)} Net Revenue`}
+              cardDescription="Total USDC earned after the 1% platform fee. Paid directly to your Solana wallet."
+            />
           </div>
         )}
 
