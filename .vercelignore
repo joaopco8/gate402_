@@ -1,0 +1,7 @@
+**/node_modules
+apps/server
+claude-mem
+apps/mcp-demo
+packages/create-gate402-mcp
+packages/db
+.git

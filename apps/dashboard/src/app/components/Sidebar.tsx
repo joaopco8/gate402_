@@ -94,7 +94,7 @@ const labelVariants = {
 
 const transitionProps = {
   type: 'tween' as const,
-  ease: 'easeOut',
+  ease: 'easeOut' as const,
   duration: 0.2,
 }
 
