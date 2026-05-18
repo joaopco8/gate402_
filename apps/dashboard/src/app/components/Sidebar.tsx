@@ -164,13 +164,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
         overflow: 'hidden',
       }}>
         <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
-          <img src="/logo-gate.png" alt="Gate402" style={{ height: 22, width: 'auto', display: 'block', flexShrink: 0 }} />
-          <motion.span
-            variants={labelVariants}
-            style={{ fontSize: 14, fontWeight: 600, color: '#fff', fontFamily: 'var(--font-display)', whiteSpace: 'nowrap' }}
-          >
-            Gate402
-          </motion.span>
+          {collapsed
+            ? <img src="/icon-logo.png" alt="Gate402" style={{ height: 28, width: 28, display: 'block', flexShrink: 0, objectFit: 'contain' }} />
+            : <img src="/logo-gate.png" alt="Gate402" style={{ height: 22, width: 'auto', display: 'block', flexShrink: 0 }} />
+          }
         </a>
       </div>
 
