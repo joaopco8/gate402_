@@ -244,7 +244,7 @@ export default function WalletPage() {
     <DashboardLayout>
       <PageContainer>
         <PageHeader
-          eyebrow="GATE402"
+          eyebrow="Gate402"
           title="Wallet"
           subtitle={`Revenue & payouts · Solana ${network.charAt(0).toUpperCase() + network.slice(1)}`}
         />
@@ -292,7 +292,7 @@ export default function WalletPage() {
 
         {/* ── Receiving Wallet ── */}
         <Card style={{ marginBottom: 'var(--space-md)' }}>
-          <div style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 20 }}>
+          <div style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)', marginBottom: 20 }}>
             Receiving Wallet
           </div>
 
@@ -378,7 +378,7 @@ export default function WalletPage() {
         {/* ── Revenue by Endpoint ── */}
         <Card style={{ marginBottom: 'var(--space-md)', padding: 0 }}>
           <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
-            <span style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)', }}>
               Revenue by Endpoint
             </span>
           </div>
@@ -393,7 +393,7 @@ export default function WalletPage() {
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 100px 110px', padding: '10px 24px', borderBottom: '1px solid var(--border)' }}>
                 {['Endpoint', 'Calls', 'Gross', 'Net (99%)'].map(h => (
-                  <span key={h} style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>
+                  <span key={h} style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)', }}>{h}</span>
                 ))}
               </div>
               {epRevenue.map((ep, i) => {
@@ -417,7 +417,7 @@ export default function WalletPage() {
         {/* ── Recent Transactions ── */}
         <Card style={{ padding: 0 }}>
           <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)', }}>
               Recent Transactions
             </span>
           </div>
@@ -432,7 +432,7 @@ export default function WalletPage() {
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 90px 90px 70px 80px', padding: '10px 24px', borderBottom: '1px solid var(--border)' }}>
                 {['Endpoint', 'Gross', 'Net', 'Fee', 'Status', 'Time'].map(h => (
-                  <span key={h} style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>
+                  <span key={h} style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)', }}>{h}</span>
                 ))}
               </div>
               {txns.map((tx, i) => (
@@ -445,9 +445,9 @@ export default function WalletPage() {
                   <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--green)' }}>${tx.providerAmount?.toFixed(5)}</span>
                   <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)' }}>${tx.platformFee?.toFixed(5)}</span>
                   <span style={{
-                    fontFamily: MONO, fontSize: 10,
+                    fontFamily: MONO, fontSize: 12,
                     color: tx.status === 'verified' || tx.status === 'demo' ? 'var(--green)' : 'var(--text-muted)',
-                    textTransform: 'uppercase', letterSpacing: '0.05em',
+                    
                   }}>
                     {tx.status}
                   </span>

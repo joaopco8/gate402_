@@ -166,7 +166,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
+      <div style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{label}</div>
       {children}
     </div>
   )
@@ -481,7 +481,7 @@ export default function EndpointsPage() {
       <PageContainer>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-xl)' }}>
           <PageHeader
-            eyebrow="GATE402"
+            eyebrow="Gate402"
             title="Endpoints"
             subtitle="Manage your priced API endpoints"
           />
@@ -545,7 +545,7 @@ export default function EndpointsPage() {
           {/* Column headers */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 70px 120px 90px 52px', padding: '10px 24px', borderBottom: '1px solid var(--border)', background: 'var(--surface)', borderRadius: '12px 12px 0 0' }}>
             {['Path', 'Price', 'Calls', 'Net Revenue', 'Status', ''].map(h => (
-              <span key={h} style={{ fontFamily: MONO, fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>
+              <span key={h} style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)', }}>{h}</span>
             ))}
           </div>
 

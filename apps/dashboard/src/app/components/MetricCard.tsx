@@ -19,12 +19,11 @@ export default function MetricCard({ title, value, subtitle, positive }: MetricC
     onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
     >
       <div style={{
-        fontSize: 11,
+        fontSize: 12,
         color: 'var(--text-muted)',
         fontFamily: 'var(--font-code)',
-        letterSpacing: '0.08em',
+        fontWeight: 500,
         marginBottom: 12,
-        textTransform: 'uppercase',
       }}>
         {title}
       </div>

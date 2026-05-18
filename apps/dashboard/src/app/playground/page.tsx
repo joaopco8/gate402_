@@ -63,7 +63,7 @@ function StatusBadge({ status }: { status: number }) {
     : status === 0 ? { bg: 'rgba(100,100,100,0.1)', border: 'rgba(100,100,100,0.3)', color: '#888', label: 'Error' }
     : { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', color: '#ef4444', label: `${status}` }
   return (
-    <span style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color, borderRadius: 4, padding: '3px 8px', fontSize: 11, fontFamily: MONO, fontWeight: 500, letterSpacing: '0.05em' }}>
+    <span style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color, borderRadius: 4, padding: '3px 8px', fontSize: 11, fontFamily: MONO, fontWeight: 500, }}>
       {cfg.label}
     </span>
   )
@@ -229,7 +229,7 @@ export default function PlaygroundPage() {
     <DashboardLayout>
       <PageContainer>
         <PageHeader
-          eyebrow="PLAYGROUND"
+          eyebrow="Playground"
           title="Test your API"
           subtitle="Simulate the full x402 payment flow without writing any code."
         />
@@ -242,7 +242,7 @@ export default function PlaygroundPage() {
 
             {/* Card 1 — Endpoint selector */}
             <Card>
-              <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>Endpoint</div>
+              <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Endpoint</div>
               <div style={{ position: 'relative' }}>
                 <select
                   value={selectedPath}
@@ -277,7 +277,7 @@ export default function PlaygroundPage() {
 
             {/* Card 2 — Method + body */}
             <Card>
-              <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>Method</div>
+              <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Method</div>
               <div style={{ display: 'flex', gap: 6, marginBottom: method === 'POST' ? 16 : 0 }}>
                 {(['GET', 'POST'] as const).map(m => (
                   <button
@@ -298,7 +298,7 @@ export default function PlaygroundPage() {
 
               {method === 'POST' && (
                 <>
-                  <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Request Body</div>
+                  <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>Request Body</div>
                   <textarea
                     value={body}
                     onChange={e => setBody(e.target.value)}
@@ -419,7 +419,7 @@ export default function PlaygroundPage() {
 
         {/* ── Session History ── */}
         <div>
-          <div style={{ fontFamily: MONO, fontSize: 11, color: '#333', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
+          <div style={{ fontFamily: MONO, fontSize: 11, color: '#333', marginBottom: 12 }}>
             Session History
           </div>
 

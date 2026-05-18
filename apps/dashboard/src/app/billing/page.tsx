@@ -257,7 +257,7 @@ export default function BillingPage() {
         <div style={{ maxWidth: 560, margin: '0 auto' }}>
           <p style={{
             fontSize: 11, color: '#444', fontFamily: 'var(--font-code)',
-            letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 24,
+            marginBottom: 24,
           }}>
             FAQ
           </p>

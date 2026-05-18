@@ -12,11 +12,10 @@ import Card from '../components/Card'
 import { useUser } from '../hooks/useUser'
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 12,
+  fontSize: 13,
   color: 'var(--text-muted)',
   fontFamily: 'var(--font-display)',
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
+  fontWeight: 500,
   marginBottom: 12,
 }
 
@@ -193,11 +192,11 @@ export default function SettingsPage() {
     <DashboardLayout>
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
       <PageContainer>
-        <PageHeader eyebrow="SETTINGS" title="Settings" />
+        <PageHeader eyebrow="Settings" title="Settings" />
 
         {/* API Key */}
         <Card style={{ marginBottom: 16 }}>
-          <div style={labelStyle}>API KEY</div>
+          <div style={labelStyle}>Api key</div>
           {loading ? skeletonBox : (
             <div style={valueBoxStyle}>{userData?.apiKey ?? '—'}</div>
           )}
@@ -231,7 +230,7 @@ export default function SettingsPage() {
 
         {/* Wallet */}
         <Card style={{ marginBottom: 16 }}>
-          <div style={labelStyle}>SOLANA WALLET ({(userData?.network ?? 'devnet').toUpperCase()})</div>
+          <div style={labelStyle}>Solana wallet ({userData?.network ?? 'devnet'})</div>
 
           {loading ? skeletonBox : userData?.walletAddress ? (
             <>
@@ -301,7 +300,7 @@ export default function SettingsPage() {
 
         {/* Network */}
         <Card style={{ marginBottom: 16 }}>
-          <div style={labelStyle}>NETWORK</div>
+          <div style={labelStyle}>Network</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <span style={{
               background: 'rgba(0,188,125,0.1)',
@@ -312,9 +311,8 @@ export default function SettingsPage() {
               fontSize: 12,
               fontFamily: 'var(--font-display)',
               fontWeight: 500,
-              letterSpacing: '0.04em',
             }}>
-              {loading ? '...' : (userData?.network ?? 'devnet').toUpperCase()}
+              {loading ? '...' : (userData?.network ?? 'devnet')}
             </span>
           </div>
           <div style={{ ...subtextStyle, marginBottom: 14 }}>
@@ -363,7 +361,7 @@ export default function SettingsPage() {
 
         {/* Email Alerts */}
         <Card style={{ marginBottom: 16 }}>
-          <div style={labelStyle}>EMAIL ALERTS</div>
+          <div style={labelStyle}>Email alerts</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <div>
               <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
@@ -411,7 +409,7 @@ export default function SettingsPage() {
 
         {/* Account */}
         <Card>
-          <div style={labelStyle}>ACCOUNT</div>
+          <div style={labelStyle}>Account</div>
           <div style={{ ...valueBoxStyle, marginBottom: 14 }}>
             {loading ? '...' : (userData ? `Plan: ${userData.plan} · ${userData.totalCalls} calls · ${userData.totalEndpoints} endpoints` : '—')}
           </div>

@@ -167,7 +167,7 @@ function MiniTooltip({ active, payload }: MiniTooltipProps) {
   if (!active || !payload?.length) return null
   return (
     <div style={{ background: '#18181b', color: '#fff', borderRadius: 8, padding: '8px 12px', fontSize: 12, fontFamily: 'var(--font-code)', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}>
-      <div style={{ fontSize: 10, color: '#a1a1aa', marginBottom: 2 }}>Total</div>
+      <div style={{ fontSize: 12, color: '#a1a1aa', marginBottom: 2 }}>Total</div>
       <div style={{ fontWeight: 600 }}>{payload[0].value} calls</div>
     </div>
   )
@@ -269,7 +269,7 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
       {/* Header row */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 150px 80px', padding: '10px 20px', borderBottom: '1px solid var(--border)', background: 'var(--surface)', borderRadius: '12px 12px 0 0' }}>
         {['Endpoint', 'Amount', 'Payer', 'Time'].map(h => (
-          <span key={h} style={{ fontFamily: 'var(--font-code)', fontSize: 10, color: 'var(--text-faint)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>
+          <span key={h} style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-faint)', }}>{h}</span>
         ))}
       </div>
 
@@ -327,7 +327,7 @@ function QuickSetup({ walletAddress, endpointCount, totalCalls }: {
 
   return (
     <Card style={{ marginTop: 'var(--space-xl)' }}>
-      <div style={{ fontFamily: 'var(--font-code)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 20 }}>
+      <div style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-muted)', marginBottom: 20 }}>
         Quick Setup
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -406,7 +406,7 @@ export default function DashboardPage() {
         <ProBanner isPro={isPro} />
 
         <PageHeader
-          eyebrow="GATE402"
+          eyebrow="Gate402"
           title="Overview"
           subtitle={`${userData?.plan === 'pro' ? 'Pro plan' : 'Free plan'} · ${userData?.network === 'mainnet' ? 'Solana Mainnet' : 'Solana Devnet'}`}
         />
@@ -423,7 +423,7 @@ export default function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
           <Card>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <span style={{ fontFamily: 'var(--font-code)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              <span style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-muted)', }}>
                 Calls
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -466,7 +466,7 @@ export default function DashboardPage() {
 
           <ProGate isPro={isPro} feature="MRR Projection">
             <Card style={{ height: '100%', boxSizing: 'border-box' }}>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>MRR Projected</div>
+              <div style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>MRR Projected</div>
               <div style={{ fontSize: 26, fontWeight: 600, color: 'var(--green)', letterSpacing: '-0.5px' }}>${mrrProjected.toFixed(2)}</div>
               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, marginBottom: 16 }}>based on last 7 days</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -484,7 +484,7 @@ export default function DashboardPage() {
         {/* Recent calls */}
         <div style={{ marginBottom: 'var(--space-xl)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-sm)' }}>
-            <span style={{ fontFamily: 'var(--font-code)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-muted)', }}>
               Recent Calls
             </span>
             <a href="/endpoints" style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-code)' }}>

@@ -17,12 +17,11 @@ export default function PageHeader({ eyebrow, title, subtitle, action }: PageHea
     }}>
       <div>
         <div style={{
-          fontSize: 11,
+          fontSize: 12,
           color: 'var(--text-muted)',
           fontFamily: 'var(--font-code)',
-          letterSpacing: '0.12em',
+          fontWeight: 500,
           marginBottom: 8,
-          textTransform: 'uppercase',
         }}>
           {eyebrow}
         </div>
