@@ -371,7 +371,7 @@ export default function DashboardPage() {
   const [chartDays, setChartDays] = useState(7)
   const { data, loading: dataLoading } = useDashboardData(supabaseUserId, isPro, chartDays)
 
-  const loading = userLoading || dataLoading
+  const loading = dataLoading
   const weeklyAmount = data?.callsPerDay?.reduce((s, d) => s + (d.amount || 0), 0) || 0
   const mrrProjected = (weeklyAmount / 7) * 30
 
