@@ -2,6 +2,7 @@
 
 import { Space_Grotesk, JetBrains_Mono } from 'next/font/google'
 import { Component as FlickeringFooter } from '@/components/ui/flickering-footer'
+import { LandingNavbar } from '@/components/ui/landing-navbar'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -29,7 +30,7 @@ const CSS = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: #000;
+    background: #101010;
     color: #fff;
     -webkit-font-smoothing: antialiased;
   }
@@ -85,51 +86,6 @@ const CSS = `
 const FONT = 'var(--font-space, sans-serif)'
 const MONO = 'var(--font-mono, monospace)'
 
-function Nav() {
-  return (
-    <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-      height: 60,
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 clamp(20px, 10vw, 250px)',
-      background: 'rgba(0,0,0,0.85)',
-      backdropFilter: 'blur(12px)',
-      borderBottom: '1px solid #1a1a1a',
-    }}>
-      <a href="/">
-        <img src="/logo-gate.png" alt="Gate402" style={{ height: 22, width: 'auto', display: 'block' }} />
-      </a>
-
-      <div className="nav-links" style={{
-        position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-        display: 'flex', gap: 32, alignItems: 'center',
-      }}>
-        {[
-          { label: 'How it works', href: '/#how-it-works' },
-          { label: 'Docs',         href: '/docs' },
-          { label: 'Pricing',      href: '/pricing' },
-          { label: 'GitHub',       href: 'https://github.com/joaopco8/gate402_', target: '_blank' },
-        ].map(({ label, href, target }) => (
-          <a key={label} href={href} target={target}
-            rel={target === '_blank' ? 'noopener noreferrer' : undefined}
-            style={{ fontSize: 14, color: '#666', fontFamily: FONT, transition: 'color 150ms' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#666')}
-          >{label}</a>
-        ))}
-      </div>
-
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-        <a href="/auth/login" style={{ fontSize: 14, color: '#666', fontFamily: FONT }}>Sign in</a>
-        <a href="/auth/login" style={{
-          fontSize: 14, fontFamily: FONT, fontWeight: 500,
-          color: '#000', background: '#00bc7d', padding: '8px 18px', borderRadius: 6,
-        }}>Start free →</a>
-      </div>
-    </nav>
-  )
-}
-
 // Icons
 function IconZap() {
   return (
@@ -179,35 +135,24 @@ export default function AboutPage() {
   return (
     <div
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
-      style={{ fontFamily: FONT, background: '#000', minHeight: '100vh' }}
+      style={{ fontFamily: FONT, background: '#101010', minHeight: '100vh' }}
     >
       <style>{CSS}</style>
-      <Nav />
+      <LandingNavbar />
 
       {/* ── HERO ── */}
       <section style={{ paddingTop: 160, paddingBottom: 120, padding: '160px clamp(20px, 5vw, 120px) 120px', textAlign: 'center', borderBottom: '1px solid #1a1a1a' }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          border: '1px solid #1a1a1a', borderRadius: 100,
-          padding: '5px 14px', fontSize: 11, color: '#666',
-          fontFamily: MONO, letterSpacing: '0.04em',
-          background: '#000', marginBottom: 32,
-        }}>
-          <span className="live-dot" />
-          About Gate402
-        </div>
-
         <h1
           className="hero-title"
           style={{
-            fontFamily: FONT, fontWeight: 300,
+            fontFamily: FONT, fontWeight: 600,
             fontSize: 'clamp(40px, 6vw, 72px)',
             lineHeight: 1.1, letterSpacing: '-0.03em', color: '#fff',
             marginBottom: 24,
           }}
         >
           The payment layer<br />
-          <span className="gradient-text">the internet forgot to build</span>
+          <span style={{ color: '#00bc7d' }}>the internet forgot to build</span>
         </h1>
 
         <p style={{
@@ -247,7 +192,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── VALUES ── */}
-      <section style={{ background: '#000', padding: '120px clamp(20px, 5vw, 120px)', borderBottom: '1px solid #1a1a1a' }}>
+      <section style={{ background: '#101010', padding: '120px clamp(20px, 5vw, 120px)', borderBottom: '1px solid #1a1a1a' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ fontFamily: MONO, fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 16 }}>
             WHAT WE BELIEVE
@@ -266,7 +211,7 @@ export default function AboutPage() {
           }}>
             {VALUES.map(({ icon, n, title, desc }, idx) => (
               <div key={n} style={{
-                background: '#000',
+                background: '#101010',
                 padding: '40px 36px',
                 borderRight: idx % 2 === 0 ? '1px solid #1a1a1a' : 'none',
                 borderBottom: idx < 2 ? '1px solid #1a1a1a' : 'none',
@@ -301,7 +246,7 @@ export default function AboutPage() {
                 display: 'grid',
                 gridTemplateColumns: '160px 1fr',
                 borderBottom: i < TIMELINE.length - 1 ? '1px solid #1a1a1a' : 'none',
-                background: '#000',
+                background: '#101010',
                 transition: 'background 200ms ease',
               }}
                 onMouseEnter={e => (e.currentTarget.style.background = '#0a0a0a')}
@@ -325,7 +270,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── PROTOCOL ── */}
-      <section style={{ background: '#000', padding: '120px clamp(20px, 5vw, 120px)', borderBottom: '1px solid #1a1a1a' }}>
+      <section style={{ background: '#101010', padding: '120px clamp(20px, 5vw, 120px)', borderBottom: '1px solid #1a1a1a' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ fontFamily: MONO, fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 16 }}>
             BUILT ON OPEN STANDARDS
@@ -335,7 +280,7 @@ export default function AboutPage() {
             gap: 0, background: '#1a1a1a', border: '1px solid #1a1a1a',
             borderRadius: 8, overflow: 'hidden',
           }}>
-            <div style={{ background: '#000', padding: '48px 40px', borderRight: '1px solid #1a1a1a' }}>
+            <div style={{ background: '#101010', padding: '48px 40px', borderRight: '1px solid #1a1a1a' }}>
               <h2 style={{ fontFamily: FONT, fontWeight: 300, fontSize: 36, letterSpacing: '-0.02em', color: '#fff', marginBottom: 16 }}>
                 x402 — the machine-native payment protocol
               </h2>
@@ -361,7 +306,7 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div style={{ background: '#000', padding: '48px 40px' }}>
+            <div style={{ background: '#101010', padding: '48px 40px' }}>
               <div style={{
                 background: '#111111', border: '1px solid #1a1a1a',
                 borderRadius: 6, padding: '20px 20px',
