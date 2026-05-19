@@ -96,6 +96,28 @@ router.post('/billing/webhook', async (req, res) => {
   return res.json({ received: true })
 })
 
+// POST /api/billing/portal — create Stripe customer portal session
+router.post('/billing/portal', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' })
+
+    const user = await prisma.user.findUnique({ where: { supabaseId } })
+    if (!user) return res.status(404).json({ error: 'User not found' })
+    if (!user.stripeCustomerId) return res.status(400).json({ error: 'No Stripe customer found' })
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: user.stripeCustomerId,
+      return_url: 'https://gate402.dev/dashboard/billing',
+    })
+
+    return res.json({ url: session.url })
+  } catch (error: any) {
+    console.error('[billing/portal] Error:', error)
+    return res.status(500).json({ error: error.message })
+  }
+})
+
 // GET /api/billing/status — current plan info
 router.get('/billing/status', async (req, res) => {
   const supabaseId = req.headers['x-user-id'] as string

@@ -63,15 +63,30 @@ function ArrowDownIcon() {
   )
 }
 
+type Sentiment = 'positive' | 'negative' | 'neutral'
+
+function getSentiment(change: number | null, sparkData: number[]): Sentiment {
+  const hasActivity = sparkData.some(v => v > 0)
+  if (!hasActivity || change === null) return 'neutral'
+  if (change > 0) return 'positive'
+  if (change < 0) return 'negative'
+  return 'neutral'
+}
+
+const SENTIMENT_COLOR: Record<Sentiment, string> = {
+  positive: '#22C55E',
+  negative: '#F97316',
+  neutral:  '#F59E0B',
+}
+
 function StatsCard({ label, value, sub, sparkData, change, loading }: {
   label: string; value: string; sub?: string; sparkData: number[]; change: number | null; loading?: boolean
 }) {
   const lineRef = useRef<SVGPathElement>(null)
   const areaRef = useRef<SVGPathElement>(null)
   const svgW = 150, svgH = 60
-  const isPositive = change === null || change >= 0
-  // Exact colors from stats-widget.tsx
-  const strokeColor = isPositive ? '#22C55E' : '#F97316'
+  const sentiment = getSentiment(change, sparkData)
+  const strokeColor = SENTIMENT_COLOR[sentiment]
   const gradId = `sg-${label.replace(/\W+/g, '')}`
 
   const linePath = useMemo(() => generateSmoothPath(sparkData, svgW, svgH), [sparkData])
@@ -96,27 +111,18 @@ function StatsCard({ label, value, sub, sparkData, change, loading }: {
 
   return (
     <Card>
-      {/* Layout: left side content + right side chart — matches stats-widget flex justify-between */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
 
-        {/* Left: label row + value (matches stats-widget left flex-col w-1/2) */}
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-          {/* Label + change badge on same line — matches "This Week" + "36% ↑" */}
           <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-muted)', fontSize: 14, marginBottom: 8 }}>
             <span>{label}</span>
-            {change !== null && (
-              <span style={{
-                display: 'flex', alignItems: 'center',
-                marginLeft: 8, fontWeight: 600,
-                color: strokeColor,
-                fontSize: 14,
-              }}>
+            {change !== null && sentiment !== 'neutral' && (
+              <span style={{ display: 'flex', alignItems: 'center', marginLeft: 8, fontWeight: 600, color: strokeColor, fontSize: 14 }}>
                 {Math.abs(change).toFixed(0)}%
-                {isPositive ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                {sentiment === 'positive' ? <ArrowUpIcon /> : <ArrowDownIcon />}
               </span>
             )}
           </div>
-          {/* Value — text-4xl font-bold equivalent */}
           {loading
             ? <Skeleton height={36} width={120} />
             : <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-1px', lineHeight: 1.1 }}>{value}</div>
@@ -126,21 +132,24 @@ function StatsCard({ label, value, sub, sparkData, change, loading }: {
           )}
         </div>
 
-        {/* Right: sparkline SVG — matches stats-widget w-1/2 h-16 */}
         {!loading && sparkData.length >= 2 && (
           <div style={{ width: '45%', height: 64, flexShrink: 0 }}>
             <svg viewBox={`0 0 ${svgW} ${svgH}`} style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
               <defs>
-                <linearGradient id={`${gradId}-s`} x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id={`${gradId}-pos`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#22C55E" stopOpacity={0.4}/>
                   <stop offset="100%" stopColor="#22C55E" stopOpacity={0}/>
                 </linearGradient>
-                <linearGradient id={`${gradId}-d`} x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id={`${gradId}-neg`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#F97316" stopOpacity={0.4}/>
                   <stop offset="100%" stopColor="#F97316" stopOpacity={0}/>
                 </linearGradient>
+                <linearGradient id={`${gradId}-neu`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#F59E0B" stopOpacity={0.3}/>
+                  <stop offset="100%" stopColor="#F59E0B" stopOpacity={0}/>
+                </linearGradient>
               </defs>
-              <path ref={areaRef} d={areaPath} fill={`url(#${gradId}-${isPositive ? 's' : 'd'})`} />
+              <path ref={areaRef} d={areaPath} fill={`url(#${gradId}-${sentiment === 'positive' ? 'pos' : sentiment === 'negative' ? 'neg' : 'neu'})`} />
               <path ref={lineRef} d={linePath} fill="none" stroke={strokeColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>

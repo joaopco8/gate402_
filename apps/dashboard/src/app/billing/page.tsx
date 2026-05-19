@@ -91,6 +91,32 @@ export default function BillingPage() {
   const [error, setError] = useState<string | null>(null)
 
   const isPro = !loading && (userData?.plan === 'pro' || userData?.plan === 'enterprise')
+  const [managing, setManaging] = useState(false)
+
+  async function handleManage() {
+    setManaging(true)
+    setError(null)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { window.location.href = '/auth/login?next=/billing'; return }
+
+      const res = await fetch(`${SERVER_URL}/api/billing/portal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        setError(data.error || 'Could not open billing portal. Try again.')
+      }
+    } catch {
+      setError('Connection error. Try again.')
+    } finally {
+      setManaging(false)
+    }
+  }
 
   async function handleUpgrade() {
     setUpgrading(true)
@@ -213,19 +239,22 @@ export default function BillingPage() {
             <div>
               <hr style={{ borderColor: 'rgba(255,255,255,0.08)', margin: '0 0 24px' }} />
               {isPro ? (
-                <a
-                  href={`${SERVER_URL}/api/billing/portal`}
+                <button
+                  onClick={handleManage}
+                  disabled={managing}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     width: '100%', height: 40, fontSize: 14, fontWeight: 500,
                     backgroundColor: '#00bc7d', color: '#111111',
-                    textDecoration: 'none', transition: 'opacity 150ms',
+                    border: 'none', cursor: managing ? 'not-allowed' : 'pointer',
+                    fontFamily: 'var(--font-display)',
+                    opacity: managing ? 0.7 : 1, transition: 'opacity 150ms',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                  onMouseEnter={e => { if (!managing) e.currentTarget.style.opacity = '0.9' }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = managing ? '0.7' : '1' }}
                 >
-                  Manage subscription
-                </a>
+                  {managing ? 'Redirecting…' : 'Manage subscription'}
+                </button>
               ) : (
                 <>
                   <button

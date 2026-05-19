@@ -29,20 +29,25 @@ interface Endpoint {
   createdAt: string
 }
 
-// ── Endpoint Stat Card — 100% css/animation from api-rate-limiting-card ──────
+// ── Endpoint Card ─────────────────────────────────────────────────────────────
 
-function EndpointStatCard({
-  cardTitle,
-  cardDescription,
-  isThrottled,
-  icon: Icon,
+function EndpointCard({
+  ep,
+  supabaseId,
+  onRefresh,
+  onAdd,
+  atLimit,
 }: {
-  cardTitle: string
-  cardDescription: string
-  isThrottled: boolean
-  icon: React.ElementType
+  ep: Endpoint | null
+  supabaseId: string | null
+  onRefresh: () => void
+  onAdd: () => void
+  atLimit: boolean
 }) {
   const controls = useAnimation()
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const isThrottled = ep ? !ep.active : false
 
   useEffect(() => {
     let alive = true
@@ -61,85 +66,223 @@ function EndpointStatCard({
     return () => { alive = false }
   }, [controls])
 
+  async function confirmDelete() {
+    if (!ep || !supabaseId) return
+    setDeleting(true)
+    try {
+      await fetch(`${SERVER_URL}/api/endpoints/${ep.id}`, {
+        method: 'DELETE',
+        headers: { 'x-user-id': supabaseId },
+      })
+    } finally {
+      setDeleting(false)
+      setShowDeleteModal(false)
+      onRefresh()
+    }
+  }
+
   return (
     <div
-      className="relative flex flex-col justify-between overflow-hidden rounded-md"
+      className="relative overflow-hidden rounded-md"
       style={{
         height: '28rem',
         width: '100%',
         background: '#0A0A0A',
-        border: '1px solid rgba(38,38,38,0.5)',
-        gap: 16,
+        border: ep ? '1px solid rgba(38,38,38,0.5)' : '1px solid rgba(38,38,38,0.25)',
       }}
     >
-      {/* Animation canvas */}
-      <div className="absolute inset-x-0 top-10 flex h-48 items-center justify-center">
-        <div className="relative flex h-full w-full items-center justify-center">
-
-          {/* Central icon — 80% bigger: 80→144, icon 32→58 */}
-          <motion.div
-            className="z-10 flex items-center justify-center rounded-full"
-            style={{ width: 144, height: 144, background: '#111', border: '1px solid #404040', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}
-            animate={{
-              borderColor: isThrottled ? 'rgba(239,68,68,0.5)' : 'rgba(52,211,153,0.5)',
-              transition: { duration: 0.5, ease: 'easeInOut' },
-            }}
-          >
-            <Icon style={{ width: 58, height: 58, color: '#a3a3a3' }} />
-          </motion.div>
-
-          {/* Animated dots */}
-          {[...Array(5)].map((_, i) => (
+      {/* Inner content — blurred when empty */}
+      <div style={{ position: 'absolute', inset: 0, filter: ep ? 'none' : 'blur(4px)', opacity: ep ? 1 : 0.18, pointerEvents: 'none' }}>
+        {/* Animation canvas */}
+        <div className="absolute inset-x-0 top-10 flex h-48 items-center justify-center">
+          <div className="relative flex h-full w-full items-center justify-center">
             <motion.div
-              key={i}
-              custom={i}
-              animate={controls}
-              style={{
-                position: 'absolute', left: '50%', top: '50%',
-                width: 8, height: 8, borderRadius: '50%',
-                background: isThrottled ? '#ef4444' : '#10b981',
+              className="z-10 flex items-center justify-center rounded-full"
+              style={{ width: 144, height: 144, background: '#111', border: '1px solid #404040', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}
+              animate={{
+                borderColor: isThrottled ? 'rgba(239,68,68,0.5)' : 'rgba(52,211,153,0.5)',
+                transition: { duration: 0.5, ease: 'easeInOut' },
               }}
-            />
-          ))}
+            >
+              <LuServerCog style={{ width: 58, height: 58, color: '#a3a3a3' }} />
+            </motion.div>
 
-          {/* Shield overlay */}
-          <motion.div
-            className="absolute flex items-center justify-center"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{
-              opacity: isThrottled ? 1 : 0,
-              scale: isThrottled ? 1 : 0.8,
-              transition: { duration: 0.3, ease: 'easeOut' },
+            {[...Array(5)].map((_, i) => (
+              <motion.div
+                key={i}
+                custom={i}
+                animate={controls}
+                style={{
+                  position: 'absolute', left: '50%', top: '50%',
+                  width: 8, height: 8, borderRadius: '50%',
+                  background: isThrottled ? '#ef4444' : '#10b981',
+                }}
+              />
+            ))}
+
+            <motion.div
+              className="absolute flex items-center justify-center"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{
+                opacity: isThrottled ? 1 : 0,
+                scale: isThrottled ? 1 : 0.8,
+                transition: { duration: 0.3, ease: 'easeOut' },
+              }}
+            >
+              <HiOutlineShieldExclamation style={{ width: 128, height: 128, color: 'rgba(239,68,68,0.5)' }} />
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Bottom info */}
+        <div className="absolute bottom-0 w-full" style={{ padding: '0 16px 16px' }}>
+          {/* Status row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <motion.div
+              animate={{ color: isThrottled ? '#ef4444' : '#10b981' }}
+              transition={{ duration: 0.5 }}
+              style={{ display: 'flex', alignItems: 'center' }}
+            >
+              {isThrottled
+                ? <HiOutlineShieldExclamation style={{ width: 16, height: 16 }} />
+                : <HiOutlineShieldCheck style={{ width: 16, height: 16 }} />}
+            </motion.div>
+            <motion.p
+              style={{ fontSize: 12, fontWeight: 500, margin: 0 }}
+              animate={{ color: isThrottled ? '#ef4444' : '#10b981' }}
+              transition={{ duration: 0.5 }}
+            >
+              {isThrottled ? 'Inactive' : 'All Systems Normal'}
+            </motion.p>
+          </div>
+
+          {/* Path */}
+          <div style={{ marginTop: 10, fontSize: 14, fontWeight: 600, color: '#ffffff', fontFamily: MONO, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {ep?.path ?? '/endpoint'}
+          </div>
+
+          {/* Stats row */}
+          <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+            <div>
+              <div style={{ fontSize: 10, color: '#555', fontFamily: MONO, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Price</div>
+              <div style={{ fontSize: 12, color: '#a3a3a3', fontFamily: MONO }}>{ep?.priceUsdc ?? '—'} USDC</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: '#555', fontFamily: MONO, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Calls</div>
+              <div style={{ fontSize: 12, color: '#a3a3a3', fontFamily: MONO }}>{ep?.totalCalls?.toLocaleString() ?? '—'}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: '#555', fontFamily: MONO, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Net Rev</div>
+              <div style={{ fontSize: 12, color: '#10b981', fontFamily: MONO }}>${ep ? (ep.netRevenue ?? 0).toFixed(4) : '—'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete button — only on filled cards */}
+      {ep && supabaseId && (
+        <>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            title="Delete endpoint"
+            style={{
+              position: 'absolute', top: 12, right: 12, zIndex: 10,
+              background: 'rgba(0,0,0,0.55)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 6, color: '#555',
+              cursor: 'pointer', padding: '6px 7px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 150ms',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#555'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+          </button>
+
+          {showDeleteModal && (
+            <div
+              style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+              onClick={e => { if (e.target === e.currentTarget && !deleting) setShowDeleteModal(false) }}
+            >
+              <div style={{ background: '#0d0d0d', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 12, width: 400, maxWidth: '90vw', padding: 28 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#fff', fontFamily: SANS }}>Delete endpoint</div>
+                    <div style={{ fontSize: 12, color: '#666', fontFamily: MONO, marginTop: 2 }}>{ep.path}</div>
+                  </div>
+                </div>
+                <p style={{ fontSize: 13, color: '#a3a3a3', fontFamily: SANS, lineHeight: 1.6, margin: '0 0 24px' }}>
+                  This will permanently delete <span style={{ color: '#fff', fontFamily: MONO }}>{ep.path}</span> and all its data. This action cannot be undone.
+                </p>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    disabled={deleting}
+                    style={{ padding: '9px 16px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 13, color: '#a3a3a3', cursor: 'pointer', fontFamily: SANS }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    disabled={deleting}
+                    style={{ padding: '9px 20px', background: 'rgba(239,68,68,0.9)', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, color: '#fff', cursor: deleting ? 'not-allowed' : 'pointer', fontFamily: SANS, opacity: deleting ? 0.6 : 1 }}
+                  >
+                    {deleting ? 'Deleting…' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Add overlay — only on empty slots */}
+      {!ep && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+          <button
+            onClick={atLimit ? undefined : onAdd}
+            title={atLimit ? 'Upgrade to Pro for unlimited endpoints' : 'Add endpoint'}
+            style={{
+              width: 80, height: 80, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              cursor: atLimit ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 200ms ease',
+              padding: 0,
+            }}
+            onMouseEnter={e => {
+              if (!atLimit) {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'
+              }
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
             }}
           >
-            <HiOutlineShieldExclamation style={{ width: 128, height: 128, color: 'rgba(239,68,68,0.5)' }} />
-          </motion.div>
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <line x1="14" y1="5" x2="14" y2="23" stroke="#555" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="5" y1="14" x2="23" y2="14" stroke="#555" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+          {atLimit && (
+            <a href="/billing" style={{ fontSize: 11, color: '#10b981', fontFamily: MONO, textDecoration: 'none' }}>Upgrade to Pro →</a>
+          )}
         </div>
-      </div>
-
-      {/* Text */}
-      <div className="absolute bottom-0 w-full" style={{ padding: '0 16px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <motion.div
-            animate={{ color: isThrottled ? '#ef4444' : '#10b981' }}
-            transition={{ duration: 0.5 }}
-            style={{ display: 'flex', alignItems: 'center' }}
-          >
-            {isThrottled
-              ? <HiOutlineShieldExclamation style={{ width: 16, height: 16 }} />
-              : <HiOutlineShieldCheck style={{ width: 16, height: 16 }} />}
-          </motion.div>
-          <motion.p
-            style={{ fontSize: 12, fontWeight: 500, margin: 0 }}
-            animate={{ color: isThrottled ? '#ef4444' : '#10b981' }}
-            transition={{ duration: 0.5 }}
-          >
-            {isThrottled ? 'Attention Required' : 'All Systems Normal'}
-          </motion.p>
-        </div>
-        <div style={{ marginTop: 12, fontSize: 14, fontWeight: 600, color: '#ffffff' }}>{cardTitle}</div>
-        <div style={{ marginTop: 8, fontSize: 12, color: '#a3a3a3', lineHeight: 1.5 }}>{cardDescription}</div>
-      </div>
+      )}
     </div>
   )
 }
@@ -513,85 +656,22 @@ export default function EndpointsPage() {
           </div>
         )}
 
-        {/* ── 3 stat cards ── */}
+        {/* ── 3 endpoint cards ── */}
         {!loading && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
-            <EndpointStatCard
-              icon={LuServerCog}
-              isThrottled={!isPro && count >= 3}
-              cardTitle={`${endpoints.filter(e => e.active).length} / ${count} Active`}
-              cardDescription={
-                count === 0
-                  ? 'No endpoints yet. Add your first to start receiving payments from AI agents.'
-                  : `${endpoints.filter(e => e.active).length} endpoint${endpoints.filter(e => e.active).length !== 1 ? 's' : ''} active and accepting paid calls right now.`
-              }
-            />
-            <EndpointStatCard
-              icon={LuServerCog}
-              isThrottled={false}
-              cardTitle={`${endpoints.reduce((s, e) => s + (e.totalCalls ?? 0), 0).toLocaleString()} Total Calls`}
-              cardDescription="Cumulative paid API calls received across all your registered endpoints."
-            />
-            <EndpointStatCard
-              icon={LuServerCog}
-              isThrottled={false}
-              cardTitle={`$${endpoints.reduce((s, e) => s + (e.netRevenue ?? 0), 0).toFixed(4)} Net Revenue`}
-              cardDescription="Total USDC earned after the 1% platform fee. Paid directly to your Solana wallet."
-            />
+            {[0, 1, 2].map(i => (
+              <EndpointCard
+                key={endpoints[i]?.id ?? `empty-${i}`}
+                ep={endpoints[i] ?? null}
+                supabaseId={supabaseId}
+                onRefresh={refresh}
+                onAdd={() => setShowAdd(true)}
+                atLimit={atLimit}
+              />
+            ))}
           </div>
         )}
 
-        <Card style={{ padding: 0 }}>
-          {/* Column headers */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 70px 120px 90px 52px', padding: '10px 24px', borderBottom: '1px solid var(--border)', background: 'var(--surface)', borderRadius: '12px 12px 0 0' }}>
-            {['Path', 'Price', 'Calls', 'Net Revenue', 'Status', ''].map(h => (
-              <span key={h} style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)', }}>{h}</span>
-            ))}
-          </div>
-
-          {loading ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ height: 13, borderRadius: 4, background: 'linear-gradient(90deg, var(--surface) 25%, var(--card-raised,#111) 50%, var(--surface) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }} />
-              </div>
-            ))
-          ) : endpoints.length === 0 ? (
-            <div style={{ padding: '60px 24px', textAlign: 'center' }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8, fontFamily: SANS }}>No endpoints yet</div>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24, fontFamily: SANS }}>Add your first endpoint to start charging agents.</div>
-              <button onClick={() => setShowAdd(true)} style={btnPrimary}>+ Add Endpoint</button>
-            </div>
-          ) : (
-            endpoints.map((ep, i) => (
-              <div
-                key={ep.id}
-                style={{ display: 'grid', gridTemplateColumns: '1fr 110px 70px 120px 90px 52px', padding: '14px 24px', borderBottom: i < endpoints.length - 1 ? '1px solid var(--border)' : 'none', alignItems: 'center' }}
-              >
-                <span style={{ fontFamily: MONO, fontSize: 13, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {ep.path}
-                </span>
-                <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-secondary)' }}>
-                  {ep.priceUsdc} USDC
-                </span>
-                <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-secondary)' }}>
-                  {ep.totalCalls}
-                </span>
-                <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--green)' }}>
-                  ${(ep.netRevenue ?? 0).toFixed(5)}
-                </span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontFamily: MONO, color: ep.active ? 'var(--green)' : 'var(--text-muted)' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: ep.active ? 'var(--green)' : 'var(--text-muted)', flexShrink: 0 }} />
-                  {ep.active ? 'Active' : 'Inactive'}
-                </span>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  {supabaseId && (
-                    <ActionsMenu ep={ep} supabaseId={supabaseId} onRefresh={refresh} onEdit={() => setEditEp(ep)} />
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </Card>
       </PageContainer>
     </DashboardLayout>
   )
