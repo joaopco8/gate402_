@@ -16,24 +16,11 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 const CSS = `
-  :root {
-    --bg:           #0F0F0F;
-    --surface:      #0a0a0a;
-    --card:         #0d0d0d;
-    --border:       #1a1a1a;
-    --border-hover: #2a2a2a;
-    --text:         #ffffff;
-    --text-muted:   #666666;
-    --text-dim:     #333333;
-    --green:        #00bc7d;
-    --purple:       #9945FF;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: var(--bg);
-    color: var(--text);
+    background: #000;
+    color: #fff;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -51,11 +38,11 @@ const CSS = `
   }
 
   @keyframes pulseSlow {
-    0%, 100% { opacity: 0.35; }
+    0%, 100% { opacity: 0.4; }
     50%       { opacity: 1; }
   }
 
-  .gradient-animated {
+  .gradient-text {
     background: linear-gradient(135deg, #00bc7d, #9945FF, #00bc7d, #9945FF);
     background-size: 300% 300%;
     animation: gradientShift 3s ease infinite;
@@ -64,87 +51,45 @@ const CSS = `
     background-clip: text;
   }
 
-  .fade-in-up { animation: fadeInUp 0.6s ease-out both; }
-
-  .g-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    transition: border-color 0.2s;
-  }
-  .g-card:hover { border-color: var(--border-hover); }
-
-  .post-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    transition: border-color 0.2s, transform 0.2s;
-    cursor: pointer;
-    display: block;
-  }
-  .post-card:hover {
-    border-color: var(--border-hover);
-    transform: translateY(-2px);
-  }
-
-  .badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    border: 1px solid var(--border); border-radius: 100px;
-    padding: 5px 14px; font-size: 11px; color: var(--text-muted);
-    font-family: var(--font-mono, monospace); letter-spacing: 0.04em;
-    background: var(--card);
-  }
-
-  .tag {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 100px;
-    font-size: 11px;
-    font-family: var(--font-mono, monospace);
-    letter-spacing: 0.04em;
-    border: 1px solid #1a1a1a;
-    color: #555;
-  }
-
-  .tag-green {
-    border-color: rgba(0,188,125,0.25);
-    color: #00bc7d;
-    background: rgba(0,188,125,0.06);
-  }
-
-  .tag-purple {
-    border-color: rgba(153,69,255,0.25);
-    color: #9945FF;
-    background: rgba(153,69,255,0.06);
-  }
-
   .live-dot {
     width: 6px; height: 6px; border-radius: 50%;
-    background: var(--green);
+    background: #00bc7d;
+    display: inline-block;
     animation: pulseSlow 2s ease-in-out infinite;
+    flex-shrink: 0;
   }
+
+  .post-card {
+    display: block;
+    background: #000;
+    border-right: 1px solid #1a1a1a;
+    transition: background 200ms ease;
+    cursor: pointer;
+  }
+  .post-card:hover { background: #111111; }
+  .post-card:last-child { border-right: none; }
 
   html, body { overflow-x: hidden; }
 
   @media (max-width: 768px) {
     .nav-links { display: none !important; }
-    .blog-grid { grid-template-columns: 1fr !important; }
-    .featured-grid { grid-template-columns: 1fr !important; }
     .blog-hero-title { font-size: 40px !important; }
+    .featured-grid { grid-template-columns: 1fr !important; }
+    .posts-grid { grid-template-columns: 1fr !important; }
+    .posts-grid .post-card { border-right: none !important; border-bottom: 1px solid #1a1a1a; }
+    .posts-grid .post-card:last-child { border-bottom: none; }
   }
 `
+
+const FONT = 'var(--font-space, sans-serif)'
+const MONO = 'var(--font-mono, monospace)'
 
 function Nav() {
   return (
     <nav style={{
-      position: 'fixed',
-      top: 0, left: 0, right: 0,
-      zIndex: 100,
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
       height: 60,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '0 clamp(20px, 10vw, 250px)',
       background: 'rgba(0,0,0,0.85)',
       backdropFilter: 'blur(12px)',
@@ -155,12 +100,8 @@ function Nav() {
       </a>
 
       <div className="nav-links" style={{
-        position: 'absolute',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'flex',
-        gap: 32,
-        alignItems: 'center',
+        position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+        display: 'flex', gap: 32, alignItems: 'center',
       }}>
         {[
           { label: 'How it works', href: '/#how-it-works' },
@@ -168,12 +109,9 @@ function Nav() {
           { label: 'Pricing',      href: '/pricing' },
           { label: 'GitHub',       href: 'https://github.com/joaopco8/gate402_', target: '_blank' },
         ].map(({ label, href, target }) => (
-          <a
-            key={label}
-            href={href}
-            target={target}
+          <a key={label} href={href} target={target}
             rel={target === '_blank' ? 'noopener noreferrer' : undefined}
-            style={{ fontSize: 14, color: '#666', fontFamily: 'var(--font-space)', transition: 'color 150ms' }}
+            style={{ fontSize: 14, color: '#666', fontFamily: FONT, transition: 'color 150ms' }}
             onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
             onMouseLeave={e => (e.currentTarget.style.color = '#666')}
           >{label}</a>
@@ -181,9 +119,9 @@ function Nav() {
       </div>
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-        <a href="/auth/login" style={{ fontSize: 14, color: '#666', fontFamily: 'var(--font-space)' }}>Sign in</a>
+        <a href="/auth/login" style={{ fontSize: 14, color: '#666', fontFamily: FONT }}>Sign in</a>
         <a href="/auth/login" style={{
-          fontSize: 14, fontFamily: 'var(--font-space)', fontWeight: 500,
+          fontSize: 14, fontFamily: FONT, fontWeight: 500,
           color: '#000', background: '#00bc7d', padding: '8px 18px', borderRadius: 6,
         }}>Start free →</a>
       </div>
@@ -194,7 +132,9 @@ function Nav() {
 type Post = {
   slug: string
   tag: string
-  tagStyle: string
+  tagColor: string
+  tagBg: string
+  tagBorder: string
   date: string
   title: string
   excerpt: string
@@ -206,7 +146,9 @@ const POSTS: Post[] = [
   {
     slug: 'introducing-gate402',
     tag: 'Announcement',
-    tagStyle: 'tag-green',
+    tagColor: '#00bc7d',
+    tagBg: 'rgba(0,188,125,0.06)',
+    tagBorder: 'rgba(0,188,125,0.25)',
     date: 'May 14, 2025',
     title: 'Introducing Gate402: charge for any API endpoint with one line of code',
     excerpt: 'Today we\'re opening early access to Gate402 — a developer platform that lets you monetize HTTP endpoints with per-call USDC payments, powered by the x402 protocol.',
@@ -216,16 +158,20 @@ const POSTS: Post[] = [
   {
     slug: 'x402-protocol-explained',
     tag: 'Technical',
-    tagStyle: 'tag-purple',
+    tagColor: '#9945FF',
+    tagBg: 'rgba(153,69,255,0.06)',
+    tagBorder: 'rgba(153,69,255,0.25)',
     date: 'May 10, 2025',
     title: 'x402: the HTTP payment extension and how it works',
-    excerpt: 'HTTP 402 "Payment Required" has been reserved since 1991 but never formally defined. The x402 standard finally gives it a machine-readable shape — here\'s how it works under the hood.',
+    excerpt: 'HTTP 402 "Payment Required" has been reserved since 1991 but never formally defined. The x402 standard finally gives it a machine-readable shape — here\'s how it works.',
     readTime: '8 min read',
   },
   {
     slug: 'ai-agents-need-wallets',
     tag: 'Product',
-    tagStyle: 'tag-green',
+    tagColor: '#00bc7d',
+    tagBg: 'rgba(0,188,125,0.06)',
+    tagBorder: 'rgba(0,188,125,0.25)',
     date: 'May 6, 2025',
     title: 'Why every AI agent needs a wallet',
     excerpt: 'As LLM agents become capable of taking actions on the web, they need to pay for the resources they consume. Crypto micropayments are the only practical solution at machine speed.',
@@ -234,7 +180,9 @@ const POSTS: Post[] = [
   {
     slug: 'usdc-vs-stripe',
     tag: 'Technical',
-    tagStyle: 'tag-purple',
+    tagColor: '#9945FF',
+    tagBg: 'rgba(153,69,255,0.06)',
+    tagBorder: 'rgba(153,69,255,0.25)',
     date: 'Apr 29, 2025',
     title: 'USDC payments vs Stripe for API monetization',
     excerpt: 'Stripe is great for SaaS. For per-call API payments with no minimum invoice, instant settlement, and global reach — stablecoins win on every dimension.',
@@ -243,7 +191,9 @@ const POSTS: Post[] = [
   {
     slug: 'zero-to-paid-api',
     tag: 'Tutorial',
-    tagStyle: '',
+    tagColor: '#f59e0b',
+    tagBg: 'rgba(245,158,11,0.06)',
+    tagBorder: 'rgba(245,158,11,0.25)',
     date: 'Apr 22, 2025',
     title: 'Zero to paid API: build a USDC-gated endpoint in 10 minutes',
     excerpt: 'A step-by-step walkthrough of creating your first Gate402 endpoint — from account creation to receiving your first on-chain payment.',
@@ -252,40 +202,24 @@ const POSTS: Post[] = [
   {
     slug: 'solana-for-payments',
     tag: 'Technical',
-    tagStyle: 'tag-purple',
+    tagColor: '#9945FF',
+    tagBg: 'rgba(153,69,255,0.06)',
+    tagBorder: 'rgba(153,69,255,0.25)',
     date: 'Apr 15, 2025',
     title: 'Why we chose Solana for micropayments',
-    excerpt: 'Sub-cent fees, 400ms finality, and a massive developer ecosystem. Here\'s our full reasoning for building Gate402 on Solana and USDC.',
+    excerpt: 'Sub-cent fees, 400ms finality, and a massive developer ecosystem. Our full reasoning for building Gate402 on Solana and USDC.',
     readTime: '5 min read',
   },
 ]
 
-function PostCard({ post }: { post: Post }) {
+function Tag({ post }: { post: Post }) {
   return (
-    <a href={`/blog/${post.slug}`} className="post-card">
-      <div style={{
-        height: 3,
-        background: post.tagStyle === 'tag-green'
-          ? 'linear-gradient(90deg, #00bc7d, transparent)'
-          : post.tagStyle === 'tag-purple'
-            ? 'linear-gradient(90deg, #9945FF, transparent)'
-            : 'linear-gradient(90deg, #2a2a2a, transparent)',
-      }} />
-      <div style={{ padding: '28px 28px 32px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <span className={`tag ${post.tagStyle}`}>{post.tag}</span>
-          <span style={{ color: '#333', fontSize: 12, fontFamily: 'var(--font-mono)' }}>{post.date}</span>
-        </div>
-        <h3 style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.4, letterSpacing: '-0.01em', marginBottom: 12 }}>
-          {post.title}
-        </h3>
-        <p style={{ color: '#555', fontSize: 14, lineHeight: 1.65, marginBottom: 20 }}>{post.excerpt}</p>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 12, color: '#333', fontFamily: 'var(--font-mono)' }}>{post.readTime}</span>
-          <span style={{ fontSize: 13, color: '#444', transition: 'color 150ms' }}>Read →</span>
-        </div>
-      </div>
-    </a>
+    <span style={{
+      display: 'inline-block',
+      padding: '3px 10px', borderRadius: 100,
+      fontSize: 11, fontFamily: MONO, letterSpacing: '0.04em',
+      color: post.tagColor, background: post.tagBg, border: `1px solid ${post.tagBorder}`,
+    }}>{post.tag}</span>
   )
 }
 
@@ -296,155 +230,205 @@ export default function BlogPage() {
   return (
     <div
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
-      style={{ fontFamily: 'var(--font-space, sans-serif)', background: '#0F0F0F', minHeight: '100vh' }}
+      style={{ fontFamily: FONT, background: '#000', minHeight: '100vh' }}
     >
       <style>{CSS}</style>
       <Nav />
 
       {/* ── HERO ── */}
       <section style={{
-        paddingTop: 140,
-        paddingBottom: 72,
-        padding: '140px clamp(20px, 10vw, 250px) 72px',
+        padding: '160px clamp(20px, 5vw, 120px) 120px',
         textAlign: 'center',
+        borderBottom: '1px solid #1a1a1a',
       }}>
-        <div className="badge fade-in-up" style={{ marginBottom: 28 }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          border: '1px solid #1a1a1a', borderRadius: 100,
+          padding: '5px 14px', fontSize: 11, color: '#666',
+          fontFamily: MONO, letterSpacing: '0.04em',
+          background: '#000', marginBottom: 32,
+        }}>
           <span className="live-dot" />
-          The Gate402 Blog
+          Gate402 Blog
         </div>
+
         <h1
-          className="blog-hero-title fade-in-up"
+          className="blog-hero-title"
           style={{
+            fontFamily: FONT, fontWeight: 300,
             fontSize: 'clamp(40px, 5.5vw, 64px)',
-            fontWeight: 300,
-            lineHeight: 1.1,
-            letterSpacing: '-0.03em',
+            lineHeight: 1.1, letterSpacing: '-0.03em', color: '#fff',
             marginBottom: 20,
-            animationDelay: '80ms',
           }}
         >
           Ideas on the{' '}
-          <span className="gradient-animated">money-native web</span>
+          <span className="gradient-text">money-native web</span>
         </h1>
-        <p className="fade-in-up" style={{
-          fontSize: 17,
-          color: '#666',
-          maxWidth: 480,
-          margin: '0 auto',
-          lineHeight: 1.7,
-          animationDelay: '160ms',
-        }}>
+
+        <p style={{ fontFamily: FONT, fontSize: 17, color: '#666', maxWidth: 460, margin: '0 auto', lineHeight: 1.7 }}>
           Tutorials, technical deep-dives, and product updates from the Gate402 team.
         </p>
       </section>
 
-      {/* ── FEATURED POST ── */}
-      <section style={{ padding: '0 clamp(20px, 10vw, 250px) 64px' }}>
-        <a href={`/blog/${featured.slug}`} className="featured-grid" style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 0,
-          background: '#0d0d0d',
-          border: '1px solid #1a1a1a',
-          borderRadius: 12,
-          overflow: 'hidden',
-          transition: 'border-color 0.2s',
-          cursor: 'pointer',
-        }}
-          onMouseEnter={e => ((e.currentTarget as HTMLElement).style.borderColor = '#2a2a2a')}
-          onMouseLeave={e => ((e.currentTarget as HTMLElement).style.borderColor = '#1a1a1a')}
-        >
-          {/* gradient panel */}
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(0,188,125,0.08) 0%, rgba(153,69,255,0.08) 100%)',
-            borderRight: '1px solid #1a1a1a',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: 280,
-            padding: 40,
-          }}>
-            <div style={{ textAlign: 'center' }}>
+      {/* ── FEATURED ── */}
+      <section style={{ background: '#111111', borderBottom: '1px solid #1a1a1a' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(20px, 5vw, 120px)' }}>
+          <a
+            className="featured-grid"
+            href={`/blog/${featured.slug}`}
+            style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr',
+              borderLeft: '1px solid #1a1a1a', borderRight: '1px solid #1a1a1a',
+              transition: 'background 200ms',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.01)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+          >
+            {/* code preview panel */}
+            <div style={{
+              padding: '60px 48px',
+              borderRight: '1px solid #1a1a1a',
+              display: 'flex', flexDirection: 'column', justifyContent: 'center',
+            }}>
+              <div style={{ fontFamily: MONO, fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 28 }}>
+                FEATURED
+              </div>
               <div style={{
-                width: 64, height: 64,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #00bc7d, #9945FF)',
-                margin: '0 auto 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 28,
-              }}>⚡</div>
-              <p style={{ fontSize: 11, color: '#444', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em' }}>Featured post</p>
+                background: '#000', border: '1px solid #1a1a1a',
+                borderRadius: 6, padding: '20px 20px',
+                fontFamily: MONO, fontSize: 12, color: '#555', lineHeight: 2,
+              }}>
+                <div><span style={{ color: '#333' }}># gate402.config.js</span></div>
+                <div style={{ marginTop: 8 }}>
+                  <span style={{ color: '#9945FF' }}>import </span>
+                  <span style={{ color: '#fff' }}>gate402 </span>
+                  <span style={{ color: '#9945FF' }}>from </span>
+                  <span style={{ color: '#00bc7d' }}>'gate402'</span>
+                </div>
+                <div>
+                  <span style={{ color: '#fff' }}>app</span>
+                  <span style={{ color: '#666' }}>.use(</span>
+                  <span style={{ color: '#f59e0b' }}>gate402</span>
+                  <span style={{ color: '#666' }}>(&#123;</span>
+                </div>
+                <div style={{ paddingLeft: 16 }}>
+                  <span style={{ color: '#666' }}>'/api/data': </span>
+                  <span style={{ color: '#fff' }}>0.001</span>
+                </div>
+                <div><span style={{ color: '#666' }}>&#125;))</span></div>
+              </div>
             </div>
-          </div>
 
-          {/* content */}
-          <div style={{ padding: '44px 44px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-              <span className={`tag ${featured.tagStyle}`}>{featured.tag}</span>
-              <span style={{ color: '#333', fontSize: 12, fontFamily: 'var(--font-mono)' }}>{featured.date}</span>
+            {/* content */}
+            <div style={{ padding: '60px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                <Tag post={featured} />
+                <span style={{ fontFamily: MONO, fontSize: 11, color: '#333' }}>{featured.date}</span>
+              </div>
+              <h2 style={{
+                fontFamily: FONT, fontWeight: 400,
+                fontSize: 'clamp(20px, 2.5vw, 28px)',
+                lineHeight: 1.3, letterSpacing: '-0.02em',
+                color: '#fff', marginBottom: 16,
+              }}>{featured.title}</h2>
+              <p style={{ fontFamily: FONT, color: '#555', lineHeight: 1.65, fontSize: 14, marginBottom: 32 }}>{featured.excerpt}</p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontFamily: MONO, fontSize: 11, color: '#333' }}>{featured.readTime}</span>
+                <span style={{ fontFamily: FONT, fontSize: 13, color: '#00bc7d' }}>Read post →</span>
+              </div>
             </div>
-            <h2 style={{ fontSize: 'clamp(20px, 2.5vw, 28px)', fontWeight: 400, lineHeight: 1.3, letterSpacing: '-0.02em', marginBottom: 16 }}>
-              {featured.title}
-            </h2>
-            <p style={{ color: '#555', lineHeight: 1.65, fontSize: 14, marginBottom: 28 }}>{featured.excerpt}</p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 12, color: '#333', fontFamily: 'var(--font-mono)' }}>{featured.readTime}</span>
-              <span style={{ fontSize: 14, color: '#00bc7d' }}>Read post →</span>
-            </div>
-          </div>
-        </a>
-      </section>
-
-      {/* ── POST GRID ── */}
-      <section style={{ padding: '0 clamp(20px, 10vw, 250px) 120px' }}>
-        <div className="blog-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-          {rest.map(post => (
-            <PostCard key={post.slug} post={post} />
-          ))}
+          </a>
         </div>
       </section>
 
-      {/* ── NEWSLETTER ── */}
-      <section style={{ padding: '0 clamp(20px, 10vw, 250px) 120px' }}>
-        <div style={{
-          background: '#0d0d0d',
-          border: '1px solid #1a1a1a',
-          borderRadius: 12,
-          padding: 'clamp(40px, 5vw, 60px)',
-          textAlign: 'center',
-        }}>
-          <p style={{ fontSize: 11, color: '#444', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>
-            Stay in the loop
-          </p>
-          <h2 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 300, letterSpacing: '-0.02em', marginBottom: 12 }}>
-            Get new posts in your inbox
-          </h2>
-          <p style={{ color: '#555', marginBottom: 28, fontSize: 15 }}>
-            No spam. Just tutorials, updates, and ideas on API monetization.
-          </p>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              style={{
-                background: '#0a0a0a',
-                border: '1px solid #1a1a1a',
-                borderRadius: 6,
-                padding: '10px 16px',
-                color: '#fff',
-                fontSize: 14,
-                fontFamily: 'var(--font-space)',
-                outline: 'none',
-                width: 260,
-              }}
-            />
-            <button style={{
-              fontSize: 14, fontWeight: 500, color: '#000',
-              background: '#00bc7d', padding: '10px 22px', borderRadius: 6,
-              border: 'none', cursor: 'pointer', fontFamily: 'var(--font-space)',
-            }}>Subscribe →</button>
+      {/* ── POST GRID ── */}
+      <section style={{ background: '#000', borderBottom: '1px solid #1a1a1a' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(20px, 5vw, 120px)' }}>
+          <div
+            className="posts-grid"
+            style={{
+              display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+              border: '1px solid #1a1a1a',
+              borderTop: 'none',
+            }}
+          >
+            {rest.map((post, i) => (
+              <a key={post.slug} href={`/blog/${post.slug}`}
+                className="post-card"
+                style={{
+                  display: 'block',
+                  background: '#000',
+                  borderRight: i < rest.length - 1 ? '1px solid #1a1a1a' : 'none',
+                  transition: 'background 200ms ease',
+                  padding: '40px 32px',
+                  borderBottom: i < rest.length - 3 ? '1px solid #1a1a1a' : 'none',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#111111')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#000')}
+              >
+                <div style={{
+                  height: 2,
+                  background: `linear-gradient(90deg, ${post.tagColor}, transparent)`,
+                  marginBottom: 28, marginLeft: -32, marginRight: -32, marginTop: -40,
+                  position: 'relative', top: -0,
+                  borderBottom: '0px',
+                }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                  <Tag post={post} />
+                  <span style={{ fontFamily: MONO, fontSize: 11, color: '#333' }}>{post.date}</span>
+                </div>
+                <h3 style={{ fontFamily: FONT, fontWeight: 400, fontSize: 16, lineHeight: 1.4, letterSpacing: '-0.01em', color: '#fff', marginBottom: 12 }}>
+                  {post.title}
+                </h3>
+                <p style={{ fontFamily: FONT, color: '#555', fontSize: 13, lineHeight: 1.65, marginBottom: 24 }}>{post.excerpt}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontFamily: MONO, fontSize: 11, color: '#333' }}>{post.readTime}</span>
+                  <span style={{ fontFamily: FONT, fontSize: 12, color: '#444' }}>Read →</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section style={{ background: '#111111', padding: '120px clamp(20px, 5vw, 120px)', borderBottom: '1px solid #1a1a1a' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr auto', gap: 40,
+            alignItems: 'center',
+            border: '1px solid #1a1a1a', borderRadius: 8,
+            background: '#000', padding: '48px 48px',
+          }}>
+            <div>
+              <div style={{ fontFamily: MONO, fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 12 }}>
+                STAY IN THE LOOP
+              </div>
+              <h2 style={{ fontFamily: FONT, fontWeight: 300, fontSize: 32, letterSpacing: '-0.02em', color: '#fff', marginBottom: 10 }}>
+                Get new posts in your inbox
+              </h2>
+              <p style={{ fontFamily: FONT, color: '#666', fontSize: 14 }}>
+                No spam. Tutorials, updates, and ideas on API monetization.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                style={{
+                  background: '#111111', border: '1px solid #1a1a1a',
+                  borderRadius: 6, padding: '10px 16px',
+                  color: '#fff', fontSize: 13, fontFamily: FONT,
+                  outline: 'none', width: 220,
+                }}
+              />
+              <button style={{
+                fontSize: 13, fontWeight: 500, color: '#000',
+                background: '#00bc7d', padding: '10px 20px',
+                borderRadius: 6, border: 'none', cursor: 'pointer',
+                fontFamily: FONT, whiteSpace: 'nowrap',
+              }}>Subscribe →</button>
+            </div>
           </div>
         </div>
       </section>
