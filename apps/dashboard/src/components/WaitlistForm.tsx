@@ -1,90 +1,92 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { createClient } from "../../lib/supabase/client";
+import { useState } from 'react'
 
-type Status = "idle" | "loading" | "success" | "duplicate" | "error";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+type Status = 'idle' | 'loading' | 'success' | 'error' | 'duplicate'
 
 export function WaitlistForm() {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<Status>("idle");
+  const [email, setEmail] = useState('')
+  const [status, setStatus] = useState<Status>('idle')
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email || !email.includes("@")) return;
+    e.preventDefault()
+    if (!email || !email.includes('@')) return
 
-    setStatus("loading");
+    setStatus('loading')
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("waitlist")
-        .insert({ email: email.toLowerCase().trim(), source: "landing" });
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({
+          email: email.toLowerCase().trim(),
+          source: 'landing',
+        }),
+      })
 
-      if (error) {
-        if (error.code === "23505") {
-          setStatus("duplicate");
-        } else {
-          setStatus("error");
-        }
-        return;
+      if (res.status === 201) {
+        setStatus('success')
+        setEmail('')
+        return
       }
 
-      setStatus("success");
-      setEmail("");
-    } catch {
-      setStatus("error");
+      if (res.status === 409) {
+        setStatus('duplicate')
+        return
+      }
+
+      const errorBody = await res.text()
+      console.error('[waitlist] error:', res.status, errorBody)
+      setStatus('error')
+    } catch (err) {
+      console.error('[waitlist] fetch error:', err)
+      setStatus('error')
     }
   }
 
-  if (status === "success") {
+  if (status === 'success') {
     return (
       <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "10px 16px",
-        background: "rgba(0,188,125,0.08)",
-        border: "1px solid rgba(0,188,125,0.2)",
-        borderRadius: 6,
-        fontFamily: "monospace",
-        fontSize: 13,
-        color: "#00bc7d",
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '10px 16px',
+        background: 'rgba(0,188,125,0.08)',
+        border: '1px solid rgba(0,188,125,0.2)',
+        borderRadius: 6, fontFamily: 'monospace', fontSize: 13, color: '#00bc7d',
       }}>
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M2 7l3.5 3.5L12 3.5" stroke="#00bc7d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         You&apos;re on the list. We&apos;ll reach out soon.
       </div>
-    );
+    )
   }
 
-  if (status === "duplicate") {
+  if (status === 'duplicate') {
     return (
       <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "10px 16px",
-        background: "rgba(245,158,11,0.08)",
-        border: "1px solid rgba(245,158,11,0.2)",
-        borderRadius: 6,
-        fontFamily: "monospace",
-        fontSize: 13,
-        color: "#f59e0b",
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '10px 16px',
+        background: 'rgba(245,158,11,0.08)',
+        border: '1px solid rgba(245,158,11,0.2)',
+        borderRadius: 6, fontFamily: 'monospace', fontSize: 13, color: '#f59e0b',
       }}>
         Already on the list. We&apos;ll be in touch.
       </div>
-    );
+    )
   }
 
   return (
     <form onSubmit={handleSubmit} style={{
-      display: "flex",
-      gap: 8,
-      alignItems: "center",
-      flexWrap: "wrap",
-      justifyContent: "center",
+      display: 'flex', gap: 8, alignItems: 'center',
+      flexWrap: 'wrap', justifyContent: 'center',
     }}>
       <input
         type="email"
@@ -92,48 +94,36 @@ export function WaitlistForm() {
         onChange={e => setEmail(e.target.value)}
         placeholder="your@email.com"
         required
-        disabled={status === "loading"}
+        disabled={status === 'loading'}
         style={{
-          background: "rgba(255,255,255,0.05)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: 6,
-          padding: "9px 14px",
-          fontFamily: "monospace",
-          fontSize: 13,
-          color: "#fff",
-          outline: "none",
-          width: 220,
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 6, padding: '9px 14px',
+          fontFamily: 'monospace', fontSize: 13, color: '#fff',
+          outline: 'none', width: 220,
         }}
       />
       <button
         type="submit"
-        disabled={status === "loading" || !email}
+        disabled={status === 'loading' || !email}
         style={{
-          padding: "9px 18px",
-          background: status === "loading" ? "rgba(0,188,125,0.5)" : "#00bc7d",
-          color: "#000",
-          border: "none",
-          borderRadius: 6,
-          fontFamily: "monospace",
-          fontSize: 13,
-          fontWeight: 600,
-          cursor: status === "loading" ? "not-allowed" : "pointer",
-          whiteSpace: "nowrap",
+          padding: '9px 18px',
+          background: status === 'loading' ? 'rgba(0,188,125,0.5)' : '#00bc7d',
+          color: '#000', border: 'none', borderRadius: 6,
+          fontFamily: 'monospace', fontSize: 13, fontWeight: 600,
+          cursor: status === 'loading' ? 'not-allowed' : 'pointer',
+          whiteSpace: 'nowrap',
         }}
       >
-        {status === "loading" ? "Joining..." : "Get early access →"}
+        {status === 'loading' ? 'Joining...' : 'Get early access →'}
       </button>
-      {status === "error" && (
+      {status === 'error' && (
         <span style={{
-          fontFamily: "monospace",
-          fontSize: 12,
-          color: "#ef4444",
-          width: "100%",
-          textAlign: "center",
+          fontFamily: 'monospace', fontSize: 12, color: '#ef4444', width: '100%',
         }}>
           Something went wrong. Try again.
         </span>
       )}
     </form>
-  );
+  )
 }
