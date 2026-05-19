@@ -365,7 +365,13 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
         maskCtx.font = `${fontWeight} ${fontSize}px "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
         maskCtx.textAlign = "center";
         maskCtx.textBaseline = "middle";
-        maskCtx.fillText(text, width / (2 * dpr), height / (2 * dpr));
+        const lines = text.split("\n");
+        const lineHeight = fontSize * 1.1;
+        const totalHeight = lineHeight * lines.length;
+        const startY = (height / (2 * dpr)) - (totalHeight / 2) + (lineHeight / 2);
+        lines.forEach((line, i) => {
+          maskCtx.fillText(line, width / (2 * dpr), startY + i * lineHeight);
+        });
         maskCtx.restore();
       }
 
@@ -636,10 +642,10 @@ export const Component = () => {
       </div>
 
       {/* Flickering grid banner */}
-      <div style={{ width: '100%', height: tablet ? 120 : 192, position: 'relative', marginTop: 32, zIndex: 0 }}>
+      <div style={{ width: '100%', height: tablet ? 200 : 192, position: 'relative', marginTop: 32, zIndex: 0 }}>
         <div style={{ position: 'absolute', inset: 0, margin: '0 24px' }}>
           <FlickeringGrid
-            text={tablet ? "gate402" : "Agents pay. You earn."}
+            text={tablet ? "Agents pay.\nYou earn." : "Agents pay. You earn."}
             fontSize={tablet ? 56 : 90}
             className="h-full w-full"
             squareSize={2}

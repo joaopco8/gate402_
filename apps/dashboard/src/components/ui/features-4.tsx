@@ -3,32 +3,32 @@ import { Bot, Database, LayoutDashboard, Lock, ShieldCheck, Zap } from 'lucide-r
 export function Features() {
     const cards = [
         {
-            icon: <Zap style={{ width: 16, height: 16, flexShrink: 0 }} />,
+            icon: <Zap style={{ width: 24, height: 24, flexShrink: 0, color: '#00bc7d' }} />,
             title: 'Sub-second settlement',
             desc: 'Solana confirms payments in under 400ms. Your handler executes before the agent even notices.',
         },
         {
-            icon: <Lock style={{ width: 16, height: 16, flexShrink: 0 }} />,
+            icon: <Lock style={{ width: 24, height: 24, flexShrink: 0, color: '#00bc7d' }} />,
             title: 'Non-custodial by design',
             desc: 'Payments go directly to your Solana wallet. Gate402 never holds your funds. Not even for a second.',
         },
         {
-            icon: <ShieldCheck style={{ width: 16, height: 16, flexShrink: 0 }} />,
+            icon: <ShieldCheck style={{ width: 24, height: 24, flexShrink: 0, color: '#00bc7d' }} />,
             title: 'Replay protection',
             desc: 'Every transaction hash is checked against Redis and PostgreSQL. Duplicate payments are blocked automatically.',
         },
         {
-            icon: <Database style={{ width: 16, height: 16, flexShrink: 0 }} />,
+            icon: <Database style={{ width: 24, height: 24, flexShrink: 0, color: '#00bc7d' }} />,
             title: 'Three lines of code',
             desc: 'npm install gate402. Import. Use. That\'s it. No config files, no infra, no DevOps.',
         },
         {
-            icon: <LayoutDashboard style={{ width: 16, height: 16, flexShrink: 0 }} />,
+            icon: <LayoutDashboard style={{ width: 24, height: 24, flexShrink: 0, color: '#00bc7d' }} />,
             title: 'Real-time visibility',
             desc: 'See every payment the moment it lands. Endpoint, amount, agent wallet, timestamp — all in your dashboard.',
         },
         {
-            icon: <Bot style={{ width: 16, height: 16, flexShrink: 0 }} />,
+            icon: <Bot style={{ width: 24, height: 24, flexShrink: 0, color: '#00bc7d' }} />,
             title: 'Built for agents',
             desc: 'HTTP 402, x402 protocol, Solana, USDC. The full stack for machine-to-machine billing, ready today.',
         },
@@ -82,7 +82,7 @@ export function Features() {
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 {card.icon}
-                                <h3 style={{ fontSize: '0.875rem', fontWeight: 500 }}>{card.title}</h3>
+                                <h3 style={{ fontSize: '1.125rem', fontWeight: 500, color: '#00bc7d' }}>{card.title}</h3>
                             </div>
                             <p style={{ fontSize: '0.875rem', lineHeight: 1.6 }}>{card.desc}</p>
                         </div>

@@ -4,7 +4,6 @@ import {
   AreaChart,
   Area,
   ResponsiveContainer,
-  Tooltip,
 } from "recharts";
 
 export default function FeaturedSectionStats() {
@@ -28,7 +27,7 @@ export default function FeaturedSectionStats() {
             None of them are paying. Until now.
           </span>
         </h3>
-        <p style={{ fontSize: 16, color: '#898989', lineHeight: 1.65, marginTop: 12 }}>Agents are calling millions of APIs every day. None of them are paying. Until now.</p>
+        <p style={{ fontSize: 16, color: '#898989', lineHeight: 1.65, marginTop: 12 }}>Gate402 is the missing payment layer. Here&apos;s what that looks like in production.</p>
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-8">
@@ -66,7 +65,6 @@ export default function FeaturedSectionStats() {
                 <stop offset="95%" stopColor="#00bc7d" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <Tooltip />
             <Area
               type="monotone"
               dataKey="value"

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Space_Grotesk, JetBrains_Mono } from 'next/font/google'
 import { createClient } from '../../lib/supabase/client'
 import InteractiveHero from '@/components/ui/hero-section-nexus'
+import { WaitlistSection } from '@/components/ui/waitlist-section'
 import { Features as FeaturesGrid } from '@/components/ui/features-4'
 import RuixenSection from '@/components/ui/ruixen-feature-section'
 import { FAQSection } from '@/components/ui/faqsection'
@@ -2087,6 +2088,7 @@ export default function LandingPage() {
     >
       <style>{CSS}</style>
       <InteractiveHero />
+      <BlurReveal><WaitlistSection /></BlurReveal>
       <BlurReveal><div style={{ borderTop: '1px solid #222222', background: '#111111' }}><FeaturedSectionStats /></div></BlurReveal>
       <BlurReveal><div style={{ borderTop: '1px solid #222222', background: '#111111' }}><FeaturesGrid /></div></BlurReveal>
 
@@ -2171,24 +2173,18 @@ export default function LandingPage() {
       <BlurReveal><RuixenSection /></BlurReveal>
       <BlurReveal><div style={{ borderTop: '1px solid #222222', background: '#111111' }}>
         <FAQSection
-          title="Questions & Answers"
+          title="FAQ"
           description="Everything you need to know about Gate402, the x402 protocol, and how AI agents pay for APIs."
           buttonLabel="Browse Docs →"
           onButtonClick={() => window.open('/docs', '_self')}
           faqsLeft={[
             { question: "Why can't I just use Stripe to charge AI agents?", answer: "Stripe requires a human cardholder, a billing address, and identity verification. An AI agent has none of these — it has a cryptographic keypair and a USDC balance. Gate402 uses the x402 protocol and Solana to enable payments between machines, with no human in the loop." },
-            { question: "Does the agent operator need to do anything manually after setup?", answer: "No. Once the agent wallet is funded with USDC, the gate402-agent SDK handles everything automatically — detecting HTTP 402, sending the payment on Solana, and retrying the request with the transaction hash. Zero manual intervention." },
             { question: "Where does my money actually go?", answer: "Directly to your Solana wallet. Gate402 never holds your funds, not even for a millisecond. Payments go on-chain from the agent's wallet to your wallet. We collect 1% as a platform fee in a separate transaction." },
-            { question: "What happens if the agent tries to reuse a transaction hash?", answer: "Gate402 blocks it. Every transaction hash is stored in Redis with a 24-hour TTL and backed up in PostgreSQL. Any replay attempt returns a 402 with 'Payment already used.' This protection is always on, with no configuration needed." },
-            { question: "Can I change my endpoint prices without redeploying my API?", answer: "Yes. In managed mode, prices are fetched from the dashboard and cached locally for 60 seconds. Change the price in gate402.dev and it propagates to all your instances within one minute — no redeploy, no downtime." },
-          ]}
-          faqsRight={[
-            { question: "What happens if Solana is congested and payment takes longer than expected?", answer: "Gate402 has a 15-second timeout for on-chain verification. If the transaction is not confirmed within that window, the agent receives a 503 and should retry. Average confirmation time on Solana is 400ms — congestion is rare and short-lived." },
             { question: "How do I test without spending real USDC?", answer: "Use demo mode. Any payment hash starting with demo_ bypasses blockchain verification entirely. This works in development and is automatically disabled when NODE_ENV=production is set. For more realistic testing, get free devnet USDC at faucet.circle.com." },
+            { question: "Can I change my endpoint prices without redeploying my API?", answer: "Yes. In managed mode, prices are fetched from the dashboard and cached locally for 60 seconds. Change the price in gate402.dev and it propagates to all your instances within one minute — no redeploy, no downtime." },
             { question: "What if I already have an MCP server — do I need to rebuild it?", answer: "No. Install gate402, add gate402MCP() as middleware before your existing /mcp route, and configure your tool prices. Your tools stay exactly the same. tools/call gets charged, initialize and tools/list always pass through for free." },
-            { question: "Is the 1% fee charged on every payment including devnet?", answer: "The 1% split is included in every HTTP 402 response regardless of network. On devnet with demo mode, no real USDC moves so no real fee is collected. On mainnet with real payments, the 1% is deducted automatically from each transaction via the split mechanism." },
-            { question: "What is the minimum viable payment I can charge?", answer: "Technically, fractions of a cent. Practically, $0.001 USDC per call is the lowest amount that makes economic sense given Solana's transaction fees of ~$0.001. Charging less than $0.001 means the fee costs more than the payment." },
           ]}
+          faqsRight={[]}
         />
       </div></BlurReveal>
       <BlurReveal><InstallSection /></BlurReveal>

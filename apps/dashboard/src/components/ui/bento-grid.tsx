@@ -5,6 +5,8 @@ import {
     Bot,
     Code2,
     Cpu,
+    Sparkles,
+    Terminal,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -32,7 +34,6 @@ const itemsSample: BentoItem[] = [
         icon: <Box style={{ width: 16, height: 16, color: '#00bc7d' }} />,
         status: "Live",
         tags: ["nodejs", "typescript", "x402"],
-        colSpan: 2,
         hasPersistentHover: true,
     },
     {
@@ -50,7 +51,6 @@ const itemsSample: BentoItem[] = [
         icon: <Code2 style={{ width: 16, height: 16, color: '#a855f7' }} />,
         status: "Stable",
         tags: ["python", "flask", "fastapi"],
-        colSpan: 2,
     },
     {
         title: "Rust Gateway",
@@ -59,6 +59,22 @@ const itemsSample: BentoItem[] = [
         icon: <Cpu style={{ width: 16, height: 16, color: '#f97316' }} />,
         status: "Beta",
         tags: ["rust", "actix", "solana"],
+    },
+    {
+        title: "Agent SDK",
+        meta: "v0.1.3",
+        description: "Autonomous payment for any AI agent. Detects 402, pays in USDC, retries — zero human interaction required.",
+        icon: <Sparkles style={{ width: 16, height: 16, color: '#facc15' }} />,
+        status: "Stable",
+        tags: ["agents", "gate402-agent", "x402"],
+    },
+    {
+        title: "CLI Generator",
+        meta: "npx create-gate402-mcp",
+        description: "Scaffold a complete MCP server with Gate402 pre-configured. Per-tool pricing, devnet ready, deploy in minutes.",
+        icon: <Terminal style={{ width: 16, height: 16, color: '#38bdf8' }} />,
+        status: "Stable",
+        tags: ["cli", "mcp", "scaffold"],
     },
 ];
 

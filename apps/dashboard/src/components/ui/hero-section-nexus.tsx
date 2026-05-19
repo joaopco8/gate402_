@@ -626,7 +626,7 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
 
         <LandingNavbar />
 
-        <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '48px 16px 80px', position: 'relative', zIndex: 10 }}>
+        <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '48px 16px 8px', position: 'relative', zIndex: 10 }}>
 
             <motion.div
                 variants={bannerVariants}
@@ -703,21 +703,48 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
                 variants={worksWithVariants}
                 initial="hidden"
                 animate="visible"
-                style={{ width: '100%', maxWidth: 640, marginBottom: '40px' }}
+                style={{ width: '100%', maxWidth: 640, marginBottom: '16px' }}
             >
-                <span style={{ display: 'block', textAlign: 'center', fontSize: '0.875rem', textTransform: 'uppercase', color: '#6b7280', letterSpacing: '0.05em', fontWeight: 500, marginBottom: 12 }}>Backed by</span>
-                <LogoCloud
-                    logos={[
-                        { src: '/logos/google.png', alt: 'Google' },
-                        { src: '/logos/stripe.png', alt: 'Stripe' },
-                        { src: '/logos/coinbase.png', alt: 'Coinbase' },
-                        { src: '/logos/microsoft.webp', alt: 'Microsoft' },
-                        { src: '/logos/cloudflare.png', alt: 'Cloudflare', className: 'h-7 md:h-8' },
-                        { src: '/logos/anthropic.png', alt: 'Anthropic' },
-                        { src: '/logos/solana.png', alt: 'Solana' },
-                        { src: '/logos/phantom.png', alt: 'Phantom' },
-                    ]}
-                />
+                <span style={{ display: 'block', textAlign: 'center', fontSize: '0.875rem', textTransform: 'uppercase', color: '#6b7280', letterSpacing: '0.05em', fontWeight: 500, marginBottom: 12 }}>Supported by</span>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <style>{`
+                        @keyframes shimmer-ltr {
+                            0%   { background-position: -100% center; }
+                            100% { background-position: 200% center; }
+                        }
+                        .superteam-logo-wrap {
+                            position: relative;
+                            display: inline-block;
+                            cursor: pointer;
+                        }
+                        .superteam-shimmer {
+                            position: absolute;
+                            inset: 0;
+                            background: linear-gradient(105deg, transparent 0%, transparent 35%, rgba(255,255,255,0.95) 50%, transparent 65%, transparent 100%);
+                            background-size: 300% 100%;
+                            background-position: -100% center;
+                            -webkit-mask-image: url('/logos/superteam-logo.png');
+                            mask-image: url('/logos/superteam-logo.png');
+                            -webkit-mask-size: contain;
+                            mask-size: contain;
+                            -webkit-mask-repeat: no-repeat;
+                            mask-repeat: no-repeat;
+                            -webkit-mask-position: center;
+                            mask-position: center;
+                            pointer-events: none;
+                            animation: shimmer-ltr 2.5s ease infinite;
+                        }
+                    `}</style>
+                    <a
+                        href="https://www.superteam.com.br/pt"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="superteam-logo-wrap"
+                    >
+                        <img src="/logos/superteam-logo.png" alt="Superteam" style={{ height: 32, opacity: 0.8, display: 'block' }} />
+                        <div className="superteam-shimmer" />
+                    </a>
+                </div>
             </motion.div>
 
             {children && (
