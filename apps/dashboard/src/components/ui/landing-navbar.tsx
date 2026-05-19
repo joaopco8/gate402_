@@ -75,7 +75,7 @@ const COMPANY_SECTIONS: DropdownSection[] = [
     items: [
       { label: 'About',     desc: 'Why we built this',      href: '/about' },
       { label: 'Blog',      desc: 'Updates and insights',   href: '/blog' },
-      { label: 'Twitter/X', desc: '@gate402',               href: 'https://x.com/gate402', target: '_blank' },
+      { label: 'Twitter/X', desc: '@gate402',               href: 'https://x.com/jpoliveiirac', target: '_blank' },
       { label: 'GitHub',    desc: 'joaopco8/gate402_',      href: 'https://github.com/joaopco8/gate402_', target: '_blank' },
     ],
   },
@@ -241,7 +241,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
             <MobileSection label="Company" items={[
               { label: 'About', href: '/about' },
               { label: 'Blog', href: '/blog' },
-              { label: 'Twitter/X', href: 'https://x.com/gate402', target: '_blank' },
+              { label: 'Twitter/X', href: 'https://x.com/jpoliveiirac', target: '_blank' },
             ]} />
             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 12 }}>
               <a href="/pricing" onClick={onClose} style={{ display: 'block', fontSize: 14, color: '#d1d5db', textDecoration: 'none', padding: '5px 0' }}>Pricing</a>
