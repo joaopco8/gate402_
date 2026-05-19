@@ -30,7 +30,7 @@ const Pricing1 = () => {
       price: "$99",
       priceLabel: "monthly",
       cta: "Start Pro",
-      ctaHref: "/checkout",
+      ctaHref: "/auth/login?intent=checkout",
       ctaStyle: "green",
       features: [
         "Everything in Free",
