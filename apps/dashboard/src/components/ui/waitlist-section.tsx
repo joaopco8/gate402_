@@ -3,9 +3,14 @@
 import { useState, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+type Status = 'idle' | 'loading' | 'success' | 'duplicate' | 'error';
+
 export function WaitlistSection() {
   const [email, setEmail] = useState("");
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [status, setStatus] = useState<Status>('idle');
   const [timeLeft, setTimeLeft] = useState({ days: 42, hours: 11, minutes: 37, seconds: 14 });
 
   useEffect(() => {
@@ -22,9 +27,27 @@ export function WaitlistSection() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) setIsSubmitted(true);
+    if (!email) return;
+    setStatus('loading');
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({ email: email.toLowerCase().trim(), source: 'landing' }),
+      });
+      if (res.status === 201) { setStatus('success'); setEmail(''); return; }
+      if (res.status === 409) { setStatus('duplicate'); return; }
+      setStatus('error');
+    } catch {
+      setStatus('error');
+    }
   };
 
   return (
@@ -79,7 +102,7 @@ export function WaitlistSection() {
 
         {/* Right */}
         <div>
-          {!isSubmitted ? (
+          {status !== 'success' ? (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
                 <div style={{ display: 'flex' }}>
@@ -105,6 +128,7 @@ export function WaitlistSection() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={status === 'loading'}
                     style={{
                       flex: 1,
                       height: 44,
@@ -119,22 +143,29 @@ export function WaitlistSection() {
                   />
                   <button
                     type="submit"
+                    disabled={status === 'loading'}
                     style={{
                       height: 44,
                       padding: '0 20px',
                       borderRadius: 10,
                       border: 'none',
-                      background: '#00bc7d',
+                      background: status === 'loading' ? 'rgba(0,188,125,0.5)' : '#00bc7d',
                       color: '#000',
                       fontSize: 14,
                       fontWeight: 600,
-                      cursor: 'pointer',
+                      cursor: status === 'loading' ? 'not-allowed' : 'pointer',
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    Get access
+                    {status === 'loading' ? 'Joining...' : 'Get access'}
                   </button>
                 </div>
+                {status === 'duplicate' && (
+                  <p style={{ margin: '8px 0 0', fontSize: 12, color: '#f59e0b' }}>Already on the list. We&apos;ll be in touch.</p>
+                )}
+                {status === 'error' && (
+                  <p style={{ margin: '8px 0 0', fontSize: 12, color: '#ef4444' }}>Something went wrong. Try again.</p>
+                )}
               </form>
 
               <div style={{ display: 'flex', gap: 0, borderTop: '1px solid #1a1a1a', paddingTop: 24 }}>
