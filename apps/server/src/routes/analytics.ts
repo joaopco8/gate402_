@@ -105,16 +105,15 @@ router.get('/calls/recent', async (req, res) => {
 // GET /api/endpoints/revenue
 router.get('/endpoints/revenue', async (req, res) => {
   try {
-    const internalId = await getInternalUserId(req.headers['x-user-id'] as string | undefined);
-    const where = internalId ? { userId: internalId } : {};
+    const supabaseId = req.headers['x-user-id'] as string;
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const user = await prisma.user.findUnique({ where: { supabaseId }, select: { id: true } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
     const endpoints = await prisma.endpoint.findMany({
-      where,
-      include: {
-        calls: {
-          select: { amountUsdc: true },
-        },
-      },
+      where: { userId: user.id },
+      include: { calls: { select: { amountUsdc: true } } },
     });
 
     const revenue = endpoints
