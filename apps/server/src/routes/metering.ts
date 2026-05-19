@@ -122,22 +122,22 @@ router.get('/metering/stats', async (req, res) => {
     const user = await prisma.user.findUnique({ where: { supabaseId } })
     if (!user) return res.status(404).json({ error: 'User not found' })
 
-    const stats = await prisma.usageMetric.groupBy({
-      by: ['metricType'],
-      where: { userId: user.id },
-      _sum: { metricValue: true, totalPrice: true },
-      _count: { id: true }
-    })
-
-    const settled = await prisma.usageMetric.aggregate({
-      where: { userId: user.id, settledAt: { not: null } },
-      _sum: { totalPrice: true }
-    })
-
-    const pending = await prisma.usageMetric.aggregate({
-      where: { userId: user.id, settledAt: null },
-      _sum: { totalPrice: true }
-    })
+    const [stats, settled, pending] = await Promise.all([
+      prisma.usageMetric.groupBy({
+        by: ['metricType'],
+        where: { userId: user.id },
+        _sum: { metricValue: true, totalPrice: true },
+        _count: { id: true }
+      }),
+      prisma.usageMetric.aggregate({
+        where: { userId: user.id, settledAt: { not: null } },
+        _sum: { totalPrice: true }
+      }),
+      prisma.usageMetric.aggregate({
+        where: { userId: user.id, settledAt: null },
+        _sum: { totalPrice: true }
+      }),
+    ])
 
     return res.json({
       byType: stats.map(s => ({

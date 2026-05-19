@@ -3,27 +3,24 @@ import { prisma } from '../lib/prisma';
 
 const router = Router();
 
-// Converte supabaseId (x-user-id header) para o User.id interno do banco
-async function getInternalUserId(supabaseId: string | undefined): Promise<string | undefined> {
-  if (!supabaseId) return undefined;
-  const user = await prisma.user.findUnique({ where: { supabaseId }, select: { id: true } });
-  return user?.id;
-}
-
 // GET /api/metrics
 router.get('/metrics', async (req, res) => {
   try {
-    const internalId = await getInternalUserId(req.headers['x-user-id'] as string | undefined);
-    const where = internalId ? { userId: internalId } : {};
+    const supabaseId = req.headers['x-user-id'] as string;
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const user = await prisma.user.findUnique({ where: { supabaseId }, select: { id: true } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
     const [totalCalls, totalUsdcResult, todayCalls, todayUsdcResult, topEndpoint] = await Promise.all([
-      prisma.apiCall.count({ where }),
-      prisma.apiCall.aggregate({ _sum: { amountUsdc: true }, where }),
-      prisma.apiCall.count({ where: { ...where, createdAt: { gte: startOfDay } } }),
-      prisma.apiCall.aggregate({ _sum: { amountUsdc: true }, where: { ...where, createdAt: { gte: startOfDay } } }),
-      prisma.endpoint.findFirst({ where, orderBy: { calls: { _count: 'desc' } } }),
+      prisma.apiCall.count({ where: { userId: user.id } }),
+      prisma.apiCall.aggregate({ _sum: { amountUsdc: true }, where: { userId: user.id } }),
+      prisma.apiCall.count({ where: { userId: user.id, createdAt: { gte: startOfDay } } }),
+      prisma.apiCall.aggregate({ _sum: { amountUsdc: true }, where: { userId: user.id, createdAt: { gte: startOfDay } } }),
+      prisma.endpoint.findFirst({ where: { userId: user.id }, orderBy: { calls: { _count: 'desc' } } }),
     ]);
 
     res.json({
@@ -39,40 +36,38 @@ router.get('/metrics', async (req, res) => {
   }
 });
 
-// GET /api/calls/per-day?days=7&endpoint=<path>
+// GET /api/calls/per-day?days=7
 router.get('/calls/per-day', async (req, res) => {
   try {
-    const internalId = await getInternalUserId(req.headers['x-user-id'] as string | undefined);
+    const supabaseId = req.headers['x-user-id'] as string;
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const user = await prisma.user.findUnique({ where: { supabaseId }, select: { id: true } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
     const days = Math.max(1, Math.min(90, parseInt(req.query.days as string) || 7));
-    const endpointPath = req.query.endpoint as string | undefined;
+    const since = new Date(Date.now() - days * 24 * 3600 * 1000);
 
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
-    startDate.setHours(0, 0, 0, 0);
+    const rows = await prisma.$queryRaw<Array<{ date: string; calls: number; usdc: number }>>`
+      SELECT
+        TO_CHAR(DATE("createdAt"), 'DD/MM') as date,
+        COUNT(*)::int as calls,
+        COALESCE(SUM("amountUsdc"), 0)::float as usdc
+      FROM "ApiCall"
+      WHERE "userId" = ${user.id}
+        AND "createdAt" >= ${since}
+      GROUP BY DATE("createdAt")
+      ORDER BY DATE("createdAt") ASC
+    `;
 
-    const apiCalls = await prisma.apiCall.findMany({
-      where: {
-        createdAt: { gte: startDate },
-        ...(internalId ? { userId: internalId } : {}),
-        ...(endpointPath ? { endpoint: { path: endpointPath } } : {}),
-      },
-      select: { createdAt: true, amountUsdc: true },
-    });
-
-    const dbMap = new Map<string, { calls: number; usdc: number }>();
-    for (const call of apiCalls) {
-      const d = call.createdAt;
-      const key = `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-      const existing = dbMap.get(key) ?? { calls: 0, usdc: 0 };
-      dbMap.set(key, { calls: existing.calls + 1, usdc: existing.usdc + call.amountUsdc });
-    }
-
+    const dbMap = new Map(rows.map(r => [r.date, r]));
     const result = [];
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const key = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-      result.push({ date: key, ...(dbMap.get(key) ?? { calls: 0, usdc: 0 }) });
+      const found = dbMap.get(key);
+      result.push({ date: key, calls: found?.calls ?? 0, usdc: found?.usdc ?? 0 });
     }
 
     res.json(result);
@@ -85,19 +80,17 @@ router.get('/calls/per-day', async (req, res) => {
 // GET /api/calls/recent?limit=10
 router.get('/calls/recent', async (req, res) => {
   try {
-    const supabaseId = req.headers['x-user-id'] as string | undefined;
-    const internalId = await getInternalUserId(supabaseId);
-    const where = internalId ? { userId: internalId } : {};
+    const supabaseId = req.headers['x-user-id'] as string;
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const user = supabaseId
-      ? await prisma.user.findUnique({ where: { supabaseId }, select: { plan: true } })
-      : null;
-    const planLimit = user?.plan === 'pro' ? 50 : 5;
-    const requested = parseInt(req.query.limit as string) || planLimit;
-    const limit = Math.max(1, Math.min(planLimit, requested));
+    const user = await prisma.user.findUnique({ where: { supabaseId }, select: { id: true, plan: true } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const planLimit = user.plan === 'pro' ? 50 : 5;
+    const limit = Math.max(1, Math.min(planLimit, parseInt(req.query.limit as string) || planLimit));
 
     const calls = await prisma.apiCall.findMany({
-      where,
+      where: { userId: user.id },
       take: limit,
       orderBy: { createdAt: 'desc' },
       include: { endpoint: { select: { path: true } } },
