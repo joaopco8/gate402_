@@ -147,6 +147,12 @@ export default function AuthPage() {
   const supabase = createClient()
   const router = useRouter()
 
+  // Persist intent from URL into sessionStorage so it survives async auth flow
+  useEffect(() => {
+    const intent = new URLSearchParams(window.location.search).get('intent')
+    if (intent) sessionStorage.setItem('gate402_intent', intent)
+  }, [])
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -172,8 +178,9 @@ export default function AuthPage() {
       })
     }
 
-    const intent = new URLSearchParams(window.location.search).get('intent')
-    router.push(intent ? `/post-login?intent=${intent}` : '/post-login')
+    const intent = sessionStorage.getItem('gate402_intent') || new URLSearchParams(window.location.search).get('intent')
+    sessionStorage.removeItem('gate402_intent')
+    window.location.href = intent ? `/post-login?intent=${intent}` : '/post-login'
   }
 
   async function handleSignup(e: React.FormEvent) {
