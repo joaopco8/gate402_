@@ -6,13 +6,21 @@ if (!REDIS_URL) {
   console.warn('[redis] REDIS_URL not configured — using in-memory fallback')
 }
 
-export const redis = REDIS_URL
+const _redis = REDIS_URL
   ? new Redis(REDIS_URL, {
       maxRetriesPerRequest: 3,
       enableReadyCheck: false,
       lazyConnect: true,
     })
   : null
+
+if (_redis) {
+  _redis.on('error', (err: Error) => {
+    console.error('[redis] connection error:', err.message)
+  })
+}
+
+export const redis = _redis
 
 export async function redisGet(key: string): Promise<string | null> {
   if (!redis) return null
