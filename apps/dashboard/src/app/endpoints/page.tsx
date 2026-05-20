@@ -47,6 +47,7 @@ function EndpointCard({
   const controls = useAnimation()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const isThrottled = ep ? !ep.active : false
 
   useEffect(() => {
@@ -69,15 +70,23 @@ function EndpointCard({
   async function confirmDelete() {
     if (!ep || !supabaseId) return
     setDeleting(true)
+    setDeleteError(null)
     try {
-      await fetch(`${SERVER_URL}/api/endpoints/${ep.id}`, {
+      const res = await fetch(`${SERVER_URL}/api/endpoints/${ep.id}`, {
         method: 'DELETE',
         headers: { 'x-user-id': supabaseId },
       })
-    } finally {
-      setDeleting(false)
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        setDeleteError(d.error ?? `Error ${res.status}`)
+        return
+      }
       setShowDeleteModal(false)
       onRefresh()
+    } catch {
+      setDeleteError('Network error. Try again.')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -205,7 +214,7 @@ function EndpointCard({
           {showDeleteModal && (
             <div
               style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
-              onClick={e => { if (e.target === e.currentTarget && !deleting) setShowDeleteModal(false) }}
+              onClick={e => { if (e.target === e.currentTarget && !deleting) { setShowDeleteModal(false); setDeleteError(null) } }}
             >
               <div style={{ background: '#0d0d0d', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 12, width: 400, maxWidth: '90vw', padding: 28 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
@@ -222,9 +231,14 @@ function EndpointCard({
                 <p style={{ fontSize: 13, color: '#a3a3a3', fontFamily: SANS, lineHeight: 1.6, margin: '0 0 24px' }}>
                   This will permanently delete <span style={{ color: '#fff', fontFamily: MONO }}>{ep.path}</span> and all its data. This action cannot be undone.
                 </p>
+                {deleteError && (
+                  <div style={{ marginBottom: 16, padding: '10px 14px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 6, fontSize: 12, color: '#f87171' }}>
+                    {deleteError}
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                   <button
-                    onClick={() => setShowDeleteModal(false)}
+                    onClick={() => { setShowDeleteModal(false); setDeleteError(null) }}
                     disabled={deleting}
                     style={{ padding: '9px 16px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 13, color: '#a3a3a3', cursor: 'pointer', fontFamily: SANS }}
                   >

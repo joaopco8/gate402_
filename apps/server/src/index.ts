@@ -71,7 +71,9 @@ app.use('/api/analytics/success-rate', requirePro);
 app.use('/api/analytics/export', requirePro);
 app.use('/api/analytics/failed', requirePro);
 app.use('/api/metering', requirePro);
+app.use('/api/wallet/balance', requirePro);
 app.use('/api/wallet/withdraw', requirePro);
+app.use('/api/users/webhook', requirePro);
 
 // Account required for dashboard routes (/api/users/sync is exempt — it creates new accounts)
 app.use('/api/dashboard', requireAccount);

@@ -20,12 +20,13 @@ export async function requirePro(req: Request, res: Response, next: NextFunction
     })
   }
 
-  if (user.plan === 'free') {
+  if (user.plan !== 'pro' && user.plan !== 'enterprise') {
     return res.status(403).json({
       error: 'Pro plan required',
-      message: 'This feature requires a Pro plan. Upgrade at gate402.dev/pricing',
-      currentPlan: 'free',
-      upgrade: 'https://gate402.dev/pricing',
+      code: 'UPGRADE_REQUIRED',
+      message: 'This feature requires a Pro plan.',
+      currentPlan: user.plan,
+      upgradeUrl: 'https://gate402.dev/billing',
     })
   }
 
