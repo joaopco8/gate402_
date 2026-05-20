@@ -14,6 +14,8 @@ import { useUser } from '../hooks/useUser'
 import { useDashboardData } from '../hooks/useDashboardData'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
 function Skeleton({ width = '100%', height = 16 }: { width?: string | number; height?: number }) {
@@ -367,6 +369,59 @@ function QuickSetup({ walletAddress, endpointCount, totalCalls }: {
   )
 }
 
+// ── MeteringCard ──────────────────────────────────────────────────────────────
+
+const METERING_META: Record<string, { icon: string; unit: string }> = {
+  token:     { icon: 'T', unit: 'tokens' },
+  compute:   { icon: '⚡', unit: 'ms' },
+  bandwidth: { icon: 'B', unit: 'KB' },
+}
+
+function MeteringCard({ stats }: { stats: any }) {
+  const byType: any[] = stats?.byType ?? []
+  if (byType.length === 0) return null
+
+  return (
+    <Card style={{ marginBottom: 'var(--space-xl)' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+        <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Usage Metering</span>
+        <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 10, fontFamily: 'var(--font-code)', background: 'rgba(147,51,234,0.12)', color: '#a78bfa', border: '1px solid rgba(147,51,234,0.2)' }}>PRO</span>
+      </div>
+
+      {/* Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${byType.length}, 1fr)`, gap: 'var(--space-sm)', marginBottom: 20 }}>
+        {byType.map((item: any) => {
+          const meta = METERING_META[item.type] ?? { icon: '·', unit: '' }
+          return (
+            <div key={item.type} style={{ padding: '14px 16px', background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <span style={{ fontFamily: 'var(--font-code)', fontSize: 13, color: 'var(--text-muted)', width: 20, textAlign: 'center' }}>{meta.icon}</span>
+                <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{item.type}</span>
+              </div>
+              <div style={{ fontFamily: 'var(--font-code)', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
+                {(item.totalUsage ?? 0).toLocaleString()} <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-muted)' }}>{meta.unit}</span>
+              </div>
+              <div style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--green)' }}>${(item.totalCost ?? 0).toFixed(6)} USDC</div>
+              <div style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: '#444', marginTop: 4 }}>{item.count ?? 0} record{item.count !== 1 ? 's' : ''}</div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Footer */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+        <span style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#555' }}>
+          Pending settlement: ${(stats.totalPending ?? 0).toFixed(6)} USDC
+        </span>
+        <a href="/analytics" style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--green)', textDecoration: 'none' }}>
+          Settle pending →
+        </a>
+      </div>
+    </Card>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const PERIOD_OPTIONS = [
@@ -379,6 +434,15 @@ export default function DashboardPage() {
   const { userData, supabaseUserId, loading: userLoading, isPro } = useUser()
   const [chartDays, setChartDays] = useState(7)
   const { data, loading: dataLoading } = useDashboardData(supabaseUserId, isPro, chartDays)
+  const [meteringStats, setMeteringStats] = useState<any>(null)
+
+  useEffect(() => {
+    if (!isPro || !supabaseUserId) return
+    fetch(`${SERVER_URL}/api/metering/stats`, { headers: { 'x-user-id': supabaseUserId } })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setMeteringStats(d) })
+      .catch(() => {})
+  }, [supabaseUserId, isPro])
 
   const loading = dataLoading
   const weeklyAmount = data?.callsPerDay?.reduce((s, d) => s + (d.amount || 0), 0) || 0
@@ -502,6 +566,13 @@ export default function DashboardPage() {
           </div>
           <RecentCalls calls={data?.recentCalls || []} loading={loading} isPro={isPro} />
         </div>
+
+        {/* Metering */}
+        {meteringStats && (
+          <ProGate isPro={isPro} feature="Usage Metering">
+            <MeteringCard stats={meteringStats} />
+          </ProGate>
+        )}
 
         {/* Quick setup */}
         {!loading && (
