@@ -69,8 +69,16 @@ const IconBilling = () => (
   </svg>
 )
 
+const IconAnalytics = () => (
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="1 11 4.5 6.5 7.5 8.5 11 4 14 5"/>
+    <line x1="1" y1="13.5" x2="14" y2="13.5"/>
+  </svg>
+)
+
 const NAV_ITEMS = [
   { label: 'Overview',   href: '/dashboard',  Icon: IconOverview },
+  { label: 'Analytics',  href: '/analytics',  Icon: IconAnalytics },
   { label: 'Wallet',     href: '/wallet',     Icon: IconWallet },
   { label: 'Endpoints',  href: '/endpoints',  Icon: IconEndpoints },
   { label: 'Playground', href: '/playground', Icon: IconPlayground },
