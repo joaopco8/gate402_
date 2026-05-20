@@ -172,7 +172,8 @@ export default function AuthPage() {
       })
     }
 
-    router.push('/dashboard')
+    const intent = new URLSearchParams(window.location.search).get('intent')
+    router.push(intent ? `/post-login?intent=${intent}` : '/post-login')
   }
 
   async function handleSignup(e: React.FormEvent) {
