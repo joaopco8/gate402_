@@ -42,10 +42,12 @@ router.get('/calls/per-day', async (req, res) => {
     const supabaseId = req.headers['x-user-id'] as string;
     if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const user = await prisma.user.findUnique({ where: { supabaseId }, select: { id: true } });
+    const user = await prisma.user.findUnique({ where: { supabaseId }, select: { id: true, plan: true } });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const days = Math.max(1, Math.min(90, parseInt(req.query.days as string) || 7));
+    const maxDays = (user.plan === 'pro' || user.plan === 'enterprise') ? 90 : 7;
+    const requestedDays = Math.min(parseInt(req.query.days as string) || 7, maxDays);
+    const days = Math.max(1, requestedDays);
     const since = new Date(Date.now() - days * 24 * 3600 * 1000);
 
     const rows = await prisma.$queryRaw<Array<{ date: string; calls: number; usdc: number }>>`
