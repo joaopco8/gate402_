@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CheckIcon } from 'lucide-react'
 import { createClient } from '../../../lib/supabase/client'
 import { useUser } from '../hooks/useUser'
@@ -90,6 +90,11 @@ export default function BillingPage() {
   const [upgrading, setUpgrading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    const urlError = new URLSearchParams(window.location.search).get('error')
+    if (urlError) setError(decodeURIComponent(urlError))
+  }, [])
+
   const isPro = !loading && (userData?.plan === 'pro' || userData?.plan === 'enterprise')
   const [managing, setManaging] = useState(false)
 
@@ -134,10 +139,10 @@ export default function BillingPage() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        setError('Could not create checkout session. Try again.')
+        setError(data.error || 'Could not create checkout session. Try again.')
       }
-    } catch {
-      setError('Connection error. Try again.')
+    } catch (e: any) {
+      setError(e?.message || 'Connection error. Try again.')
     } finally {
       setUpgrading(false)
     }

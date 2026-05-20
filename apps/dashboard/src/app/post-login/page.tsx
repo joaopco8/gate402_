@@ -51,12 +51,13 @@ export default function PostLoginPage() {
             return
           }
           // Checkout failed — go to billing page so user sees the error
+          const reason = encodeURIComponent(data.error || `HTTP ${res.status}`)
           console.error('[post-login] checkout failed:', data)
-          window.location.href = '/billing'
+          window.location.href = `/billing?error=${reason}`
           return
-        } catch (e) {
+        } catch (e: any) {
           console.error('[post-login] checkout error:', e)
-          window.location.href = '/billing'
+          window.location.href = `/billing?error=${encodeURIComponent(e?.message || 'Network error')}`
           return
         }
       }
