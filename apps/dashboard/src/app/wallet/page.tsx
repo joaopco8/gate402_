@@ -12,6 +12,7 @@ import PageHeader from '../components/PageHeader'
 import Card from '../components/Card'
 import { useUser } from '../hooks/useUser'
 import { useDashboardData } from '../hooks/useDashboardData'
+import { ProGate } from '../components/ProGate'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
 const MONO = 'var(--font-code)'
@@ -165,7 +166,7 @@ function timeAgo(date: string) {
 
 export default function WalletPage() {
   const router = useRouter()
-  const { userData, supabaseUserId } = useUser()
+  const { userData, supabaseUserId, isPro } = useUser()
   const { data: dashData, loading: dashLoading } = useDashboardData(supabaseUserId ?? null)
 
   const [stats, setStats] = useState<Stats | null>(null)
@@ -216,6 +217,28 @@ export default function WalletPage() {
     navigator.clipboard.writeText(walletAddr)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function handleExport() {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const res = await fetch(
+      `${SERVER_URL}/api/analytics/export`,
+      { headers: { 'x-user-id': user.id } }
+    )
+    if (!res.ok) return
+
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `gate402-transactions-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   async function handleSaveAddr() {
@@ -417,9 +440,19 @@ export default function WalletPage() {
         {/* ── Recent Transactions ── */}
         <Card style={{ padding: 0 }}>
           <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)', }}>
+            <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)' }}>
               Recent Transactions
             </span>
+            <ProGate isPro={isPro} feature="CSV Export">
+              <button
+                onClick={handleExport}
+                style={{ padding: '6px 14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: SANS }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--green)'; e.currentTarget.style.borderColor = 'rgba(0,188,125,0.3)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)' }}
+              >
+                Export CSV →
+              </button>
+            </ProGate>
           </div>
 
           {loading ? (
