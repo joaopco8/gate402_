@@ -262,12 +262,20 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
     req.headers['x-payment-verified'] = 'true';
     req.headers['x-payment-amount'] = confirmedAmount.toString();
 
-    res.on('finish', () => {
-      const latencyMs = Date.now() - requestStart;
-      prisma.apiCall.updateMany({
-        where: { txHash: txHashToLog, status: { in: ['confirmed', 'demo'] } },
-        data: { latencyMs },
-      }).catch(() => {});
+    // Marks when the dev handler starts (excludes Gate402 verification time)
+    const handlerStart = Date.now();
+
+    res.on('finish', async () => {
+      const latencyMs = Date.now() - handlerStart;
+      try {
+        await prisma.apiCall.updateMany({
+          where: { txHash: txHashToLog, latencyMs: null },
+          data: { latencyMs },
+        });
+        console.log(`[x402] latency recorded: ${latencyMs}ms for ${endpointPath}`);
+      } catch (e: any) {
+        console.error('[x402] failed to record latency:', e.message);
+      }
     });
 
     console.log('[x402] payment verified — calling next()');
