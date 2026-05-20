@@ -3,6 +3,24 @@
 import { useEffect } from 'react'
 import { createClient } from '../../../lib/supabase/client'
 
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+
+function getIntent(): string | null {
+  // 1. URL param (set by login page via window.location.href)
+  const urlIntent = new URLSearchParams(window.location.search).get('intent')
+  if (urlIntent) return urlIntent
+  // 2. sessionStorage (set by login page useEffect)
+  try { const s = sessionStorage.getItem('gate402_intent'); if (s) return s } catch {}
+  // 3. localStorage (set by billing page for non-logged-in users)
+  try { const l = localStorage.getItem('gate402_intent'); if (l) return l } catch {}
+  return null
+}
+
+function clearIntent() {
+  try { sessionStorage.removeItem('gate402_intent') } catch {}
+  try { localStorage.removeItem('gate402_intent') } catch {}
+}
+
 export default function PostLoginPage() {
   useEffect(() => {
     async function go() {
@@ -14,24 +32,36 @@ export default function PostLoginPage() {
         return
       }
 
-      const intent = new URLSearchParams(window.location.search).get('intent')
-
-      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+      const intent = getIntent()
+      clearIntent()
 
       if (intent === 'checkout') {
         try {
           const res = await fetch(`${SERVER_URL}/api/billing/checkout`, {
             method: 'POST',
-            headers: { 'x-user-id': user.id },
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-id': user.id,
+            },
           })
           const data = await res.json()
-          if (data.url) {
+          console.log('[post-login] checkout response:', res.status, data)
+          if (res.ok && data.url) {
             window.location.href = data.url
             return
           }
-        } catch {}
+          // Checkout failed — go to billing page so user sees the error
+          console.error('[post-login] checkout failed:', data)
+          window.location.href = '/billing'
+          return
+        } catch (e) {
+          console.error('[post-login] checkout error:', e)
+          window.location.href = '/billing'
+          return
+        }
       }
 
+      // No intent — normal post-login flow
       try {
         const res = await fetch(`${SERVER_URL}/api/users/me`, {
           headers: { 'x-user-id': user.id },
