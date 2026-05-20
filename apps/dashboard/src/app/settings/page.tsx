@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
 import DashboardLayout from '../components/DashboardLayout'
@@ -68,6 +68,8 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+
 export default function SettingsPage() {
   const router = useRouter()
   const { userData, loading } = useUser()
@@ -78,8 +80,22 @@ export default function SettingsPage() {
   const [togglingEmail, setTogglingEmail] = useState(false)
   const [togglingNetwork, setTogglingNetwork] = useState(false)
 
+  // Webhook state
+  const [webhookUrl, setWebhookUrl] = useState('')
+  const [webhookSecret, setWebhookSecret] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [testing, setTesting] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [showSigExample, setShowSigExample] = useState(false)
+
   // Sync emailAlerts state when userData loads
   const resolvedEmailAlerts = emailAlerts ?? userData?.emailAlerts ?? true
+
+  // Prefill webhook URL from user data
+  useEffect(() => {
+    if (userData?.webhookUrl) setWebhookUrl(userData.webhookUrl)
+  }, [userData?.webhookUrl])
 
   async function handleNetworkSwitch(network: string) {
     if (togglingNetwork) return
@@ -168,6 +184,39 @@ export default function SettingsPage() {
     } finally {
       setRotatingKey(false)
     }
+  }
+
+  async function handleSaveWebhook() {
+    setSaving(true)
+    setSaveStatus('idle')
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setSaving(false); return }
+    const res = await fetch(`${SERVER_URL}/api/users/webhook`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+      body: JSON.stringify({ webhookUrl: webhookUrl || null, webhookSecret: webhookSecret || null }),
+    })
+    const status = res.ok ? 'success' : 'error'
+    setSaveStatus(status)
+    setSaving(false)
+    if (status === 'success') setTimeout(() => setSaveStatus('idle'), 3000)
+  }
+
+  async function handleTestWebhook() {
+    if (!webhookUrl) return
+    setTesting(true)
+    setTestStatus('idle')
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setTesting(false); return }
+    const res = await fetch(`${SERVER_URL}/api/users/webhook/test`, {
+      method: 'POST',
+      headers: { 'x-user-id': user.id },
+    })
+    setTestStatus(res.ok ? 'success' : 'error')
+    setTesting(false)
+    setTimeout(() => setTestStatus('idle'), 3000)
   }
 
   async function handleSignOut() {
@@ -405,6 +454,129 @@ export default function SettingsPage() {
           <div style={{ marginTop: 12, fontSize: 12, fontFamily: 'var(--font-display)', color: '#555' }}>
             {loading ? '...' : resolvedEmailAlerts ? 'Alerts enabled' : 'Alerts disabled'}
           </div>
+        </Card>
+
+        {/* Webhooks */}
+        <Card style={{ marginBottom: 16 }}>
+          <div style={{ fontFamily: 'var(--font-code)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>Webhooks</div>
+          <div style={{ ...subtextStyle, marginBottom: 16 }}>Receive a POST request after each confirmed payment.</div>
+
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>Endpoint URL</label>
+            <input
+              type="url"
+              placeholder="https://your-server.com/webhook"
+              value={webhookUrl}
+              onChange={e => setWebhookUrl(e.target.value)}
+              style={{
+                width: '100%', background: '#0a0a0a', border: '1px solid var(--border)',
+                borderRadius: 6, padding: '10px 14px', fontFamily: 'var(--font-code)',
+                fontSize: 13, color: 'var(--text-secondary)', outline: 'none', boxSizing: 'border-box',
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = 'var(--green)')}
+              onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+            />
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>Secret (optional)</label>
+            <input
+              type="password"
+              placeholder="Used to verify webhook signatures"
+              value={webhookSecret}
+              onChange={e => setWebhookSecret(e.target.value)}
+              style={{
+                width: '100%', background: '#0a0a0a', border: '1px solid var(--border)',
+                borderRadius: 6, padding: '10px 14px', fontFamily: 'var(--font-code)',
+                fontSize: 13, color: 'var(--text-secondary)', outline: 'none', boxSizing: 'border-box',
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = 'var(--green)')}
+              onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+            />
+          </div>
+
+          {/* Signature verification example */}
+          <div style={{ marginBottom: 16 }}>
+            <button
+              onClick={() => setShowSigExample(v => !v)}
+              style={{
+                background: 'transparent', border: 'none', padding: 0,
+                fontSize: 12, fontFamily: 'var(--font-display)', color: 'var(--text-muted)',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+              }}
+            >
+              <span style={{ fontSize: 10 }}>{showSigExample ? '▼' : '▶'}</span>
+              How to verify signatures
+            </button>
+            {showSigExample && (
+              <pre style={{
+                marginTop: 8, background: '#0a0a0a', border: '1px solid var(--border)',
+                borderRadius: 6, padding: '12px 14px', fontFamily: 'var(--font-code)',
+                fontSize: 12, color: '#aaa', overflowX: 'auto', lineHeight: 1.6,
+              }}>{`import crypto from 'crypto'
+
+const sig = req.headers['x-gate402-signature']
+const expected = crypto
+  .createHmac('sha256', YOUR_SECRET)
+  .update(JSON.stringify(req.body))
+  .digest('hex')
+
+if (sig !== \`sha256=\${expected}\`) {
+  return res.status(401).send('Invalid signature')
+}`}</pre>
+            )}
+          </div>
+
+          {/* Buttons */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+            <button
+              onClick={handleSaveWebhook}
+              disabled={saving}
+              style={{
+                background: saveStatus === 'success' ? 'rgba(62,207,142,0.15)' : '#3ecf8e',
+                border: `1px solid ${saveStatus === 'success' ? 'rgba(62,207,142,0.4)' : 'transparent'}`,
+                borderRadius: 6, padding: '8px 20px', fontSize: 13,
+                fontFamily: 'var(--font-display)', fontWeight: 500,
+                color: saveStatus === 'success' ? '#3ecf8e' : '#111',
+                cursor: saving ? 'not-allowed' : 'pointer',
+                opacity: saving ? 0.7 : 1, transition: 'all 150ms',
+              }}
+            >
+              {saving ? 'Saving...' : saveStatus === 'success' ? 'Saved ✓' : saveStatus === 'error' ? 'Error — retry' : 'Save webhook'}
+            </button>
+            <button
+              onClick={handleTestWebhook}
+              disabled={testing || !webhookUrl}
+              style={{
+                background: 'transparent',
+                border: `1px solid ${testStatus === 'success' ? 'rgba(62,207,142,0.4)' : testStatus === 'error' ? 'rgba(255,68,68,0.4)' : 'var(--border)'}`,
+                borderRadius: 6, padding: '8px 20px', fontSize: 13,
+                fontFamily: 'var(--font-display)',
+                color: testStatus === 'success' ? '#3ecf8e' : testStatus === 'error' ? '#ff4444' : 'var(--text-secondary)',
+                cursor: testing || !webhookUrl ? 'not-allowed' : 'pointer',
+                opacity: !webhookUrl ? 0.4 : testing ? 0.7 : 1, transition: 'all 150ms',
+              }}
+            >
+              {testing ? 'Sending...' : testStatus === 'success' ? 'Sent ✓' : testStatus === 'error' ? 'Failed' : 'Send test'}
+            </button>
+          </div>
+
+          {/* Payload example */}
+          <div style={{ fontSize: 12, fontFamily: 'var(--font-display)', color: 'var(--text-muted)', marginBottom: 6 }}>Example payload</div>
+          <pre style={{
+            background: '#0a0a0a', border: '1px solid var(--border)',
+            borderRadius: 6, padding: '12px 14px', fontFamily: 'var(--font-code)',
+            fontSize: 12, color: '#777', overflowX: 'auto', lineHeight: 1.6, margin: 0,
+          }}>{`{
+  "event": "payment.confirmed",
+  "endpoint": "/api/data",
+  "amount": 0.001,
+  "currency": "USDC",
+  "network": "devnet",
+  "txHash": "5kWq9mLP...",
+  "payerWallet": "DcL4mMaq...",
+  "timestamp": "2026-05-20T12:00:00Z"
+}`}</pre>
         </Card>
 
         {/* Account */}
