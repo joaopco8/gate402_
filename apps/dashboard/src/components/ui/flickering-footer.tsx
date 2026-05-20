@@ -648,7 +648,7 @@ export const Component = () => {
             text={tablet ? "Agents pay.\nYou earn." : "Agents pay. You earn."}
             fontSize={tablet ? 56 : 90}
             className="h-full w-full"
-            squareSize={2}
+            squareSize={tablet ? 1 : 2}
             gridGap={tablet ? 2 : 3}
             color="#6B7280"
             maxOpacity={0.3}

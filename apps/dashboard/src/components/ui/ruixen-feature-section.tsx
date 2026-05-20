@@ -156,14 +156,20 @@ export default function RuixenSection() {
       {/* Stats and Testimonial Section */}
       <div className="mt-12 sm:mt-16 lg:mt-20 grid gap-8 lg:grid-cols-2 lg:gap-12 xl:gap-16">
         <div className="flex justify-center items-center p-4 sm:p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 w-full divide-y sm:divide-y-0 divide-x-0 sm:divide-x divide-gray-200 dark:divide-gray-700">
+          <div className="grid grid-cols-2 sm:grid-cols-4 w-full sm:divide-x divide-gray-200 dark:divide-gray-700">
             {[
               { value: "3",     label: "lines",      sub: "of code"    },
               { value: "400ms", label: "settlement",  sub: "on Solana"  },
               { value: "1%",    label: "platform",    sub: "fee only"   },
               { value: "MIT",   label: "licensed",    sub: "open source"},
-            ].map((item) => (
-              <div key={item.value} className="flex-1 flex flex-col items-center px-4 space-y-1 text-center">
+            ].map((item, i) => (
+              <div
+                key={item.value}
+                className={[
+                  "flex flex-col items-center px-4 py-4 sm:py-0 space-y-1 text-center",
+                  i >= 2 ? "border-t border-gray-200 dark:border-gray-700 sm:border-t-0" : "",
+                ].join(" ")}
+              >
                 <div className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white">{item.value}</div>
                 <p className="text-xs sm:text-sm font-medium" style={{ color: '#aaa' }}>{item.label}</p>
                 <p className="text-xs" style={{ color: '#666' }}>{item.sub}</p>
