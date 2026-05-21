@@ -81,8 +81,8 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
     }
 
     const price: number = currentEndpoint.priceUsdc;
-    const platformFee = parseFloat((price * 0.01).toFixed(6));
-    const providerAmount = parseFloat((price - platformFee).toFixed(6));
+    const platformFee = 0; // fee disabled — 100% goes to provider
+    const providerAmount = price;
     const providerWallet: string = (currentUser as any)?.walletAddress ?? serverWallet;
     const network: string = (currentUser as any)?.network ?? 'devnet';
 
@@ -94,7 +94,6 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         price: { total: price, currency: 'USDC', network: `solana-${network}` },
         splits: {
           provider: { wallet: providerWallet, amount: providerAmount },
-          platform: { wallet: PLATFORM_WALLET, amount: platformFee },
         },
         endpoint: endpointPath,
         instructions: 'Send USDC on Solana and include tx hash in X-Payment-Payload header.',
@@ -142,23 +141,6 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
 
       confirmedAmount = providerResult.amount ?? price;
       payerWallet = providerResult.payerWallet;
-
-      if (txHashPlatform && !txHashPlatform.startsWith('demo_')) {
-        const platformResult = await verifyPayment({
-          txHash: txHashPlatform,
-          expectedAmountUsdc: platformFee,
-          recipientAddress: PLATFORM_WALLET,
-          network,
-        });
-        if (!platformResult.valid) {
-          res.status(402).json({
-            error: 'Platform fee payment invalid',
-            details: platformResult.reason,
-            expected: { amount: platformFee, wallet: PLATFORM_WALLET },
-          });
-          return;
-        }
-      }
     }
 
     // ── STEP 6: Mark anti-replay ─────────────────────────────────────────────
@@ -194,13 +176,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
 
     // ── STEP 8: Revenue log ──────────────────────────────────────────────────
     const effectiveTxPlatform = txHashPlatform || txHashToLog;
-    logRevenue({
-      source: 'platform_fee',
-      amount: platformFee,
-      txHash: effectiveTxPlatform,
-      userId: resolvedUserId ?? undefined,
-      description: `1% fee from ${endpointPath} — total: ${price} USDC`,
-    }).catch(e => console.error('[revenue] log failed:', (e as Error).message));
+    // fee disabled — skipping revenue log
 
     // ── STEP 9: Transaction record (requires owner) ──────────────────────────
     if (resolvedUserId) {
@@ -220,7 +196,6 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
             splits: {
               create: [
                 { recipient: 'provider', wallet: providerWallet, amount: providerAmount, txHash: txHashToLog, status: 'confirmed', confirmedAt: new Date() },
-                { recipient: 'platform', wallet: PLATFORM_WALLET, amount: platformFee, txHash: effectiveTxPlatform, status: 'confirmed', confirmedAt: new Date() },
               ],
             },
           },

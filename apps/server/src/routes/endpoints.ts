@@ -42,7 +42,7 @@ router.get('/endpoints', async (req, res) => {
       description: ep.description,
       totalCalls: ep._count.calls,
       revenue: gross,
-      netRevenue: parseFloat((gross * 0.99).toFixed(6)),
+      netRevenue: gross, // fee disabled — net = gross
       createdAt: ep.createdAt,
     }
   }))
