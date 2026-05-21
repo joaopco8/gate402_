@@ -106,9 +106,9 @@ export default function AnalyticsPage() {
 
       if (revRes.status === 'fulfilled' && revRes.value.ok)   setRevenue(await revRes.value.json())
       if (srRes.status === 'fulfilled' && srRes.value.ok)     setSuccessRate(await srRes.value.json())
-      if (agRes.status === 'fulfilled' && agRes.value.ok)     setTopAgents(await agRes.value.json())
+      if (agRes.status === 'fulfilled' && agRes.value.ok)     setTopAgents((await agRes.value.json()).agents ?? [])
       if (latRes.status === 'fulfilled' && latRes.value.ok)   setLatency((await latRes.value.json()).latency ?? [])
-      if (failRes.status === 'fulfilled' && failRes.value.ok) setFailed(await failRes.value.json())
+      if (failRes.status === 'fulfilled' && failRes.value.ok) setFailed((await failRes.value.json()).failed ?? [])
 
       setUserChecked(true)
       setLoading(false)
