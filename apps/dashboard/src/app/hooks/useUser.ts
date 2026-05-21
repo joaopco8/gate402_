@@ -48,6 +48,7 @@ export interface UserData {
   totalCalls: number
   totalEndpoints: number
   emailAlerts: boolean
+  webhookUrl?: string | null
   limits: PlanLimits
   createdAt: string
 }
