@@ -44,11 +44,8 @@ function StatusBadge({ status }: { status: number }) {
 }
 
 const METHOD_COLORS: Record<string, { color: string; bg: string; border: string }> = {
-  GET:    { color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.2)' },
-  POST:   { color: '#34d399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.2)' },
-  PUT:    { color: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  border: 'rgba(251,191,36,0.2)' },
-  PATCH:  { color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.2)' },
-  DELETE: { color: '#f87171', bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.2)' },
+  GET:  { color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.2)' },
+  POST: { color: '#34d399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.2)' },
 }
 
 function MethodBadge({ method }: { method: string }) {
@@ -63,15 +60,11 @@ function timeAgo(ts: number) {
   return `${Math.floor(s / 60)}m ago`
 }
 
-const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const
-type Method = typeof METHODS[number]
-
 export default function PlaygroundPage() {
   const [supabaseId, setSupabaseId] = useState<string | null>(null)
   const [endpoints, setEndpoints] = useState<Endpoint[]>([])
   const [selectedPath, setSelectedPath] = useState('')
-  const [method, setMethod] = useState<Method>('GET')
-  const [methodOpen, setMethodOpen] = useState(false)
+  const [method, setMethod] = useState<'GET' | 'POST'>('GET')
   const [body, setBody] = useState('{\n  "key": "value"\n}')
   const [loading, setLoading] = useState<'unpaid' | 'paid' | null>(null)
   const [response, setResponse] = useState<CallResult | null>(null)
@@ -93,7 +86,7 @@ export default function PlaygroundPage() {
   }, [])
 
   const selectedEp = endpoints.find(e => e.path === selectedPath)
-  const hasBody = method !== 'GET' && method !== 'DELETE'
+  const hasBody = method === 'POST'
 
   async function doCall(paid: boolean) {
     if (!selectedPath) return
@@ -151,30 +144,17 @@ export default function PlaygroundPage() {
 
                 {/* Method + endpoint */}
                 <div style={{ padding: '16px 16px 0', display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <div style={{ position: 'relative', flexShrink: 0 }}>
-                    <button
-                      onClick={() => setMethodOpen(o => !o)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, background: METHOD_COLORS[method].bg, border: `1px solid ${METHOD_COLORS[method].border}`, borderRadius: 6, padding: '8px 12px', cursor: 'pointer', fontFamily: MONO, fontSize: 12, fontWeight: 600, color: METHOD_COLORS[method].color }}
-                    >
-                      {method}
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 3.5l3 3 3-3"/></svg>
-                    </button>
-                    {methodOpen && (
-                      <>
-                        <div onClick={() => setMethodOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 99 }} />
-                        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 100, background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 8, padding: 4, minWidth: 110, boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
-                          {METHODS.map(m => (
-                            <button key={m} onClick={() => { setMethod(m); setMethodOpen(false) }}
-                              style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px', background: m === method ? '#111' : 'transparent', border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: MONO, fontSize: 12, fontWeight: 600, color: METHOD_COLORS[m].color, textAlign: 'left' }}>
-                              {m === method
-                                ? <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg>
-                                : <span style={{ width: 10, display: 'inline-block' }}/>}
-                              {m}
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
+                  <div style={{ display: 'flex', background: '#111', border: '1px solid #1a1a1a', borderRadius: 6, padding: 2, flexShrink: 0 }}>
+                    {(['GET', 'POST'] as const).map(m => (
+                      <button key={m} onClick={() => setMethod(m)}
+                        style={{ padding: '6px 14px', borderRadius: 4, border: 'none', cursor: 'pointer', fontFamily: MONO, fontSize: 12, fontWeight: 600, transition: 'all 150ms',
+                          background: method === m ? METHOD_COLORS[m].bg : 'transparent',
+                          color: method === m ? METHOD_COLORS[m].color : '#444',
+                          outline: method === m ? `1px solid ${METHOD_COLORS[m].border}` : 'none',
+                        }}>
+                        {m}
+                      </button>
+                    ))}
                   </div>
                   <div style={{ flex: 1, position: 'relative' }}>
                     <select value={selectedPath} onChange={e => setSelectedPath(e.target.value)}
