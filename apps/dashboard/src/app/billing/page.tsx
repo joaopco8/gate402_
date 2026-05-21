@@ -111,7 +111,9 @@ export default function BillingPage() {
         headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
       })
       const data = await res.json()
-      if (data.url) {
+      if (data.manualPlan) {
+        setError('Your Pro plan was activated manually. To cancel, contact support@gate402.dev')
+      } else if (data.url) {
         window.location.href = data.url
       } else {
         setError(data.error || 'Could not open billing portal. Try again.')
@@ -244,22 +246,27 @@ export default function BillingPage() {
             <div>
               <hr style={{ borderColor: 'rgba(255,255,255,0.08)', margin: '0 0 24px' }} />
               {isPro ? (
-                <button
-                  onClick={handleManage}
-                  disabled={managing}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    width: '100%', height: 40, fontSize: 14, fontWeight: 500,
-                    backgroundColor: '#00bc7d', color: '#111111',
-                    border: 'none', cursor: managing ? 'not-allowed' : 'pointer',
-                    fontFamily: 'var(--font-display)',
-                    opacity: managing ? 0.7 : 1, transition: 'opacity 150ms',
-                  }}
-                  onMouseEnter={e => { if (!managing) e.currentTarget.style.opacity = '0.9' }}
-                  onMouseLeave={e => { e.currentTarget.style.opacity = managing ? '0.7' : '1' }}
-                >
-                  {managing ? 'Redirecting…' : 'Manage subscription'}
-                </button>
+                <>
+                  <button
+                    onClick={handleManage}
+                    disabled={managing}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: '100%', height: 40, fontSize: 14, fontWeight: 500,
+                      backgroundColor: '#00bc7d', color: '#111111',
+                      border: 'none', cursor: managing ? 'not-allowed' : 'pointer',
+                      fontFamily: 'var(--font-display)',
+                      opacity: managing ? 0.7 : 1, transition: 'opacity 150ms',
+                    }}
+                    onMouseEnter={e => { if (!managing) e.currentTarget.style.opacity = '0.9' }}
+                    onMouseLeave={e => { e.currentTarget.style.opacity = managing ? '0.7' : '1' }}
+                  >
+                    {managing ? 'Redirecting…' : 'Manage subscription'}
+                  </button>
+                  {error && (
+                    <p style={{ fontSize: 12, color: '#ef4444', marginTop: 8, textAlign: 'center' }}>{error}</p>
+                  )}
+                </>
               ) : (
                 <>
                   <button

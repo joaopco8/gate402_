@@ -104,7 +104,13 @@ router.post('/billing/portal', async (req, res) => {
 
     const user = await prisma.user.findUnique({ where: { supabaseId } })
     if (!user) return res.status(404).json({ error: 'User not found' })
-    if (!user.stripeCustomerId) return res.status(400).json({ error: 'No Stripe customer found' })
+    if (!user.stripeCustomerId) {
+      return res.json({
+        url: null,
+        message: 'Manual plan — no Stripe subscription to manage.',
+        manualPlan: true,
+      })
+    }
 
     const session = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
