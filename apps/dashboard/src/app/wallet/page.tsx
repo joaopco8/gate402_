@@ -227,11 +227,9 @@ export default function WalletPage() {
   // Fall back to summing from txns if revenue API returns null
   const gross = revenue?.gross ?? txns.reduce((s, t) => s + (t.totalAmount ?? 0), 0)
   const net   = revenue?.net   ?? txns.reduce((s, t) => s + (t.providerAmount ?? 0), 0)
-  const fee   = revenue?.fees  ?? txns.reduce((s, t) => s + (t.platformFee ?? 0), 0)
 
   const grossSpark = buildSpark(txns, 'totalAmount')
   const netSpark   = buildSpark(txns, 'providerAmount')
-  const feeSpark   = buildSpark(txns, 'platformFee')
 
   const displayedTxns = isPro ? txns : txns.slice(0, 5)
 
@@ -276,9 +274,18 @@ export default function WalletPage() {
           <AreaStatCard title="Net Revenue (99%)" period="Goes to your wallet" value={`$${net.toFixed(5)}`}
             sparkData={netSpark} color="#3b82f6" gradientId="walletNet"
             icon={<IconTrendUp color="#3b82f6" />} loading={loading} />
-          <AreaStatCard title="Platform Fees (1%)" period="Gate402 fee" value={`$${fee.toFixed(5)}`}
-            sparkData={feeSpark} color="#8b5cf6" gradientId="walletFee"
-            icon={<IconActivity color="#8b5cf6" />} loading={loading} />
+          <Card>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <IconActivity color="#8b5cf6" />
+                <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>Platform Fee</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ fontSize: 30, fontWeight: 700, color: '#8b5cf6', letterSpacing: '-0.5px', lineHeight: 1.1 }}>Free</div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: SANS }}>No fees charged right now</div>
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* ── Receiving Wallet ── */}
