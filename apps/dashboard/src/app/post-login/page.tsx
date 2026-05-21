@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { createClient } from '../../../lib/supabase/client'
+import { clearUserCache } from '../hooks/useUser'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
 
@@ -32,6 +33,7 @@ export default function PostLoginPage() {
         return
       }
 
+      clearUserCache()
       const intent = getIntent()
       clearIntent()
 

@@ -23,6 +23,10 @@ function clearCache() {
   try { sessionStorage.removeItem(CACHE_KEY) } catch {}
 }
 
+export function clearUserCache() {
+  clearCache()
+}
+
 export interface PlanLimits {
   maxEndpoints: number
   recentCallsLimit: number
