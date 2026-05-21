@@ -158,8 +158,11 @@ router.delete('/endpoints/:id', async (req, res) => {
   const endpoint = await prisma.endpoint.findFirst({ where: { id, userId: user.id } })
   if (!endpoint) return res.status(404).json({ error: 'Endpoint not found' })
 
-  // Null out FK on ApiCall before deleting (no cascade defined in schema)
-  await prisma.apiCall.updateMany({ where: { endpointId: id }, data: { endpointId: null } })
+  // Null out FKs before deleting (no cascade defined in schema)
+  await Promise.all([
+    prisma.apiCall.updateMany({ where: { endpointId: id }, data: { endpointId: null } }),
+    prisma.transaction.updateMany({ where: { endpointId: id }, data: { endpointId: null } }),
+  ])
   await prisma.endpoint.delete({ where: { id } })
 
   return res.json({ message: 'Endpoint deleted successfully' })
