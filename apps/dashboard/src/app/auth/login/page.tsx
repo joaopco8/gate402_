@@ -164,7 +164,19 @@ export default function AuthPage() {
     })
 
     if (error) {
-      setError(error.message)
+      if (error.message.includes('Invalid login credentials')) {
+        setError(
+          'Invalid email or password. ' +
+          'If you just signed up, check your email to confirm your account first.'
+        )
+      } else if (error.message.includes('Email not confirmed')) {
+        setError(
+          'Please confirm your email before signing in. ' +
+          'Check your inbox for a confirmation link.'
+        )
+      } else {
+        setError(error.message)
+      }
       setLoading(false)
       return
     }
