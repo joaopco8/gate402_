@@ -105,6 +105,18 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
     const [txHashProvider, txHashPlatform] = rawPaymentHeader.split(',').map(h => h.trim());
     const isDemoMode = txHashProvider?.startsWith('demo_');
 
+    // Block demo_ on mainnet
+    const userNetwork = (currentUser as any)?.network || 'devnet';
+    if (isDemoMode && userNetwork === 'mainnet') {
+      res.status(402).json({
+        error: 'Payment Required',
+        message: 'Demo mode is not allowed on mainnet. Send real USDC.',
+        code: 'DEMO_NOT_ALLOWED_ON_MAINNET',
+      });
+      return;
+    }
+    console.log(`[x402] demo mode: ${isDemoMode}, network: ${userNetwork}`);
+
     // ── STEP 4: Anti-replay ──────────────────────────────────────────────────
     console.log('[idempotency] checking:', txHashProvider);
     const { isDuplicate } = await checkIdempotency(txHashProvider, 'payment');

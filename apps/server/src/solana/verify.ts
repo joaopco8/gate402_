@@ -10,11 +10,43 @@ const RPC_URLS: Record<string, string> = {
   mainnet: process.env.SOLANA_MAINNET_RPC_URL || 'https://api.mainnet-beta.solana.com',
 };
 
+const MAX_TX_AGE_SECONDS = 15 * 60; // 15 minutes
+
 interface VerifyResult {
   valid: boolean;
   payerWallet?: string;
   amount?: number;
   reason?: string;
+}
+
+async function getTransactionWithRetry(
+  connection: Connection,
+  txHash: string,
+  maxRetries = 2
+) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const tx = await Promise.race([
+        connection.getParsedTransaction(txHash, {
+          commitment: 'confirmed',
+          maxSupportedTransactionVersion: 0,
+        }),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+      ]);
+      if (tx) return tx;
+
+      if (attempt < maxRetries) {
+        console.log(`[solana] tx not found, retry ${attempt}/${maxRetries} — ${txHash}`);
+        await new Promise(r => setTimeout(r, 1000 * attempt));
+      }
+    } catch (e: any) {
+      console.error(`[solana] RPC error attempt ${attempt}:`, e.message);
+      if (attempt < maxRetries) {
+        await new Promise(r => setTimeout(r, 1000 * attempt));
+      }
+    }
+  }
+  return null;
 }
 
 export async function verifyPayment({
@@ -33,17 +65,23 @@ export async function verifyPayment({
     const usdcMint = network === 'mainnet' ? USDC_MAINNET_MINT : USDC_DEVNET_MINT;
     const connection = new Connection(rpcUrl, 'confirmed');
 
-    const txPromise = connection.getParsedTransaction(txHash, {
-      maxSupportedTransactionVersion: 0,
-    });
-
-    const tx = await Promise.race([
-      txPromise,
-      new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
-    ]);
+    const tx = await getTransactionWithRetry(connection, txHash);
 
     if (!tx) {
-      return { valid: false, reason: 'not found' };
+      return { valid: false, reason: 'Transaction not found' };
+    }
+
+    // Verify recency — max 15 minutes
+    if (tx.blockTime) {
+      const txAgeSeconds = Math.floor(Date.now() / 1000) - tx.blockTime;
+      if (txAgeSeconds > MAX_TX_AGE_SECONDS) {
+        console.warn(`[solana] tx too old: ${txAgeSeconds}s — hash: ${txHash}`);
+        return {
+          valid: false,
+          reason: `Transaction is too old (${Math.floor(txAgeSeconds / 60)} minutes). Max allowed: 15 minutes.`,
+        };
+      }
+      console.log(`[solana] tx age: ${txAgeSeconds}s ✓`);
     }
 
     const accountKeys = tx.transaction.message.accountKeys;
