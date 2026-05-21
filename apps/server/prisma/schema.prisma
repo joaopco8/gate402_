@@ -48,8 +48,8 @@ model Transaction {
   id              String   @id @default(uuid())
   userId          String
   user            User     @relation(fields: [userId], references: [id])
-  endpointId      String
-  endpoint        Endpoint @relation(fields: [endpointId], references: [id])
+  endpointId      String?
+  endpoint        Endpoint? @relation(fields: [endpointId], references: [id])
   txHashProvider  String   @unique
   txHashPlatform  String?  @unique
   totalAmount     Float
