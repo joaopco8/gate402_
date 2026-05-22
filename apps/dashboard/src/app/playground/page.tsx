@@ -250,7 +250,7 @@ export default function PlaygroundPage() {
                     {loading === 'unpaid' ? 'Calling...' : 'Call free'}
                   </button>
                   <button onClick={() => doCall(true)} disabled={loading !== null || !selectedPath}
-                    style={{ flex: 1, padding: '10px 0', background: !selectedPath ? 'var(--bg-surface)' : '#2A7252', border: `1px solid ${!selectedPath ? 'var(--border-default)' : '#3ECF8E'}`, borderRadius: 6, fontSize: 13, color: !selectedPath ? 'var(--text-muted)' : '#3ECF8E', fontFamily: SANS, fontWeight: 600, cursor: loading !== null || !selectedPath ? 'not-allowed' : 'pointer', opacity: loading !== null || !selectedPath ? 0.4 : 1, transition: 'opacity 150ms' }}>
+                    style={{ flex: 1, padding: '10px 0', background: !selectedPath ? 'var(--bg-surface)' : '#006239', border: `0.5px solid ${!selectedPath ? 'var(--border-default)' : '#128353'}`, borderRadius: 6, fontSize: 13, color: !selectedPath ? 'var(--text-muted)' : '#fff', fontFamily: SANS, fontWeight: 600, cursor: loading !== null || !selectedPath ? 'not-allowed' : 'pointer', opacity: loading !== null || !selectedPath ? 0.4 : 1, transition: 'opacity 150ms' }}>
                     {loading === 'paid' ? 'Paying...' : 'Pay & call \u2192'}
                   </button>
                 </div>

@@ -21,8 +21,9 @@ export function ProBanner({ isPro }: { isPro: boolean }) {
       <a href="/billing" style={{
         flexShrink: 0,
         padding: '7px 16px',
-        background: 'var(--green)',
-        color: '#000', borderRadius: 6,
+        background: '#006239',
+        border: '0.5px solid #128353',
+        color: '#fff', borderRadius: 6,
         fontSize: 12, fontWeight: 500,
         textDecoration: 'none',
         fontFamily: 'var(--font-display)',

@@ -51,8 +51,9 @@ export function ProGate({ isPro, feature, children }: ProGateProps) {
           style={{
             marginTop: 4,
             padding: '8px 20px',
-            background: '#00bc7d',
-            color: '#000',
+            background: '#006239',
+            border: '0.5px solid #128353',
+            color: '#fff',
             borderRadius: 6,
             fontSize: 13,
             fontWeight: 500,

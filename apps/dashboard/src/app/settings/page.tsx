@@ -328,14 +328,14 @@ export default function SettingsPage() {
                 onClick={handleSaveWallet}
                 disabled={savingWallet || !walletInput.trim()}
                 style={{
-                  background: '#3ecf8e',
-                  border: 'none',
+                  background: '#006239',
+                  border: '0.5px solid #128353',
                   borderRadius: 6,
                   padding: '8px 20px',
                   fontSize: 14,
                   fontFamily: 'var(--font-display)',
                   fontWeight: 500,
-                  color: '#111',
+                  color: '#fff',
                   cursor: savingWallet || !walletInput.trim() ? 'not-allowed' : 'pointer',
                   opacity: !walletInput.trim() ? 0.5 : 1,
                   transition: 'opacity 150ms',
@@ -533,11 +533,11 @@ if (sig !== \`sha256=\${expected}\`) {
               onClick={handleSaveWebhook}
               disabled={saving}
               style={{
-                background: saveStatus === 'success' ? 'rgba(62,207,142,0.1)' : '#2A7252',
-                border: `1px solid ${saveStatus === 'success' ? 'rgba(62,207,142,0.4)' : '#3ECF8E'}`,
+                background: saveStatus === 'success' ? 'rgba(0,98,57,0.4)' : '#006239',
+                border: `0.5px solid ${saveStatus === 'success' ? '#128353' : '#128353'}`,
                 borderRadius: 6, padding: '8px 20px', fontSize: 13,
                 fontFamily: 'var(--font-display)', fontWeight: 500,
-                color: '#3ECF8E',
+                color: '#fff',
                 cursor: saving ? 'not-allowed' : 'pointer',
                 opacity: saving ? 0.7 : 1, transition: 'all 150ms',
               }}

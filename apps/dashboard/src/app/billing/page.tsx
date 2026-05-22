@@ -258,8 +258,8 @@ export default function BillingPage() {
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       width: '100%', height: 40, fontSize: 14, fontWeight: 500,
-                      backgroundColor: '#00bc7d', color: '#111111',
-                      border: 'none', cursor: managing ? 'not-allowed' : 'pointer',
+                      backgroundColor: '#006239', color: '#fff',
+                      border: '0.5px solid #128353', cursor: managing ? 'not-allowed' : 'pointer',
                       fontFamily: 'var(--font-display)',
                       opacity: managing ? 0.7 : 1, transition: 'opacity 150ms',
                     }}
@@ -280,8 +280,8 @@ export default function BillingPage() {
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       width: '100%', height: 40, fontSize: 14, fontWeight: 500,
-                      backgroundColor: '#00bc7d', color: '#111111',
-                      border: 'none', cursor: upgrading ? 'not-allowed' : 'pointer',
+                      backgroundColor: '#006239', color: '#fff',
+                      border: '0.5px solid #128353', cursor: upgrading ? 'not-allowed' : 'pointer',
                       fontFamily: 'var(--font-display)',
                       opacity: upgrading ? 0.7 : 1, transition: 'opacity 150ms',
                     }}

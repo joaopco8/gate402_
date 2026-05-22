@@ -315,12 +315,12 @@ export default function WalletPage() {
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={handleCopy}
-                  style={{ padding: '7px 14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12, color: copied ? 'var(--green)' : 'var(--text-muted)', cursor: 'pointer', fontFamily: SANS }}>
+                  style={{ padding: '7px 14px', background: '#242424', border: '0.5px solid #363636', borderRadius: 6, fontSize: 12, color: '#fff', cursor: 'pointer', fontFamily: SANS }}>
                   {copied ? 'Copied ✓' : 'Copy'}
                 </button>
                 <a href={`https://explorer.solana.com/address/${walletAddr}?cluster=${network}`}
                   target="_blank" rel="noopener noreferrer"
-                  style={{ padding: '7px 14px', background: 'transparent', border: '1px solid rgba(0,188,125,0.2)', borderRadius: 6, fontSize: 12, color: 'var(--green)', textDecoration: 'none', fontFamily: SANS }}>
+                  style={{ padding: '7px 14px', background: '#006239', border: '0.5px solid #128353', borderRadius: 6, fontSize: 12, color: '#fff', textDecoration: 'none', fontFamily: SANS }}>
                   View on Solana Explorer →
                 </a>
               </div>

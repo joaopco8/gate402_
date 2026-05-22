@@ -26,9 +26,9 @@ const labelStyle: React.CSSProperties = {
 }
 
 const primaryBtn: React.CSSProperties = {
-  background: '#00bc7d',
-  color: '#000',
-  border: 'none',
+  background: '#006239',
+  color: '#fff',
+  border: '0.5px solid #128353',
   borderRadius: 6,
   padding: '12px 20px',
   fontFamily: 'monospace',
@@ -40,9 +40,9 @@ const primaryBtn: React.CSSProperties = {
 }
 
 const ghostBtn: React.CSSProperties = {
-  background: 'transparent',
-  color: '#555',
-  border: '1px solid #333',
+  background: '#242424',
+  color: '#fff',
+  border: '0.5px solid #363636',
   borderRadius: 6,
   padding: '12px 20px',
   fontFamily: 'monospace',
