@@ -11,7 +11,7 @@ export default function MetricCard({ title, value, subtitle, positive }: MetricC
     <div style={{
       background: 'var(--card)',
       border: '1px solid var(--border)',
-      borderRadius: 8,
+      borderRadius: 6,
       padding: '20px 24px',
       transition: 'border-color 150ms ease',
     }}

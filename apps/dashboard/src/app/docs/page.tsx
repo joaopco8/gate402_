@@ -76,7 +76,7 @@ function CodeBlock({ lang, code }: { lang: string; code: string }) {
     <div style={{
       background: '#0a0a0a',
       border: '1px solid #1a1a1a',
-      borderRadius: 8,
+      borderRadius: 6,
       overflow: 'hidden',
       margin: '16px 0',
     }}>
@@ -133,7 +133,7 @@ function Terminal({ title = 'bash', lines }: {
   }
   const prefix: Record<string, string> = { command: '$ ', output: '', comment: '# ', success: '✓ ', error: '✗ ', blank: '' }
   return (
-    <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 10, overflow: 'hidden', margin: '20px 0', fontFamily: "'JetBrains Mono', monospace" }}>
+    <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden', margin: '20px 0', fontFamily: "'JetBrains Mono', monospace" }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderBottom: '1px solid #1a1a1a', background: '#0d0d0d' }}>
         <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ef4444' }} />
         <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#f59e0b' }} />
@@ -158,7 +158,7 @@ function PropTable({ rows }: {
   rows: Array<{ prop: string; type: string; required: boolean; default?: string; description: string }>
 }) {
   return (
-    <div style={{ border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden', margin: '16px 0' }}>
+    <div style={{ border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden', margin: '16px 0' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 0.5fr 1fr 2fr', background: '#0d0d0d', borderBottom: '1px solid #1a1a1a', padding: '8px 16px', gap: 16 }}>
         {['Property', 'Type', 'Req', 'Default', 'Description'].map(h => (
           <span key={h} style={{ fontFamily: 'monospace', fontSize: 10, color: '#333', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>
@@ -253,7 +253,7 @@ function DocsSidebar({
       <div style={{ padding: '20px 16px 12px', borderBottom: '1px solid #1a1a1a', flexShrink: 0 }}>
         <a href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
           <img src="/logo-gate.png" alt="Gate402" style={{ height: 20, width: 'auto', display: 'block' }} />
-          <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#444', background: '#111', border: '1px solid #1a1a1a', borderRadius: 3, padding: '2px 6px', letterSpacing: '0.06em' }}>DOCS</span>
+          <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#444', background: '#111', border: '1px solid #1a1a1a', borderRadius: 6, padding: '2px 6px', letterSpacing: '0.06em' }}>DOCS</span>
         </a>
 
         {/* Search */}
@@ -271,7 +271,7 @@ function DocsSidebar({
               width: '100%',
               background: '#111',
               border: '1px solid #222',
-              borderRadius: 8,
+              borderRadius: 6,
               padding: '7px 10px 7px 30px',
               fontSize: 13,
               color: '#ccc',
@@ -445,11 +445,11 @@ export default function DocsPage() {
       {/* ── Mobile header ── */}
       {isMobile && (
         <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 52, background: 'rgba(0,0,0,0.95)', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', padding: '0 16px', gap: 12, zIndex: 30 }}>
-          <button onClick={() => setSidebarOpen(v => !v)} style={{ background: 'none', border: '1px solid #1a1a1a', borderRadius: 4, padding: '6px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {[0,1,2].map(i => <span key={i} style={{ display: 'block', width: 16, height: 1.5, background: '#666', borderRadius: 1 }} />)}
+          <button onClick={() => setSidebarOpen(v => !v)} style={{ background: 'none', border: '1px solid #1a1a1a', borderRadius: 6, padding: '6px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {[0,1,2].map(i => <span key={i} style={{ display: 'block', width: 16, height: 1.5, background: '#666', borderRadius: 6 }} />)}
           </button>
           <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600, fontSize: 15, color: '#fff' }}>gate402</span>
-          <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#444', background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 3, padding: '2px 6px' }}>DOCS</span>
+          <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#444', background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 6, padding: '2px 6px' }}>DOCS</span>
         </header>
       )}
 
@@ -471,7 +471,7 @@ export default function DocsPage() {
                 { label: 'Solana', color: '#9945FF', border: 'rgba(153,69,255,0.3)', bg: 'rgba(153,69,255,0.08)' },
                 { label: 'x402', color: '#3b82f6', border: 'rgba(59,130,246,0.3)', bg: 'rgba(59,130,246,0.08)' },
               ].map(b => (
-                <span key={b.label} style={{ fontFamily: 'monospace', fontSize: 11, background: b.bg, border: `1px solid ${b.border}`, color: b.color, borderRadius: 4, padding: '3px 10px' }}>{b.label}</span>
+                <span key={b.label} style={{ fontFamily: 'monospace', fontSize: 11, background: b.bg, border: `1px solid ${b.border}`, color: b.color, borderRadius: 6, padding: '3px 10px' }}>{b.label}</span>
               ))}
             </div>
 
@@ -486,7 +486,7 @@ export default function DocsPage() {
                 { pkg: 'gate402-agent', label: 'For Agent Operators', desc: 'Pay APIs automatically on HTTP 402' },
                 { pkg: 'create-gate402-mcp', label: 'For MCP Developers', desc: 'Monetize any MCP tool call' },
               ].map(card => (
-                <div key={card.pkg} style={{ border: '1px solid #1a1a1a', borderRadius: 8, padding: 20, background: '#0a0a0a' }}>
+                <div key={card.pkg} style={{ border: '1px solid #1a1a1a', borderRadius: 6, padding: 20, background: '#0a0a0a' }}>
                   <code style={{ fontSize: 12, color: '#00bc7d', fontFamily: 'monospace' }}>npm install {card.pkg}</code>
                   <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginTop: 12 }}>{card.label}</div>
                   <div style={{ fontSize: 12, color: '#898989', marginTop: 4 }}>{card.desc}</div>
@@ -593,7 +593,7 @@ app.listen(3000)`} />,
 
           <H3>Fee split</H3>
           <P>Every payment is automatically split. Gate402 never holds your funds.</P>
-          <div style={{ border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden', margin: '16px 0' }}>
+          <div style={{ border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden', margin: '16px 0' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: '#0d0d0d', borderBottom: '1px solid #1a1a1a', padding: '8px 16px', gap: 16 }}>
               {['Payment', 'You receive (99%)', 'Gate402 (1%)'].map(h => (
                 <span key={h} style={{ fontFamily: 'monospace', fontSize: 10, color: '#333', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>
@@ -677,7 +677,7 @@ app.listen(3000)`} />
           ]} />
 
           <H2 id="endpoint-pricing">Endpoint pricing</H2>
-          <P>Each entry in <code style={{ fontFamily: 'monospace', fontSize: 13, color: '#ccc', background: '#111', padding: '1px 6px', borderRadius: 4 }}>endpoints</code> maps a URL path to a price in USDC. Prices can be as low as 0.0001 USDC ($0.0001).</P>
+          <P>Each entry in <code style={{ fontFamily: 'monospace', fontSize: 13, color: '#ccc', background: '#111', padding: '1px 6px', borderRadius: 6 }}>endpoints</code> maps a URL path to a price in USDC. Prices can be as low as 0.0001 USDC ($0.0001).</P>
           <CodeBlock lang="typescript" code={`app.use(gate402({
   apiKey: '...',
   walletAddress: '...',
@@ -994,7 +994,7 @@ app.listen(3001, () => console.log('Gated MCP server on :3001'))`} />
               { title: 'Endpoints', desc: 'Create, edit, and toggle endpoint prices' },
               { title: 'Settings', desc: 'API key, wallet address, network selection' },
             ].map(c => (
-              <div key={c.title} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 8, padding: 18 }}>
+              <div key={c.title} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: 18 }}>
                 <div style={{ fontSize: 13, fontWeight: 500, color: '#fff', marginBottom: 4 }}>{c.title}</div>
                 <div style={{ fontSize: 13, color: '#555', lineHeight: 1.5 }}>{c.desc}</div>
               </div>
@@ -1033,11 +1033,11 @@ curl https://api.gate402.dev/api/metrics \\
             { method: 'POST', path: '/api/verify-payment', auth: true, desc: 'Verify a Solana tx hash', response: '{ valid: boolean, amount, wallet }' },
             { method: 'GET', path: '/api/weather', auth: false, desc: 'Demo endpoint (requires 0.001 USDC payment)', response: '{ city, temp, humidity }' },
           ].map(ep => (
-            <div key={ep.path + ep.method} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 8, padding: 18, marginBottom: 10 }}>
+            <div key={ep.path + ep.method} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: 18, marginBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
-                <span style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 600, color: ep.method === 'GET' ? '#00bc7d' : ep.method === 'POST' ? '#3b82f6' : '#ef4444', background: ep.method === 'GET' ? 'rgba(0,188,125,0.1)' : ep.method === 'POST' ? 'rgba(59,130,246,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${ep.method === 'GET' ? 'rgba(0,188,125,0.2)' : ep.method === 'POST' ? 'rgba(59,130,246,0.2)' : 'rgba(239,68,68,0.2)'}`, borderRadius: 4, padding: '2px 8px', flexShrink: 0 }}>{ep.method}</span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 600, color: ep.method === 'GET' ? '#00bc7d' : ep.method === 'POST' ? '#3b82f6' : '#ef4444', background: ep.method === 'GET' ? 'rgba(0,188,125,0.1)' : ep.method === 'POST' ? 'rgba(59,130,246,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${ep.method === 'GET' ? 'rgba(0,188,125,0.2)' : ep.method === 'POST' ? 'rgba(59,130,246,0.2)' : 'rgba(239,68,68,0.2)'}`, borderRadius: 6, padding: '2px 8px', flexShrink: 0 }}>{ep.method}</span>
                 <code style={{ fontFamily: 'monospace', fontSize: 13, color: '#ccc' }}>{ep.path}</code>
-                {ep.auth && <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#9945FF', background: 'rgba(153,69,255,0.1)', border: '1px solid rgba(153,69,255,0.2)', borderRadius: 3, padding: '2px 6px' }}>Auth</span>}
+                {ep.auth && <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#9945FF', background: 'rgba(153,69,255,0.1)', border: '1px solid rgba(153,69,255,0.2)', borderRadius: 6, padding: '2px 6px' }}>Auth</span>}
               </div>
               <div style={{ fontSize: 13, color: '#555', marginBottom: 8 }}>{ep.desc}</div>
               <code style={{ fontFamily: 'monospace', fontSize: 12, color: '#444' }}>{ep.response}</code>
@@ -1045,7 +1045,7 @@ curl https://api.gate402.dev/api/metrics \\
           ))}
 
           <H2 id="error-codes">Error codes</H2>
-          <div style={{ border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '80px 120px 1fr', background: '#0d0d0d', borderBottom: '1px solid #1a1a1a', padding: '8px 16px', gap: 16 }}>
               {['HTTP', 'Code', 'Description'].map(h => (
                 <span key={h} style={{ fontFamily: 'monospace', fontSize: 10, color: '#333', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>

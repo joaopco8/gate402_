@@ -256,7 +256,7 @@ const ShinyText: React.FC<{ text: string }> = ({ text }) => (
         border: '1px solid #374151',
         color: '#00bc7d',
         padding: '4px 16px',
-        borderRadius: '9999px',
+        borderRadius: '6px',
         fontSize: '0.875rem',
         fontWeight: 500,
         cursor: 'pointer',
@@ -681,7 +681,7 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
             >
                 <motion.a
                     href="/docs"
-                    style={{ backgroundColor: 'transparent', color: '#fff', padding: '12px 32px', borderRadius: '8px', fontSize: '1rem', fontWeight: 500, border: '1px solid #374151', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                    style={{ backgroundColor: 'transparent', color: '#fff', padding: '12px 32px', borderRadius: '6px', fontSize: '1rem', fontWeight: 500, border: '1px solid #374151', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
                     whileHover={{ scale: 1.03, y: -1 }}
                     whileTap={{ scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 400, damping: 15 }}
@@ -690,7 +690,7 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
                 </motion.a>
                 <motion.a
                     href="/post-login"
-                    style={{ backgroundColor: '#00bc7d', color: '#111111', padding: '12px 32px', borderRadius: '8px', fontSize: '1rem', fontWeight: 600, border: 'none', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                    style={{ backgroundColor: '#00bc7d', color: '#111111', padding: '12px 32px', borderRadius: '6px', fontSize: '1rem', fontWeight: 600, border: 'none', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
                     whileHover={{ scale: 1.03, y: -1 }}
                     whileTap={{ scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 400, damping: 15 }}

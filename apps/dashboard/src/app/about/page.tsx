@@ -206,7 +206,7 @@ export default function AboutPage() {
             gap: 0,
             background: '#1a1a1a',
             border: '1px solid #1a1a1a',
-            borderRadius: 8,
+            borderRadius: 6,
             overflow: 'hidden',
           }}>
             {VALUES.map(({ icon, n, title, desc }, idx) => (
@@ -240,7 +240,7 @@ export default function AboutPage() {
             How we got here.
           </h2>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0, border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0, border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden' }}>
             {TIMELINE.map(({ period, label, desc }, i) => (
               <div key={i} style={{
                 display: 'grid',
@@ -278,7 +278,7 @@ export default function AboutPage() {
           <div style={{
             display: 'grid', gridTemplateColumns: '1fr 1fr',
             gap: 0, background: '#1a1a1a', border: '1px solid #1a1a1a',
-            borderRadius: 8, overflow: 'hidden',
+            borderRadius: 6, overflow: 'hidden',
           }}>
             <div style={{ background: '#101010', padding: '48px 40px', borderRight: '1px solid #1a1a1a' }}>
               <h2 style={{ fontFamily: FONT, fontWeight: 300, fontSize: 36, letterSpacing: '-0.02em', color: '#fff', marginBottom: 16 }}>

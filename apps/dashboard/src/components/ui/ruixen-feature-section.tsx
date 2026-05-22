@@ -34,7 +34,7 @@ const CARDS = [
     name: "Provider side — 3 lines. Done.",
     designation: "",
     content: (
-      <div style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10.5, lineHeight: 1.6, color: '#a3e635', background: '#1a1a1a', borderRadius: 8, padding: '8px 10px', overflow: 'hidden' }}>
+      <div style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10.5, lineHeight: 1.6, color: '#a3e635', background: '#1a1a1a', borderRadius: 6, padding: '8px 10px', overflow: 'hidden' }}>
         <span style={{ color: '#6b7280' }}>{'// 3 lines to monetize your API'}</span>{'\n'}
         <span style={{ color: '#818cf8' }}>import</span>{' { gate402 } '}<span style={{ color: '#818cf8' }}>from</span>{' '}<span style={{ color: '#86efac' }}>&apos;gate402&apos;</span>{'\n\n'}
         <span style={{ color: '#f472b6' }}>app</span><span style={{ color: '#e5e7eb' }}>.use(gate402({'{'}</span>{'\n'}
@@ -51,7 +51,7 @@ const CARDS = [
     name: "MCP side — per-tool pricing.",
     designation: "",
     content: (
-      <div style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10.5, lineHeight: 1.6, color: '#a3e635', background: '#1a1a1a', borderRadius: 8, padding: '8px 10px', overflow: 'hidden' }}>
+      <div style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10.5, lineHeight: 1.6, color: '#a3e635', background: '#1a1a1a', borderRadius: 6, padding: '8px 10px', overflow: 'hidden' }}>
         <span style={{ color: '#6b7280' }}>{'// Charge per tool call on your MCP server'}</span>{'\n'}
         <span style={{ color: '#818cf8' }}>import</span>{' { gate402MCP } '}<span style={{ color: '#818cf8' }}>from</span>{' '}<span style={{ color: '#86efac' }}>&apos;gate402&apos;</span>{'\n\n'}
         <span style={{ color: '#f472b6' }}>app</span><span style={{ color: '#e5e7eb' }}>.use(gate402MCP({'{'}</span>{'\n'}
@@ -72,7 +72,7 @@ const CARDS = [
     name: "Agent side — pays itself.",
     designation: "",
     content: (
-      <div style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10.5, lineHeight: 1.6, color: '#a3e635', background: '#1a1a1a', borderRadius: 8, padding: '8px 10px', overflow: 'hidden' }}>
+      <div style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 10.5, lineHeight: 1.6, color: '#a3e635', background: '#1a1a1a', borderRadius: 6, padding: '8px 10px', overflow: 'hidden' }}>
         <span style={{ color: '#6b7280' }}>{'// Agent pays automatically on HTTP 402'}</span>{'\n'}
         <span style={{ color: '#818cf8' }}>import</span>{' { Gate402Agent } '}<span style={{ color: '#818cf8' }}>from</span>{' '}<span style={{ color: '#86efac' }}>&apos;gate402-agent&apos;</span>{'\n\n'}
         <span style={{ color: '#818cf8' }}>const</span>{' agent = '}<span style={{ color: '#818cf8' }}>new</span>{' '}<span style={{ color: '#f472b6' }}>Gate402Agent</span><span style={{ color: '#e5e7eb' }}>({'{'}</span>{'\n'}

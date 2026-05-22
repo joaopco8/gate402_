@@ -39,7 +39,7 @@ export default function LoginPage() {
           background: '#fff',
           color: '#000',
           border: 'none',
-          borderRadius: 8,
+          borderRadius: 6,
           padding: '12px 24px',
           fontSize: 15,
           fontWeight: 500,

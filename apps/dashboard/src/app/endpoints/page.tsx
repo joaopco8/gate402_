@@ -216,7 +216,7 @@ function EndpointCard({
               style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
               onClick={e => { if (e.target === e.currentTarget && !deleting) { setShowDeleteModal(false); setDeleteError(null) } }}
             >
-              <div style={{ background: '#0d0d0d', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 12, width: 400, maxWidth: '90vw', padding: 28 }}>
+              <div style={{ background: '#0d0d0d', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 6, width: 400, maxWidth: '90vw', padding: 28 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -309,7 +309,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
       style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{ background: '#0d0d0d', border: '1px solid var(--border)', borderRadius: 12, width: 440, maxWidth: '90vw', padding: 28 }}>
+      <div style={{ background: '#0d0d0d', border: '1px solid var(--border)', borderRadius: 6, width: 440, maxWidth: '90vw', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', fontFamily: SANS }}>{title}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
@@ -519,7 +519,7 @@ function ActionsMenu({ ep, supabaseId, onRefresh, onEdit }: { ep: Endpoint; supa
     display: 'block', width: '100%', textAlign: 'left',
     padding: '9px 14px', background: 'none', border: 'none',
     fontSize: 13, cursor: 'pointer', fontFamily: SANS,
-    color: 'var(--text-primary)', borderRadius: 4,
+    color: 'var(--text-primary)', borderRadius: 6,
   }
 
   return (
@@ -540,7 +540,7 @@ function ActionsMenu({ ep, supabaseId, onRefresh, onEdit }: { ep: Endpoint; supa
         <div style={{
           position: 'absolute', right: 0, top: 'calc(100% + 4px)',
           background: '#0e0e0e', border: '1px solid var(--border)',
-          borderRadius: 8, minWidth: 180, zIndex: 200,
+          borderRadius: 6, minWidth: 180, zIndex: 200,
           padding: '4px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
         }}>
           <button

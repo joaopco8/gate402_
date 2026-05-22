@@ -629,7 +629,7 @@ export const Component = () => {
                     onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
                     onMouseLeave={e => (e.currentTarget.style.color = '#555')}
                   >{link.title}</Link>
-                  <div style={{ display: 'flex', width: 16, height: 16, alignItems: 'center', justifyContent: 'center', border: '1px solid #222', borderRadius: 4, opacity: 0, transition: 'opacity 300ms, transform 300ms' }}
+                  <div style={{ display: 'flex', width: 16, height: 16, alignItems: 'center', justifyContent: 'center', border: '1px solid #222', borderRadius: 6, opacity: 0, transition: 'opacity 300ms, transform 300ms' }}
                     className="footer-chevron"
                   >
                     <ChevronRightIcon style={{ width: 12, height: 12, color: '#555' }} />

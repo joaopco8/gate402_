@@ -70,7 +70,7 @@ export function FAQSection({
         {/* Image */}
         <div className="faq-img-col">
           <div style={{
-            borderRadius: '16px',
+            borderRadius: '6px',
             overflow: 'hidden',
             border: '1px solid rgba(255,255,255,0.08)',
             aspectRatio: '1 / 1',

@@ -12,7 +12,7 @@ export function Features() {
                 <div className="relative -mx-4 rounded-3xl p-3 md:-mx-12 lg:col-span-3">
                     <div style={{ perspective: '800px' }}>
                         <div style={{ transform: 'skewY(-2deg) skewX(-2deg) rotateX(6deg)' }}>
-                            <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid #1a1a1a' }}>
+                            <div style={{ position: 'relative', borderRadius: 6, overflow: 'hidden', border: '1px solid #1a1a1a' }}>
                                 {/* Bottom fade */}
                                 <div style={{
                                     position: 'absolute',

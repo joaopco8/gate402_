@@ -126,7 +126,7 @@ function AreaStatCard({
                     if (!active || !payload?.length) return null
                     const v = payload[0].value as number
                     return (
-                      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', backdropFilter: 'blur(4px)', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontFamily: MONO, color: 'var(--text-primary)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'none' }}>
+                      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', backdropFilter: 'blur(4px)', borderRadius: 6, padding: '6px 10px', fontSize: 12, fontFamily: MONO, color: 'var(--text-primary)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', pointerEvents: 'none' }}>
                         ${v.toFixed(5)}
                       </div>
                     )
@@ -174,7 +174,7 @@ function StatusBadge({ status }: { status: string }) {
     <span style={{
       fontFamily: MONO, fontSize: 11, color: s.color,
       background: s.bg, border: `1px solid ${s.border}`,
-      borderRadius: 4, padding: '2px 7px', whiteSpace: 'nowrap',
+      borderRadius: 6, padding: '2px 7px', whiteSpace: 'nowrap',
     }}>
       {status}
     </span>
@@ -292,7 +292,7 @@ export default function WalletPage() {
 
           {!walletAddr ? (
             <div>
-              <div style={{ padding: 14, background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 8, marginBottom: 14 }}>
+              <div style={{ padding: 14, background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 6, marginBottom: 14 }}>
                 <div style={{ fontSize: 13, fontWeight: 500, color: '#f59e0b', marginBottom: 4, fontFamily: SANS }}>No wallet configured</div>
                 <div style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: SANS }}>Add your Solana wallet in Settings to receive payments.</div>
               </div>

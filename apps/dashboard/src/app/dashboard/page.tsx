@@ -25,7 +25,7 @@ function Skeleton({ width = '100%', height = 16 }: { width?: string | number; he
       background: 'linear-gradient(90deg, var(--surface) 25%, var(--card-raised) 50%, var(--surface) 75%)',
       backgroundSize: '200% 100%',
       animation: 'shimmer 1.5s infinite',
-      borderRadius: 4,
+      borderRadius: 6,
     }} />
   )
 }
@@ -177,7 +177,7 @@ interface MiniTooltipProps { active?: boolean; payload?: TooltipPayload[]; label
 function MiniTooltip({ active, payload }: MiniTooltipProps) {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: '#18181b', color: '#fff', borderRadius: 8, padding: '8px 12px', fontSize: 12, fontFamily: 'var(--font-code)', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}>
+    <div style={{ background: '#18181b', color: '#fff', borderRadius: 6, padding: '8px 12px', fontSize: 12, fontFamily: 'var(--font-code)', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}>
       <div style={{ fontSize: 12, color: '#a1a1aa', marginBottom: 2 }}>Total</div>
       <div style={{ fontWeight: 600 }}>{payload[0].value} calls</div>
     </div>
@@ -386,7 +386,7 @@ function MeteringCard({ stats }: { stats: any }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
         <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Usage Metering</span>
-        <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 10, fontFamily: 'var(--font-code)', background: 'rgba(147,51,234,0.12)', color: '#a78bfa', border: '1px solid rgba(147,51,234,0.2)' }}>PRO</span>
+        <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-code)', background: 'rgba(147,51,234,0.12)', color: '#a78bfa', border: '1px solid rgba(147,51,234,0.2)' }}>PRO</span>
       </div>
 
       {/* Grid */}
@@ -394,7 +394,7 @@ function MeteringCard({ stats }: { stats: any }) {
         {byType.map((item: any) => {
           const meta = METERING_META[item.type] ?? { icon: '·', unit: '' }
           return (
-            <div key={item.type} style={{ padding: '14px 16px', background: 'var(--surface)', borderRadius: 8, border: '1px solid var(--border)' }}>
+            <div key={item.type} style={{ padding: '14px 16px', background: 'var(--surface)', borderRadius: 6, border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                 <span style={{ fontFamily: 'var(--font-code)', fontSize: 13, color: 'var(--text-muted)', width: 20, textAlign: 'center' }}>{meta.icon}</span>
                 <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{item.type}</span>

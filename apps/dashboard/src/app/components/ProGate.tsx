@@ -28,7 +28,7 @@ export function ProGate({ isPro, feature, children }: ProGateProps) {
         alignItems: 'center',
         justifyContent: 'center',
         background: 'rgba(13,13,13,0.75)',
-        borderRadius: 8,
+        borderRadius: 6,
         backdropFilter: 'blur(2px)',
         gap: 10,
       }}>

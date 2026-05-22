@@ -25,7 +25,7 @@ function Skeleton({ width = '100%', height = 16 }: { width?: string | number; he
       background: 'linear-gradient(90deg, var(--surface) 25%, var(--card-raised) 50%, var(--surface) 75%)',
       backgroundSize: '200% 100%',
       animation: 'shimmer 1.5s infinite',
-      borderRadius: 4,
+      borderRadius: 6,
     }} />
   )
 }
@@ -65,7 +65,7 @@ function StatusBadge({ status }: { status: string }) {
   }
   const s = cfg[status] ?? { bg: 'var(--surface)', color: 'var(--text-muted)' }
   return (
-    <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontFamily: MONO, background: s.bg, color: s.color }}>
+    <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 11, fontFamily: MONO, background: s.bg, color: s.color }}>
       {status}
     </span>
   )
@@ -197,7 +197,7 @@ export default function AnalyticsPage() {
                     content={({ active, payload, label }: any) => {
                       if (!active || !payload?.length) return null
                       return (
-                        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, fontFamily: MONO }}>
+                        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 12px', fontSize: 12, fontFamily: MONO }}>
                           <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>{label}</div>
                           <div style={{ color: GREEN }}>Gross: ${(payload[0]?.value as number)?.toFixed(5)}</div>
                           <div style={{ color: '#888' }}>Net: ${(payload[1]?.value as number)?.toFixed(5)}</div>

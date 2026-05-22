@@ -12,7 +12,7 @@ const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.de
 const cardStyle: React.CSSProperties = {
   background: '#111',
   border: '1px solid #222',
-  borderRadius: 8,
+  borderRadius: 6,
   padding: 24,
   marginBottom: 24,
 }
@@ -29,7 +29,7 @@ const primaryBtn: React.CSSProperties = {
   background: '#00bc7d',
   color: '#000',
   border: 'none',
-  borderRadius: 8,
+  borderRadius: 6,
   padding: '12px 20px',
   fontFamily: 'monospace',
   fontSize: 14,
@@ -43,7 +43,7 @@ const ghostBtn: React.CSSProperties = {
   background: 'transparent',
   color: '#555',
   border: '1px solid #333',
-  borderRadius: 8,
+  borderRadius: 6,
   padding: '12px 20px',
   fontFamily: 'monospace',
   fontSize: 13,
@@ -60,7 +60,7 @@ function StepIndicator({ current }: { current: number }) {
           style={{
             width: 28,
             height: 4,
-            borderRadius: 2,
+            borderRadius: 6,
             background: n <= current ? '#00bc7d' : '#222',
             transition: 'background 0.3s',
           }}

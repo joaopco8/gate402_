@@ -354,7 +354,7 @@ function LiveFeed() {
         </div>
 
         {/* feed */}
-        <div style={{ border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden', marginBottom: 40 }}>
+        <div style={{ border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden', marginBottom: 40 }}>
           {feedItems.map((item, i) => (
             <div
               key={item.id}
@@ -463,7 +463,7 @@ function HowItWorks() {
           gap: 0,
           background: '#1a1a1a',
           border: '1px solid #1a1a1a',
-          borderRadius: 8,
+          borderRadius: 6,
           overflow: 'hidden',
         }}>
           {HOW_STEPS.map(({ n, title, desc, snippet, snippetColor }, idx) => (
@@ -506,7 +506,7 @@ function HowItWorks() {
               <div className="mono" style={{
                 background: '#111111',
                 border: '1px solid #1a1a1a',
-                borderRadius: 4,
+                borderRadius: 6,
                 padding: '14px 16px',
                 marginTop: 24,
                 fontSize: 13,
@@ -651,7 +651,7 @@ function AgentFlow() {
         <div ref={ref} style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 24, marginBottom: 48 }} className="agent-flow-grid">
 
           {/* LEFT — Sequence diagram */}
-          <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 8, padding: 32, fontFamily: 'var(--font-mono, monospace)' }}>
+          <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 6, padding: 32, fontFamily: 'var(--font-mono, monospace)' }}>
 
             {/* Actors */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', marginBottom: 0 }}>
@@ -710,7 +710,7 @@ function AgentFlow() {
           </div>
 
           {/* RIGHT — Code snippet */}
-          <div style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 8, padding: 24 }}>
+          <div style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 6, padding: 24 }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
               <div style={{ display: 'flex', gap: 5 }}>
@@ -921,7 +921,7 @@ function CodeSection() {
         </div>
 
         {/* Right: code block */}
-        <div ref={codeRef} style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+        <div ref={codeRef} style={{ background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden' }}>
           {/* dots header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #1a1a1a' }}>
             <div style={{ display: 'flex', gap: 6 }}>
@@ -972,7 +972,7 @@ function CodeBlock({ lang, lines }: { lang: string; lines: CodeLine[] }) {
         <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333', letterSpacing: '0.06em' }}>{lang}</span>
         <button
           onClick={copy}
-          style={{ background: copied ? '#00bc7d15' : 'transparent', border: `1px solid ${copied ? '#00bc7d40' : '#222'}`, color: copied ? '#00bc7d' : '#444', borderRadius: 4, padding: '3px 10px', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, cursor: 'pointer', transition: 'all 0.15s' }}
+          style={{ background: copied ? '#00bc7d15' : 'transparent', border: `1px solid ${copied ? '#00bc7d40' : '#222'}`, color: copied ? '#00bc7d' : '#444', borderRadius: 6, padding: '3px 10px', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, cursor: 'pointer', transition: 'all 0.15s' }}
         >
           {copied ? 'Copied ✓' : 'Copy'}
         </button>
@@ -1018,7 +1018,7 @@ function ProviderSide() {
     {
       n: '01', title: 'Install',
       content: (
-        <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 4, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, color: '#00bc7d' }}>
+        <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 6, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, color: '#00bc7d' }}>
           npm install gate402
         </div>
       ),
@@ -1026,7 +1026,7 @@ function ProviderSide() {
     {
       n: '02', title: 'Add middleware',
       content: (
-        <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 4, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.7 }}>
+        <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 6, padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.7 }}>
           <span style={{ color: '#9945FF' }}>app</span><span style={{ color: '#ccc' }}>.use(gate402({'{'}</span><br />
           <span style={{ color: '#ccc' }}>{'  '}apiKey: </span><span style={{ color: '#00bc7d' }}>&apos;key&apos;</span><span style={{ color: '#ccc' }}>, price: </span><span style={{ color: '#f59e0b' }}>0.001</span><br />
           <span style={{ color: '#ccc' }}>{'}))'}</span>
@@ -1038,7 +1038,7 @@ function ProviderSide() {
       content: (
         <div>
           <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', lineHeight: 1.6, marginBottom: 12 }}>Payments go directly to your Solana wallet.</p>
-          <span style={{ display: 'inline-block', background: 'rgba(0,188,125,0.08)', border: '1px solid rgba(0,188,125,0.2)', color: '#00bc7d', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, padding: '4px 10px', borderRadius: 4 }}>Non-custodial</span>
+          <span style={{ display: 'inline-block', background: 'rgba(0,188,125,0.08)', border: '1px solid rgba(0,188,125,0.2)', color: '#00bc7d', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, padding: '4px 10px', borderRadius: 6 }}>Non-custodial</span>
         </div>
       ),
     },
@@ -1047,7 +1047,7 @@ function ProviderSide() {
       content: (
         <div>
           <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', lineHeight: 1.6, marginBottom: 12 }}>Agents receive HTTP 402 and pay automatically.</p>
-          <span style={{ display: 'inline-block', background: 'rgba(0,188,125,0.08)', border: '1px solid rgba(0,188,125,0.2)', color: '#00bc7d', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, padding: '4px 10px', borderRadius: 4 }}>✓ Done</span>
+          <span style={{ display: 'inline-block', background: 'rgba(0,188,125,0.08)', border: '1px solid rgba(0,188,125,0.2)', color: '#00bc7d', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, padding: '4px 10px', borderRadius: 6 }}>✓ Done</span>
         </div>
       ),
     },
@@ -1070,7 +1070,7 @@ function ProviderSide() {
               style={{
                 background: hoveredCard === i ? '#0f0f0f' : '#111111',
                 border: `1px solid ${hoveredCard === i ? '#2a2a2a' : '#1a1a1a'}`,
-                borderRadius: 8,
+                borderRadius: 6,
                 padding: 28,
                 transition: 'background 150ms, border-color 150ms',
               }}
@@ -1097,7 +1097,7 @@ function AgentSide() {
         </div>
 
         <div className="code-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 32 }}>
-          <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444' }}>with x402-fetch</span>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#00bc7d' }}>RECOMMENDED</span>
@@ -1112,7 +1112,7 @@ function AgentSide() {
             </div>
           </div>
 
-          <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444' }}>with any HTTP client</span>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#444' }}>MANUAL</span>
@@ -1213,7 +1213,7 @@ function HoodCard({ card }: { card: typeof HOOD_CARDS[number] }) {
           display: 'inline-block',
           fontFamily: 'var(--font-mono, monospace)', fontSize: 9, color: '#333',
           letterSpacing: '0.12em', background: '#111111', border: '1px solid #1a1a1a',
-          borderRadius: 3, padding: '3px 8px',
+          borderRadius: 6, padding: '3px 8px',
         }}>STEP {card.n}</span>
         {card.dot === 'amber' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />}
         {card.dot === 'green' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00bc7d', display: 'inline-block' }} />}
@@ -1226,7 +1226,7 @@ function HoodCard({ card }: { card: typeof HOOD_CARDS[number] }) {
         <div style={{
           display: 'inline-block', marginTop: 16,
           fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333',
-          background: '#111111', border: '1px solid #1a1a1a', borderRadius: 4, padding: '6px 12px',
+          background: '#111111', border: '1px solid #1a1a1a', borderRadius: 6, padding: '6px 12px',
         }}>{card.detail}</div>
       )}
     </div>
@@ -1255,7 +1255,7 @@ function HowItWorksTimeline() {
         <div style={{ height: 1, background: '#111', marginBottom: 48 }} />
 
         {/* Grid wrapper */}
-        <div style={{ background: '#111', borderRadius: 12, overflow: 'hidden' }}>
+        <div style={{ background: '#111', borderRadius: 6, overflow: 'hidden' }}>
           {/* 7 cards in 2-column grid */}
           <div className="hood-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
             {HOOD_CARDS.map((card) => (
@@ -1290,7 +1290,7 @@ function HowItWorksTimeline() {
                     display: 'inline-block',
                     fontFamily: 'var(--font-mono, monospace)', fontSize: 9, color: '#333',
                     letterSpacing: '0.12em', background: '#111111', border: '1px solid #1a1a1a',
-                    borderRadius: 3, padding: '3px 8px',
+                    borderRadius: 6, padding: '3px 8px',
                   }}>STEP 08</span>
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00bc7d', display: 'inline-block' }} />
                 </div>
@@ -1304,7 +1304,7 @@ function HowItWorksTimeline() {
               <div style={{
                 flexShrink: 0, zIndex: 1,
                 background: 'rgba(0,188,125,0.06)', border: '1px solid rgba(0,188,125,0.15)',
-                borderRadius: 8, padding: '20px 32px',
+                borderRadius: 6, padding: '20px 32px',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
               }}>
                 <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 24, color: '#00bc7d', fontWeight: 600 }}>200 OK</span>
@@ -1442,7 +1442,7 @@ function Pricing() {
           <div style={{
             background: '#0d0d0d',
             border: '1px solid #1a1a1a',
-            borderRadius: 8,
+            borderRadius: 6,
             padding: 28,
             display: 'flex',
             flexDirection: 'column',
@@ -1480,7 +1480,7 @@ function Pricing() {
           <div style={{
             background: '#0d0d0d',
             border: '1px solid rgba(0,188,125,0.25)',
-            borderRadius: 8,
+            borderRadius: 6,
             padding: 28,
             display: 'flex',
             flexDirection: 'column',
@@ -1554,7 +1554,7 @@ function Pricing() {
           <div style={{
             background: '#0d0d0d',
             border: '1px solid #1a1a1a',
-            borderRadius: 8,
+            borderRadius: 6,
             padding: 28,
             display: 'flex',
             flexDirection: 'column',
@@ -1654,7 +1654,7 @@ function GetStarted() {
               style={{
                 background: '#161616',
                 border: '1px solid #222222',
-                borderRadius: 12,
+                borderRadius: 6,
                 padding: '28px 24px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1671,7 +1671,7 @@ function GetStarted() {
                 <span style={{
                   fontSize: 11, fontWeight: 500, color: '#00bc7d',
                   background: 'rgba(0,188,125,0.1)', border: '1px solid rgba(0,188,125,0.2)',
-                  borderRadius: 4, padding: '2px 8px', whiteSpace: 'nowrap',
+                  borderRadius: 6, padding: '2px 8px', whiteSpace: 'nowrap',
                 }}>
                   {opt.badge}
                 </span>
@@ -1696,7 +1696,7 @@ function GetStarted() {
                     background: copied === opt.cmd ? 'rgba(0,188,125,0.1)' : 'transparent',
                     border: `1px solid ${copied === opt.cmd ? 'rgba(0,188,125,0.3)' : '#333'}`,
                     color: copied === opt.cmd ? '#00bc7d' : '#555',
-                    borderRadius: 4, padding: '3px 10px',
+                    borderRadius: 6, padding: '3px 10px',
                     fontFamily: 'var(--font-mono, monospace)', fontSize: 11,
                     cursor: 'pointer', transition: 'all 0.15s',
                   }}
@@ -1838,7 +1838,7 @@ function MacTerminal() {
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
         border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 12, overflow: 'hidden',
+        borderRadius: 6, overflow: 'hidden',
         boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.06)',
       }}>
         {/* titlebar */}
@@ -2017,7 +2017,7 @@ function InstallSection() {
             }}
           >
             {/* Badge */}
-            <div style={{ display: 'inline-block', fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#444', letterSpacing: '0.12em', border: '1px solid #1a1a1a', borderRadius: 3, padding: '3px 8px', marginBottom: 32 }}>
+            <div style={{ display: 'inline-block', fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#444', letterSpacing: '0.12em', border: '1px solid #1a1a1a', borderRadius: 6, padding: '3px 8px', marginBottom: 32 }}>
               {panel.badge}
             </div>
 

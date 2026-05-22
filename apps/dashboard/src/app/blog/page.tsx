@@ -172,7 +172,7 @@ function Tag({ post }: { post: Post }) {
   return (
     <span style={{
       display: 'inline-block',
-      padding: '3px 10px', borderRadius: 100,
+      padding: '3px 10px', borderRadius: 6,
       fontSize: 11, fontFamily: MONO, letterSpacing: '0.04em',
       color: post.tagColor, background: post.tagBg, border: `1px solid ${post.tagBorder}`,
     }}>{post.tag}</span>
@@ -342,7 +342,7 @@ export default function BlogPage() {
           <div style={{
             display: 'grid', gridTemplateColumns: '1fr auto', gap: 40,
             alignItems: 'center',
-            border: '1px solid #1a1a1a', borderRadius: 8,
+            border: '1px solid #1a1a1a', borderRadius: 6,
             background: '#101010', padding: '48px 48px',
           }}>
             <div>

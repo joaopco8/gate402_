@@ -240,7 +240,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
             <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 49 }} />
             <div style={{
               position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, right: 0,
-              background: '#0A0A0A', border: '1px solid #1a1a1a', borderRadius: 8,
+              background: '#0A0A0A', border: '1px solid #1a1a1a', borderRadius: 6,
               zIndex: 50, overflow: 'hidden',
             }}>
               {/* Account header */}
@@ -272,7 +272,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', gap: 5,
                       background: 'rgba(0,188,125,0.08)', color: '#00bc7d',
-                      border: '1px solid rgba(0,188,125,0.2)', borderRadius: 4,
+                      border: '1px solid rgba(0,188,125,0.2)', borderRadius: 6,
                       padding: '2px 8px', fontSize: 10,
                       fontFamily: 'var(--font-code)',
                     }}>✦ Pro</span>

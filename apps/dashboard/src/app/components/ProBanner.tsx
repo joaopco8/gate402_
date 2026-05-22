@@ -7,7 +7,7 @@ export function ProBanner({ isPro }: { isPro: boolean }) {
     <div style={{
       background: '#161616',
       border: '1px solid #222',
-      borderRadius: 8,
+      borderRadius: 6,
       padding: '12px 20px',
       display: 'flex',
       alignItems: 'center',

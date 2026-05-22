@@ -155,7 +155,7 @@ export default function ResetPage() {
 
       <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1, background: 'linear-gradient(to bottom, transparent 0%, #111111 90%), radial-gradient(ellipse at center, transparent 40%, #111111 95%)' }} />
 
-      <a href="/" style={{ position: 'absolute', top: 20, left: 20, zIndex: 20, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid #2a2a2a', background: 'rgba(17,17,17,0.7)', backdropFilter: 'blur(8px)', color: '#999', fontSize: 13, textDecoration: 'none', transition: 'color 0.15s, border-color 0.15s' }}
+      <a href="/" style={{ position: 'absolute', top: 20, left: 20, zIndex: 20, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 6, border: '1px solid #2a2a2a', background: 'rgba(17,17,17,0.7)', backdropFilter: 'blur(8px)', color: '#999', fontSize: 13, textDecoration: 'none', transition: 'color 0.15s, border-color 0.15s' }}
         onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#fff'; (e.currentTarget as HTMLAnchorElement).style.borderColor = '#444' }}
         onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#999'; (e.currentTarget as HTMLAnchorElement).style.borderColor = '#2a2a2a' }}
       >

@@ -40,7 +40,7 @@ function StatusBadge({ status }: { status: number }) {
     : status === 0
     ? { bg: 'rgba(100,100,100,0.1)', border: 'rgba(100,100,100,0.3)', color: '#888', label: 'Error' }
     : { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', color: '#ef4444', label: String(status) }
-  return <span style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color, borderRadius: 4, padding: '2px 8px', fontSize: 11, fontFamily: MONO, fontWeight: 500 }}>{cfg.label}</span>
+  return <span style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color, borderRadius: 6, padding: '2px 8px', fontSize: 11, fontFamily: MONO, fontWeight: 500 }}>{cfg.label}</span>
 }
 
 const METHOD_COLORS: Record<string, { color: string; bg: string; border: string }> = {
@@ -50,7 +50,7 @@ const METHOD_COLORS: Record<string, { color: string; bg: string; border: string 
 
 function MethodBadge({ method }: { method: string }) {
   const cfg = METHOD_COLORS[method] ?? METHOD_COLORS.GET
-  return <span style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color, borderRadius: 4, padding: '2px 8px', fontSize: 11, fontFamily: MONO, fontWeight: 600 }}>{method}</span>
+  return <span style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color, borderRadius: 6, padding: '2px 8px', fontSize: 11, fontFamily: MONO, fontWeight: 600 }}>{method}</span>
 }
 
 function timeAgo(ts: number) {
@@ -127,7 +127,7 @@ export default function PlaygroundPage() {
     } finally { setLoading(null) }
   }
 
-  const panelBox: React.CSSProperties = { background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 10, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }
+  const panelBox: React.CSSProperties = { background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 6, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }
 
   return (
     <DashboardLayout>
@@ -147,7 +147,7 @@ export default function PlaygroundPage() {
                   <div style={{ display: 'flex', background: '#111', border: '1px solid #1a1a1a', borderRadius: 6, padding: 2, flexShrink: 0 }}>
                     {(['GET', 'POST'] as const).map(m => (
                       <button key={m} onClick={() => setMethod(m)}
-                        style={{ padding: '6px 14px', borderRadius: 4, border: 'none', cursor: 'pointer', fontFamily: MONO, fontSize: 12, fontWeight: 600, transition: 'all 150ms',
+                        style={{ padding: '6px 14px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: MONO, fontSize: 12, fontWeight: 600, transition: 'all 150ms',
                           background: method === m ? METHOD_COLORS[m].bg : 'transparent',
                           color: method === m ? METHOD_COLORS[m].color : '#444',
                           outline: method === m ? `1px solid ${METHOD_COLORS[m].border}` : 'none',
@@ -197,18 +197,18 @@ export default function PlaygroundPage() {
                         <MethodBadge method={response.method} />
                         <span style={{ fontFamily: MONO, fontSize: 11, color: '#444' }}>{response.timeMs}ms</span>
                         <button onClick={() => { navigator.clipboard.writeText(JSON.stringify(response.data, null, 2)); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-                          style={{ marginLeft: 'auto', background: 'none', border: '1px solid #1a1a1a', borderRadius: 4, color: copied ? '#00bc7d' : '#444', fontSize: 11, fontFamily: MONO, padding: '3px 10px', cursor: 'pointer' }}>
+                          style={{ marginLeft: 'auto', background: 'none', border: '1px solid #1a1a1a', borderRadius: 6, color: copied ? '#00bc7d' : '#444', fontSize: 11, fontFamily: MONO, padding: '3px 10px', cursor: 'pointer' }}>
                           {copied ? 'Copied' : 'Copy'}
                         </button>
                       </div>
-                      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 8, padding: 14 }}>
+                      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: 14 }}>
                         <JsonDisplay data={response.data} />
                       </div>
                     </div>
                   )}
                   {activeTab === 'headers' && !response && <div style={{ color: '#2a2a2a', fontFamily: MONO, fontSize: 12 }}>Make a request to see headers</div>}
                   {activeTab === 'headers' && response && (
-                    <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 8, padding: 14 }}>
+                    <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: 14 }}>
                       {Object.entries(response.headers).map(([k, v]) => (
                         <div key={k} style={{ marginBottom: 6 }}><span style={{ color: '#555', fontFamily: MONO, fontSize: 12 }}>{k}: </span><span style={{ color: '#aaa', fontFamily: MONO, fontSize: 12 }}>{v}</span></div>
                       ))}
@@ -220,11 +220,11 @@ export default function PlaygroundPage() {
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
                         <button onClick={() => { navigator.clipboard.writeText(response.curlCmd); setCurlCopied(true); setTimeout(() => setCurlCopied(false), 2000) }}
-                          style={{ background: 'none', border: '1px solid #1a1a1a', borderRadius: 4, color: curlCopied ? '#00bc7d' : '#444', fontSize: 11, fontFamily: MONO, padding: '3px 10px', cursor: 'pointer' }}>
+                          style={{ background: 'none', border: '1px solid #1a1a1a', borderRadius: 6, color: curlCopied ? '#00bc7d' : '#444', fontSize: 11, fontFamily: MONO, padding: '3px 10px', cursor: 'pointer' }}>
                           {curlCopied ? 'Copied' : 'Copy cURL'}
                         </button>
                       </div>
-                      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 8, padding: 14 }}>
+                      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: 14 }}>
                         <pre style={{ margin: 0, color: '#aaa', fontFamily: MONO, fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{response.curlCmd}</pre>
                       </div>
                     </div>
@@ -258,7 +258,7 @@ export default function PlaygroundPage() {
             </Panel>
 
             <PanelResizeHandle style={{ width: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'col-resize', flexShrink: 0 }}>
-              <div style={{ width: 2, height: 40, background: '#1a1a1a', borderRadius: 2 }} />
+              <div style={{ width: 2, height: 40, background: '#1a1a1a', borderRadius: 6 }} />
             </PanelResizeHandle>
 
             {/* RIGHT PANELS */}
@@ -294,7 +294,7 @@ export default function PlaygroundPage() {
                 {history.length > 0 && (
                   <>
                     <PanelResizeHandle style={{ height: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'row-resize', flexShrink: 0 }}>
-                      <div style={{ height: 2, width: 40, background: '#1a1a1a', borderRadius: 2 }} />
+                      <div style={{ height: 2, width: 40, background: '#1a1a1a', borderRadius: 6 }} />
                     </PanelResizeHandle>
                     <Panel defaultSize={35} minSize={18}>
                       <div style={panelBox}>
@@ -322,7 +322,7 @@ export default function PlaygroundPage() {
                                     <JsonDisplay data={h.data} />
                                   </div>
                                   <button onClick={() => { setResponse(h); setActiveTab('response'); setExpandedHistory(null) }}
-                                    style={{ padding: '5px 12px', background: 'transparent', border: '1px solid #1a1a1a', borderRadius: 5, fontSize: 12, color: '#555', fontFamily: SANS, cursor: 'pointer' }}>
+                                    style={{ padding: '5px 12px', background: 'transparent', border: '1px solid #1a1a1a', borderRadius: 6, fontSize: 12, color: '#555', fontFamily: SANS, cursor: 'pointer' }}>
                                     Use this response
                                   </button>
                                 </div>

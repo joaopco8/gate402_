@@ -123,7 +123,7 @@ const sidebarTransition = { type: 'tween' as const, ease: 'easeOut' as const, du
 // ─── NavItem ──────────────────────────────────────────────────────────────────
 
 function NavItem({ label, href, Icon, active, pro, isPro, collapsed }: {
-  label: string; href: string; Icon: () => JSX.Element
+  label: string; href: string; Icon: () => React.ReactElement
   active: boolean; pro?: boolean; isPro: boolean; collapsed: boolean
 }) {
   const [hovered, setHovered] = useState(false)
@@ -162,7 +162,7 @@ function NavItem({ label, href, Icon, active, pro, isPro, collapsed }: {
           <span style={{
             fontSize: 9, fontWeight: 600,
             color: 'var(--brand-primary)', background: 'var(--brand-muted)',
-            border: '1px solid var(--brand-border)', borderRadius: 3,
+            border: '1px solid var(--brand-border)', borderRadius: 6,
             padding: '1px 4px', letterSpacing: '0.08em', lineHeight: 1.4,
           }}>PRO</span>
         )}
@@ -252,7 +252,7 @@ function DocsSearch() {
         <span style={{
           fontSize: 10, color: 'var(--text-disabled)',
           background: 'var(--bg-overlay)', border: '1px solid var(--border-default)',
-          borderRadius: 3, padding: '1px 5px', fontFamily: 'var(--font-mono)',
+          borderRadius: 6, padding: '1px 5px', fontFamily: 'var(--font-mono)',
         }}>⌘K</span>
       </button>
 
@@ -338,7 +338,7 @@ function DocsSearch() {
             }}>
               {[['↑↓', 'navigate'], ['↵', 'open'], ['esc', 'close']].map(([key, desc]) => (
                 <span key={key} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-muted)' }}>
-                  <kbd style={{ background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 3, padding: '1px 5px', fontFamily: 'var(--font-mono)', fontSize: 10 }}>{key}</kbd>
+                  <kbd style={{ background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 6, padding: '1px 5px', fontFamily: 'var(--font-mono)', fontSize: 10 }}>{key}</kbd>
                   {desc}
                 </span>
               ))}

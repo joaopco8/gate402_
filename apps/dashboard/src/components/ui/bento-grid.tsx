@@ -90,7 +90,7 @@ function BentoCard({ item }: { item: BentoItem }) {
             style={{
                 position: 'relative',
                 padding: '16px',
-                borderRadius: '12px',
+                borderRadius: '6px',
                 overflow: 'hidden',
                 transition: 'all 0.3s',
                 border: '1px solid rgba(255,255,255,0.1)',
@@ -119,7 +119,7 @@ function BentoCard({ item }: { item: BentoItem }) {
                 position: 'absolute',
                 inset: 0,
                 zIndex: -1,
-                borderRadius: '12px',
+                borderRadius: '6px',
                 padding: '1px',
                 background: active
                     ? 'linear-gradient(135deg, transparent, rgba(255,255,255,0.08), transparent)'
@@ -134,7 +134,7 @@ function BentoCard({ item }: { item: BentoItem }) {
                     <div style={{
                         width: '32px',
                         height: '32px',
-                        borderRadius: '8px',
+                        borderRadius: '6px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -149,7 +149,7 @@ function BentoCard({ item }: { item: BentoItem }) {
                         fontSize: '0.75rem',
                         fontWeight: 500,
                         padding: '4px 8px',
-                        borderRadius: '8px',
+                        borderRadius: '6px',
                         backdropFilter: 'blur(4px)',
                         background: active ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)',
                         color: 'rgba(255,255,255,0.7)',

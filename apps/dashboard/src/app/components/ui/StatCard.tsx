@@ -32,7 +32,7 @@ export function StatCard({
           height: 28,
           width: 120,
           background: 'var(--bg-overlay)',
-          borderRadius: 4,
+          borderRadius: 6,
           animation: 'pulse 1.5s ease-in-out infinite',
         }} />
       ) : (

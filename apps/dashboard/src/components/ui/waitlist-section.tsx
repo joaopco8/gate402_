@@ -132,7 +132,7 @@ export function WaitlistSection() {
                     style={{
                       flex: 1,
                       height: 44,
-                      borderRadius: 10,
+                      borderRadius: 6,
                       border: '1px solid rgba(255,255,255,0.1)',
                       background: 'rgba(255,255,255,0.04)',
                       color: '#fff',
@@ -147,7 +147,7 @@ export function WaitlistSection() {
                     style={{
                       height: 44,
                       padding: '0 20px',
-                      borderRadius: 10,
+                      borderRadius: 6,
                       border: 'none',
                       background: status === 'loading' ? 'rgba(0,188,125,0.5)' : '#00bc7d',
                       color: '#000',

@@ -87,7 +87,7 @@ const Badge = ({ text }: { text: string }) => (
     fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
     color: '#00bc7d', background: 'rgba(0,188,125,0.12)',
     border: '1px solid rgba(0,188,125,0.25)',
-    borderRadius: 3, padding: '1px 5px',
+    borderRadius: 6, padding: '1px 5px',
     verticalAlign: 'middle', marginLeft: 6,
   }}>
     {text}
@@ -127,7 +127,7 @@ const Divider = () => (
 const DropdownPanel = ({ sections, grid }: { sections: DropdownSection[]; grid?: boolean }) => (
   <div style={{
     background: '#111111', border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: 10, boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
+    borderRadius: 6, boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
     padding: 8, minWidth: grid ? 320 : 240,
   }}>
     {sections.map((section, si) => (
