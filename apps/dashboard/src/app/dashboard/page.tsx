@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useRef, useMemo, useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ComposedChart, Area, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
@@ -263,6 +264,52 @@ function MiniChart({ data, days = 7 }: { data: Array<{ date: string; count: numb
 
 // ── RecentCalls ───────────────────────────────────────────────────────────────
 
+const rowVariants = {
+  hidden:  { opacity: 0, y: 16, scale: 0.98, filter: 'blur(3px)' },
+  visible: { opacity: 1, y: 0,  scale: 1,    filter: 'blur(0px)',
+    transition: { type: 'spring' as const, stiffness: 400, damping: 28, mass: 0.7 } },
+}
+const containerVariants = {
+  visible: { transition: { staggerChildren: 0.045, delayChildren: 0.05 } },
+}
+
+function EndpointIcon({ path }: { path: string }) {
+  const letter = (path?.replace(/^\//, '')[0] ?? '?').toUpperCase()
+  return (
+    <div style={{
+      width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+      background: 'rgba(0,98,57,0.18)', border: '1px solid rgba(18,131,83,0.35)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600, color: '#3ECF8E' }}>
+        {letter}
+      </span>
+    </div>
+  )
+}
+
+function Sparkline({ data }: { data: number[] }) {
+  if (!data || data.length < 2) return null
+  const min = Math.min(...data)
+  const max = Math.max(...data)
+  const range = max - min || 1
+  const pts = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * 56
+    const y = 16 - ((v - min) / range) * 13
+    return `${x},${y}`
+  }).join(' ')
+  return (
+    <motion.svg width="56" height="16" viewBox="0 0 56 16" style={{ overflow: 'visible' }}
+      initial={{ opacity: 0, scaleX: 0.7 }} animate={{ opacity: 1, scaleX: 1 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.2 }}>
+      <motion.polyline points={pts} fill="none" stroke="#3ECF8E" strokeWidth="1.5"
+        strokeLinecap="round" strokeLinejoin="round"
+        initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
+        transition={{ duration: 0.7, ease: 'easeOut', delay: 0.25 }} />
+    </motion.svg>
+  )
+}
+
 function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean; isPro: boolean }) {
   const timeAgo = (date: string) => {
     const diff = Date.now() - new Date(date).getTime()
@@ -275,51 +322,117 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
     return `${d}d ago`
   }
 
+  // Build per-endpoint sparkline data from the calls list
+  const sparkMap = useMemo(() => {
+    const map: Record<string, number[]> = {}
+    ;[...calls].reverse().forEach(c => {
+      const k = c.endpoint || '/'
+      if (!map[k]) map[k] = []
+      map[k].push(Number(c.amountUsdc) || 0)
+    })
+    return map
+  }, [calls])
+
+  const COLS = '36px 1fr 90px 120px 64px 90px'
+
   return (
-    <Card style={{ padding: 0 }}>
-      {/* Header row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 150px 80px', padding: '10px 20px', borderBottom: '1px solid var(--border)', background: 'var(--surface)', borderRadius: '12px 12px 0 0' }}>
-        {['Endpoint', 'Amount', 'Payer', 'Time'].map(h => (
-          <span key={h} style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-faint)', }}>{h}</span>
+    <div style={{ borderRadius: 6, border: '1px solid var(--border-default)', background: 'var(--bg-surface)', overflow: 'hidden' }}>
+
+      {/* Header */}
+      <div style={{ display: 'grid', gridTemplateColumns: COLS, columnGap: 8,
+        padding: '9px 20px', borderBottom: '1px solid var(--border-default)',
+        background: 'var(--bg-base)' }}>
+        {['', 'Endpoint', 'Amount', 'Payer', 'Chart', 'Time'].map(h => (
+          <span key={h} style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+            color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            {h}
+          </span>
         ))}
       </div>
 
       {loading ? (
         Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} style={{ padding: '13px 20px', borderBottom: '1px solid var(--border)' }}>
+          <div key={i} style={{ padding: '13px 20px', borderBottom: '1px solid var(--border-default)' }}>
             <Skeleton height={13} />
           </div>
         ))
       ) : calls.length === 0 ? (
-        <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-faint)', fontFamily: 'var(--font-code)', fontSize: 12 }}>
+        <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)',
+          fontFamily: 'var(--font-mono)', fontSize: 12 }}>
           No calls yet — make your first request
         </div>
       ) : (
-        calls.map((call, i) => (
-          <div key={call.id} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 150px 80px', padding: '10px 20px', borderBottom: i < calls.length - 1 ? '1px solid var(--border)' : 'none', alignItems: 'center' }}>
-            <span style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {call.endpoint || '—'}
-            </span>
-            <span style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--green)' }}>
-              {call.amountUsdc ? `$${Number(call.amountUsdc).toFixed(5)}` : '—'}
-            </span>
-            <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-secondary)' }}>
-              {call.payerWallet ? `${call.payerWallet.slice(0, 6)}...${call.payerWallet.slice(-4)}` : 'anonymous'}
-            </span>
-            <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-muted)' }}>
-              {call.createdAt ? timeAgo(call.createdAt) : '—'}
-            </span>
-          </div>
-        ))
+        <motion.div variants={containerVariants} initial="hidden" animate="visible">
+          {calls.map((call, i) => {
+            const amount = call.amountUsdc ? Number(call.amountUsdc) : null
+            const spark = sparkMap[call.endpoint || '/'] ?? []
+            const isPaid = !!amount && amount > 0
+            return (
+              <motion.div key={call.id} variants={rowVariants}>
+                <div style={{
+                  display: 'grid', gridTemplateColumns: COLS, columnGap: 8,
+                  padding: '11px 20px', alignItems: 'center',
+                  borderBottom: i < calls.length - 1 ? '1px solid var(--border-default)' : 'none',
+                  transition: 'background 120ms',
+                }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.025)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <EndpointIcon path={call.endpoint} />
+
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12,
+                    color: 'var(--text-primary)', overflow: 'hidden',
+                    textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>
+                    {call.endpoint || '—'}
+                  </span>
+
+                  {/* Amount badge */}
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center',
+                    padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 500,
+                    fontFamily: 'var(--font-mono)',
+                    background: isPaid ? 'rgba(0,98,57,0.18)' : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${isPaid ? 'rgba(18,131,83,0.4)' : 'var(--border-default)'}`,
+                    color: isPaid ? '#3ECF8E' : 'var(--text-muted)',
+                  }}>
+                    {amount ? `$${amount.toFixed(5)}` : 'free'}
+                  </div>
+
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                    color: 'var(--text-secondary)', overflow: 'hidden',
+                    textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {call.payerWallet
+                      ? `${call.payerWallet.slice(0, 4)}…${call.payerWallet.slice(-4)}`
+                      : 'anon'}
+                  </span>
+
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Sparkline data={spark.length >= 2 ? spark : [0, amount ?? 0, amount ?? 0]} />
+                  </div>
+
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                    color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                    {call.createdAt ? timeAgo(call.createdAt) : '—'}
+                  </span>
+                </div>
+              </motion.div>
+            )
+          })}
+        </motion.div>
       )}
 
       {!isPro && !loading && calls.length >= 5 && (
-        <div style={{ padding: '10px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '0 0 12px 12px' }}>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-code)' }}>Showing last 5 calls</span>
-          <a href="/billing" style={{ fontSize: 12, color: 'var(--green)', fontFamily: 'var(--font-code)' }}>Upgrade for last 50 →</a>
+        <div style={{ padding: '10px 20px', borderTop: '1px solid var(--border-default)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+            Showing last 5 calls
+          </span>
+          <a href="/billing" style={{ fontSize: 12, color: '#3ECF8E', fontFamily: 'var(--font-mono)' }}>
+            Upgrade for last 50 →
+          </a>
         </div>
       )}
-    </Card>
+    </div>
   )
 }
 
