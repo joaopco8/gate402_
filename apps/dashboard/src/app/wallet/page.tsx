@@ -472,12 +472,15 @@ export default function WalletPage() {
           </div>
 
           {network !== 'mainnet' && (
-            <a href="/settings"
-              style={{ display: 'inline-block', padding: '8px 16px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, fontSize: 13, fontFamily: SANS, color: 'var(--text-secondary)', textDecoration: 'none', transition: 'all 150ms' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.color = 'var(--green)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)' }}>
-              Switch to Mainnet →
-            </a>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <a href="/settings"
+                style={{ display: 'inline-block', padding: '8px 16px', background: '#006239', border: '0.5px solid #128353', borderRadius: 6, fontSize: 13, fontFamily: SANS, color: '#fff', textDecoration: 'none', fontWeight: 500 }}>
+                Switch to Mainnet →
+              </a>
+              <span style={{ display: 'inline-flex', alignItems: 'center', padding: '8px 14px', background: '#242424', border: '0.5px solid #363636', borderRadius: 6, fontSize: 12, fontFamily: MONO, color: 'var(--text-muted)' }}>
+                Currently on Devnet
+              </span>
+            </div>
           )}
         </Card>
 
