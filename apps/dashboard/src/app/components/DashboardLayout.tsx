@@ -4,85 +4,92 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
 import Link from 'next/link'
 import { useUser } from '../hooks/useUser'
+import { motion } from 'framer-motion'
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
+
+const IconOverview = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+    <rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+    <rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+    <rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+  </svg>
+)
+const IconAnalytics = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M1 12l4-4 3 3 4-5 3 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+const IconWallet = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <rect x="1" y="4" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M1 7h14" stroke="currentColor" strokeWidth="1.5"/>
+    <circle cx="12" cy="10" r="1" fill="currentColor"/>
+  </svg>
+)
+const IconEndpoints = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <circle cx="3.5" cy="8" r="2" stroke="currentColor" strokeWidth="1.5"/>
+    <circle cx="12.5" cy="4" r="1.5" stroke="currentColor" strokeWidth="1.5"/>
+    <circle cx="12.5" cy="12" r="1.5" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M5.4 7l5.6-2M5.4 9l5.6 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+)
+const IconPlayground = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M4 3l8 5-8 5V3z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+  </svg>
+)
+const IconDocs = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M3 2h7l3 3v9a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M10 2v3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+)
+const IconBilling = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <rect x="1" y="3" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M1 7h14" stroke="currentColor" strokeWidth="1.5"/>
+  </svg>
+)
+const IconSettings = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+)
 
 const NAV_ITEMS = [
-  {
-    label: 'Overview',
-    href: '/dashboard',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-        <rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-        <rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-        <rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-      </svg>
-    )
-  },
-  {
-    label: 'Analytics',
-    href: '/analytics',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M1 12l4-4 3 3 4-5 3 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-    pro: true
-  },
-  {
-    label: 'Wallet',
-    href: '/wallet',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="1" y="4" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M1 7h14" stroke="currentColor" strokeWidth="1.5"/>
-        <circle cx="12" cy="10" r="1" fill="currentColor"/>
-      </svg>
-    )
-  },
-  {
-    label: 'Endpoints',
-    href: '/endpoints',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M2 8h12M8 2l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    )
-  },
-  {
-    label: 'Playground',
-    href: '/playground',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M4 3l8 5-8 5V3z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-      </svg>
-    )
-  },
+  { label: 'Overview',   href: '/dashboard',  Icon: IconOverview },
+  { label: 'Analytics',  href: '/analytics',  Icon: IconAnalytics, pro: true },
+  { label: 'Wallet',     href: '/wallet',     Icon: IconWallet },
+  { label: 'Endpoints',  href: '/endpoints',  Icon: IconEndpoints },
+  { label: 'Playground', href: '/playground', Icon: IconPlayground },
+  { label: 'Docs',       href: '/docs',       Icon: IconDocs },
+  { label: 'Billing',    href: '/billing',    Icon: IconBilling },
+  { label: 'Settings',   href: '/settings',   Icon: IconSettings },
 ]
 
-const BOTTOM_ITEMS = [
-  { label: 'Docs', href: '/docs', icon: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M3 2h7l3 3v9a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M10 2v3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-  )},
-  { label: 'Billing', href: '/billing', icon: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <rect x="1" y="3" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M1 7h14" stroke="currentColor" strokeWidth="1.5"/>
-    </svg>
-  )},
-  { label: 'Settings', href: '/settings', icon: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-  )},
-]
+// ─── Framer variants ──────────────────────────────────────────────────────────
+
+const sidebarVariants = {
+  open:   { width: '220px' },
+  closed: { width: '52px' },
+}
+
+const labelVariants = {
+  open:   { opacity: 1, x: 0,   display: 'block', transition: { duration: 0.15 } },
+  closed: { opacity: 0, x: -8,  transition: { duration: 0.1 }, transitionEnd: { display: 'none' } },
+}
+
+const transition = { type: 'tween' as const, ease: 'easeOut' as const, duration: 0.18 }
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const router = useRouter()
+  const [collapsed, setCollapsed] = useState(true)
   const [email, setEmail] = useState<string | null>(null)
   const { userData } = useUser()
   const isPro = userData?.plan === 'pro' || userData?.plan === 'enterprise'
@@ -96,14 +103,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     load()
   }, [])
 
-  async function handleLogout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/auth/login')
-  }
-
-  const initial = email ? email[0].toUpperCase() : '?'
   const firstName = email ? email.split('@')[0] : 'User'
+  const initial = email ? email[0].toUpperCase() : '?'
 
   return (
     <div style={{
@@ -115,31 +116,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }}>
 
       {/* ═══ SIDEBAR ═══ */}
-      <aside style={{
-        width: 240,
-        background: 'var(--bg-base)',
-        borderRight: '1px solid var(--border-default)',
-        display: 'flex',
-        flexDirection: 'column',
-        flexShrink: 0,
-        height: '100vh',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        zIndex: 10,
-      }}>
-
-        {/* Logo */}
+      <motion.aside
+        initial="closed"
+        animate={collapsed ? 'closed' : 'open'}
+        variants={sidebarVariants}
+        transition={transition}
+        onMouseEnter={() => setCollapsed(false)}
+        onMouseLeave={() => setCollapsed(true)}
+        style={{
+          height: '100vh',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          background: 'var(--bg-base)',
+          borderRight: '1px solid var(--border-default)',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 50,
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+      >
+        {/* Logo — icon only */}
         <div style={{
-          padding: '16px 16px 12px',
+          height: 52,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           borderBottom: '1px solid var(--border-default)',
+          flexShrink: 0,
         }}>
-          <Link href="/dashboard" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            textDecoration: 'none',
-          }}>
+          <Link href="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{
               width: 28, height: 28,
               background: 'var(--brand-bg)',
@@ -148,6 +155,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              flexShrink: 0,
             }}>
               <span style={{
                 fontFamily: 'var(--font-mono)',
@@ -156,201 +164,75 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 color: 'var(--brand-primary)',
               }}>G4</span>
             </div>
-            <span style={{
-              fontSize: 'var(--text-sm)',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-              letterSpacing: '-0.2px',
-            }}>
-              gate402
-            </span>
           </Link>
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '8px 8px', overflowY: 'auto' }}>
-
-          <div style={{
-            padding: '8px 8px 4px',
-            fontSize: 'var(--text-xs)',
-            color: 'var(--text-muted)',
-            fontWeight: 500,
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-          }}>
-            Main
-          </div>
-
-          {NAV_ITEMS.map(item => {
-            const isActive = pathname === item.href ||
-              (item.href !== '/dashboard' && pathname.startsWith(item.href))
+        <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto', overflowX: 'hidden' }}>
+          {NAV_ITEMS.map(({ label, href, Icon, pro }) => {
+            const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href + '/'))
             return (
-              <Link key={item.href} href={item.href} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '7px 8px',
-                borderRadius: 'var(--radius-md)',
-                textDecoration: 'none',
-                marginBottom: 1,
-                background: isActive ? 'var(--bg-surface)' : 'transparent',
-                color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontSize: 'var(--text-sm)',
-                fontWeight: isActive ? 500 : 400,
-                transition: 'all 0.1s',
-              }}>
-                <span style={{
-                  color: isActive ? 'var(--brand-primary)' : 'var(--text-muted)',
+              <Link
+                key={href}
+                href={href}
+                title={collapsed ? label : undefined}
+                style={{
                   display: 'flex',
                   alignItems: 'center',
-                }}>
-                  {item.icon}
-                </span>
-                <span>{item.label}</span>
-                {item.pro && !isPro && (
-                  <span style={{
-                    marginLeft: 'auto',
-                    fontSize: 9,
-                    fontWeight: 600,
-                    color: 'var(--brand-primary)',
-                    background: 'var(--brand-muted)',
-                    border: '1px solid var(--brand-border)',
-                    borderRadius: 3,
-                    padding: '1px 5px',
-                    letterSpacing: '0.08em',
-                  }}>PRO</span>
-                )}
-              </Link>
-            )
-          })}
-
-          <div style={{
-            height: 1,
-            background: 'var(--border-default)',
-            margin: '8px 0',
-          }} />
-
-          <div style={{
-            padding: '4px 8px 4px',
-            fontSize: 'var(--text-xs)',
-            color: 'var(--text-muted)',
-            fontWeight: 500,
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-          }}>
-            Account
-          </div>
-
-          {BOTTOM_ITEMS.map(item => {
-            const isActive = pathname === item.href
-            return (
-              <Link key={item.href} href={item.href} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '7px 8px',
-                borderRadius: 'var(--radius-md)',
-                textDecoration: 'none',
-                marginBottom: 1,
-                background: isActive ? 'var(--bg-surface)' : 'transparent',
-                color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontSize: 'var(--text-sm)',
-                fontWeight: isActive ? 500 : 400,
-              }}>
+                  gap: 10,
+                  padding: '8px 14px',
+                  margin: '1px 6px',
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: active ? 500 : 400,
+                  color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  background: active ? 'var(--bg-surface)' : 'transparent',
+                  borderLeft: active ? '2px solid var(--brand-primary)' : '2px solid transparent',
+                  borderRadius: 'var(--radius-md)',
+                  transition: 'color 150ms, background 150ms, border-color 150ms',
+                  textDecoration: 'none',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 <span style={{
-                  color: isActive ? 'var(--brand-primary)' : 'var(--text-muted)',
-                  display: 'flex', alignItems: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                  color: active ? 'var(--brand-primary)' : 'var(--text-muted)',
                 }}>
-                  {item.icon}
+                  <Icon />
                 </span>
-                <span>{item.label}</span>
+                <motion.span variants={labelVariants} style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+                  {label}
+                  {pro && !isPro && (
+                    <span style={{
+                      fontSize: 9,
+                      fontWeight: 600,
+                      color: 'var(--brand-primary)',
+                      background: 'var(--brand-muted)',
+                      border: '1px solid var(--brand-border)',
+                      borderRadius: 3,
+                      padding: '1px 4px',
+                      letterSpacing: '0.08em',
+                      lineHeight: 1.4,
+                    }}>PRO</span>
+                  )}
+                </motion.span>
               </Link>
             )
           })}
         </nav>
-
-        {/* User card */}
-        <div style={{
-          padding: '8px',
-          borderTop: '1px solid var(--border-default)',
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '8px',
-            borderRadius: 'var(--radius-md)',
-          }}>
-            <div style={{
-              width: 28, height: 28,
-              borderRadius: '50%',
-              background: 'var(--brand-bg)',
-              border: '1px solid var(--brand-border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              fontSize: 11,
-              fontWeight: 600,
-              color: 'var(--brand-primary)',
-              fontFamily: 'var(--font-mono)',
-            }}>
-              {initial}
-            </div>
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: 'var(--text-sm)',
-                fontWeight: 500,
-                color: 'var(--text-primary)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}>
-                {firstName}
-              </div>
-              <div style={{
-                fontSize: 'var(--text-xs)',
-                color: 'var(--text-muted)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}>
-                {isPro ? 'Pro plan' : 'Free plan'}
-              </div>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              title="Sign out"
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--text-muted)',
-                padding: 4,
-                borderRadius: 4,
-                display: 'flex',
-                alignItems: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M5 1H2a1 1 0 00-1 1v10a1 1 0 001 1h3M9 10l4-3-4-3M13 7H5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </aside>
+      </motion.aside>
 
       {/* ═══ MAIN ═══ */}
       <div style={{
         flex: 1,
-        marginLeft: 240,
+        marginLeft: 52,
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
         overflow: 'hidden',
+        transition: 'margin-left 0.18s ease',
       }}>
 
         {/* TOPBAR */}
@@ -363,8 +245,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           justifyContent: 'space-between',
           padding: '0 24px',
           flexShrink: 0,
-          position: 'sticky',
-          top: 0,
           zIndex: 9,
         }}>
           <div style={{
@@ -386,42 +266,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               textDecoration: 'none',
               color: 'var(--text-muted)',
               fontSize: 'var(--text-sm)',
-              cursor: 'pointer',
             }}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
                 <circle cx="6" cy="6" r="4" stroke="currentColor" strokeWidth="1.5"/>
                 <path d="M9.5 9.5l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
               <span>Search docs</span>
             </Link>
 
-            <Link href="/docs" style={{
-              width: 32, height: 32,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-default)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--text-muted)',
-              textDecoration: 'none',
-            }} title="Help">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5"/>
-                <path d="M5.5 5.5a1.5 1.5 0 013 .5c0 1-1.5 1.5-1.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                <circle cx="7" cy="10.5" r="0.5" fill="currentColor"/>
-              </svg>
-            </Link>
-
             <div style={{
-              width: 32, height: 32,
+              width: 30, height: 30,
               borderRadius: '50%',
               background: 'var(--brand-bg)',
               border: '1px solid var(--brand-border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 600,
               color: 'var(--brand-primary)',
               fontFamily: 'var(--font-mono)',
