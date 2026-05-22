@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
 import Link from 'next/link'
 import { useUser } from '../hooks/useUser'
@@ -79,11 +79,84 @@ const sidebarVariants = {
 }
 
 const labelVariants = {
-  open:   { opacity: 1, x: 0,   display: 'block', transition: { duration: 0.15 } },
-  closed: { opacity: 0, x: -8,  transition: { duration: 0.1 }, transitionEnd: { display: 'none' } },
+  open:   { opacity: 1, x: 0,  display: 'block', transition: { duration: 0.15 } },
+  closed: { opacity: 0, x: -8, transition: { duration: 0.1 }, transitionEnd: { display: 'none' } },
 }
 
 const transition = { type: 'tween' as const, ease: 'easeOut' as const, duration: 0.18 }
+
+// ─── NavItem ──────────────────────────────────────────────────────────────────
+
+function NavItem({ label, href, Icon, active, pro, isPro, collapsed }: {
+  label: string
+  href: string
+  Icon: () => JSX.Element
+  active: boolean
+  pro?: boolean
+  isPro: boolean
+  collapsed: boolean
+}) {
+  const [hovered, setHovered] = useState(false)
+  const highlighted = active || hovered
+
+  return (
+    <Link
+      href={href}
+      title={collapsed ? label : undefined}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '4px 8px',
+        margin: '1px 6px',
+        fontSize: 'var(--text-sm)',
+        fontWeight: active ? 500 : 400,
+        color: active ? 'var(--text-primary)' : hovered ? 'var(--text-primary)' : 'var(--text-secondary)',
+        background: 'transparent',
+        borderRadius: 'var(--radius-md)',
+        transition: 'color 120ms',
+        textDecoration: 'none',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {/* Icon wrapper — square with bg when active/hovered */}
+      <span style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        width: 30,
+        height: 30,
+        borderRadius: 'var(--radius-md)',
+        background: highlighted ? '#313131' : 'transparent',
+        color: highlighted ? '#fff' : 'var(--text-muted)',
+        transition: 'background 120ms, color 120ms',
+      }}>
+        <Icon />
+      </span>
+
+      <motion.span variants={labelVariants} style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+        {label}
+        {pro && !isPro && (
+          <span style={{
+            fontSize: 9,
+            fontWeight: 600,
+            color: 'var(--brand-primary)',
+            background: 'var(--brand-muted)',
+            border: '1px solid var(--brand-border)',
+            borderRadius: 3,
+            padding: '1px 4px',
+            letterSpacing: '0.08em',
+            lineHeight: 1.4,
+          }}>PRO</span>
+        )}
+      </motion.span>
+    </Link>
+  )
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -137,88 +210,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           flexShrink: 0,
         }}
       >
-        {/* Logo — icon only */}
-        <div style={{
-          height: 52,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderBottom: '1px solid var(--border-default)',
-          flexShrink: 0,
-        }}>
-          <Link href="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{
-              width: 28, height: 28,
-              background: 'var(--brand-bg)',
-              border: '1px solid var(--brand-border)',
-              borderRadius: 'var(--radius-md)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              <span style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                fontWeight: 600,
-                color: 'var(--brand-primary)',
-              }}>G4</span>
-            </div>
-          </Link>
-        </div>
-
-        {/* Nav */}
+        {/* Nav — starts from top, no logo section */}
         <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto', overflowX: 'hidden' }}>
           {NAV_ITEMS.map(({ label, href, Icon, pro }) => {
             const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href + '/'))
             return (
-              <Link
+              <NavItem
                 key={href}
+                label={label}
                 href={href}
-                title={collapsed ? label : undefined}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  padding: '8px 14px',
-                  margin: '1px 6px',
-                  fontSize: 'var(--text-sm)',
-                  fontWeight: active ? 500 : 400,
-                  color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  background: active ? 'var(--bg-surface)' : 'transparent',
-                  borderLeft: active ? '2px solid var(--brand-primary)' : '2px solid transparent',
-                  borderRadius: 'var(--radius-md)',
-                  transition: 'color 150ms, background 150ms, border-color 150ms',
-                  textDecoration: 'none',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <span style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  flexShrink: 0,
-                  color: active ? 'var(--brand-primary)' : 'var(--text-muted)',
-                }}>
-                  <Icon />
-                </span>
-                <motion.span variants={labelVariants} style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
-                  {label}
-                  {pro && !isPro && (
-                    <span style={{
-                      fontSize: 9,
-                      fontWeight: 600,
-                      color: 'var(--brand-primary)',
-                      background: 'var(--brand-muted)',
-                      border: '1px solid var(--brand-border)',
-                      borderRadius: 3,
-                      padding: '1px 4px',
-                      letterSpacing: '0.08em',
-                      lineHeight: 1.4,
-                    }}>PRO</span>
-                  )}
-                </motion.span>
-              </Link>
+                Icon={Icon}
+                active={active}
+                pro={pro}
+                isPro={isPro}
+                collapsed={collapsed}
+              />
             )
           })}
         </nav>
@@ -232,7 +238,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         flexDirection: 'column',
         height: '100vh',
         overflow: 'hidden',
-        transition: 'margin-left 0.18s ease',
       }}>
 
         {/* TOPBAR */}
