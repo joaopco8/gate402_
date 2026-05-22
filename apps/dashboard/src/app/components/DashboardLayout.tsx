@@ -566,7 +566,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onMouseEnter={() => setCollapsed(false)}
         onMouseLeave={() => setCollapsed(true)}
         style={{
-          height: '100vh', position: 'fixed', top: 0, left: 0,
+          height: 'calc(100vh - 52px)', position: 'fixed', top: 52, left: 0,
           background: 'var(--bg-base)', borderRight: '1px solid var(--border-default)',
           display: 'flex', flexDirection: 'column',
           zIndex: 50, overflow: 'hidden', flexShrink: 0,
@@ -585,20 +585,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
       </motion.aside>
 
-      {/* ═══ MAIN ═══ */}
-      <div style={{
-        flex: 1, marginLeft: 52,
-        display: 'flex', flexDirection: 'column',
-        height: '100vh', overflow: 'hidden',
+      {/* ═══ TOPBAR (full-width, fixed, above sidebar) ═══ */}
+      <header style={{
+        position: 'fixed', top: 0, left: 0, right: 0,
+        height: 52, background: 'var(--bg-base)',
+        borderBottom: '1px solid var(--border-default)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 24px', zIndex: 100,
       }}>
-
-        {/* TOPBAR */}
-        <header style={{
-          height: 52, background: 'var(--bg-base)',
-          borderBottom: '1px solid var(--border-default)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 24px', flexShrink: 0, zIndex: 9,
-        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <img src="/icon-logo.png" alt="Gate402" style={{ height: 22, width: 'auto', display: 'block' }} />
             <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
@@ -636,15 +630,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               isPro={isPro}
             />
           </div>
-        </header>
+      </header>
 
-        {/* Content */}
-        <main style={{
-          flex: 1, overflowY: 'auto', padding: '32px',
-          background: 'var(--bg-base)',
-        }}>
-          {children}
-        </main>
+      {/* ═══ MAIN ═══ */}
+      <div style={{
+        marginLeft: 52, marginTop: 52,
+        height: 'calc(100vh - 52px)',
+        overflowY: 'auto',
+        padding: '32px',
+        background: 'var(--bg-base)',
+      }}>
+        {children}
       </div>
     </div>
   )
