@@ -133,7 +133,7 @@ export default function PlaygroundPage() {
     <DashboardLayout>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '32px 32px 24px', gap: 20, boxSizing: 'border-box' }}>
 
-        <PageHeader eyebrow="Playground" title="Test your API" subtitle="Simulate the full x402 payment flow without writing any code." />
+        <PageHeader title="Playground" subtitle="Simulate the full x402 payment flow without writing any code." />
 
         <div style={{ flex: 1, minHeight: 0 }}>
           <PanelGroup direction="horizontal" style={{ height: '100%' }}>

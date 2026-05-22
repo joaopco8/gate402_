@@ -241,7 +241,7 @@ export default function SettingsPage() {
     <DashboardLayout>
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
       <PageContainer>
-        <PageHeader eyebrow="Settings" title="Settings" />
+        <PageHeader title="Settings" />
 
         {/* API Key */}
         <Card style={{ marginBottom: 16 }}>

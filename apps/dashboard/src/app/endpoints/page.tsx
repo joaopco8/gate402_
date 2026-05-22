@@ -638,7 +638,6 @@ export default function EndpointsPage() {
       <PageContainer>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-xl)' }}>
           <PageHeader
-            eyebrow="Gate402"
             title="Endpoints"
             subtitle="Manage your priced API endpoints"
           />

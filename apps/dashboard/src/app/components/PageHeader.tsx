@@ -1,52 +1,41 @@
 interface PageHeaderProps {
-  eyebrow: string
   title: string
   subtitle?: string
   action?: React.ReactNode
+  /** @deprecated Use title only */
+  eyebrow?: string
 }
 
-export default function PageHeader({ eyebrow, title, subtitle, action }: PageHeaderProps) {
+export default function PageHeader({ title, subtitle, action }: PageHeaderProps) {
   return (
     <div style={{
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'flex-start',
-      marginBottom: 40,
-      paddingBottom: 32,
-      borderBottom: '1px solid var(--border)',
+      marginBottom: 'var(--space-8)',
     }}>
       <div>
-        <div style={{
-          fontSize: 12,
-          color: 'var(--text-muted)',
-          fontFamily: 'var(--font-code)',
-          fontWeight: 500,
-          marginBottom: 8,
-        }}>
-          {eyebrow}
-        </div>
         <h1 style={{
-          fontSize: 28,
+          fontSize: 'var(--text-2xl)',
           fontWeight: 600,
           color: 'var(--text-primary)',
-          letterSpacing: '-0.42px',
-          lineHeight: 1.1,
-          marginBottom: subtitle ? 8 : 0,
+          letterSpacing: '-0.3px',
+          lineHeight: 1.2,
+          marginBottom: subtitle ? 4 : 0,
         }}>
           {title}
         </h1>
         {subtitle && (
           <p style={{
-            fontSize: 14,
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            marginTop: 6,
+            fontSize: 'var(--text-sm)',
+            color: 'var(--text-muted)',
+            marginTop: 4,
           }}>
             {subtitle}
           </p>
         )}
       </div>
-      {action && <div style={{ flexShrink: 0, marginTop: 4 }}>{action}</div>}
+      {action && <div style={{ flexShrink: 0 }}>{action}</div>}
     </div>
   )
 }

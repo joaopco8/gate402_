@@ -152,19 +152,24 @@ export default function BillingPage() {
 
   return (
     <DashboardLayout>
-    <div style={{ background: '#0D0D0D', minHeight: '100vh', fontFamily: 'var(--font-display)', color: '#fff' }}>
+    <div style={{ background: 'var(--bg-base)', minHeight: '100vh', fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
 
       {/* Content */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '56px 24px 80px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 24px 80px' }}>
 
         {/* Hero */}
-        <div style={{ textAlign: 'center', marginBottom: 56, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-          <h1 style={{ fontWeight: 500, lineHeight: 1.15, margin: 0 }}>
-            <span style={{ color: '#fff', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)' }}>Pricing that</span>{' '}
-            <span style={{ color: '#898989', fontSize: 'clamp(1.75rem, 4vw, 2.5rem)' }}>scales with you.</span>
+        <div style={{ marginBottom: 'var(--space-8)' }}>
+          <h1 style={{
+            fontSize: 'var(--text-2xl)',
+            fontWeight: 600,
+            color: 'var(--text-primary)',
+            letterSpacing: '-0.3px',
+            marginBottom: 8,
+          }}>
+            Billing
           </h1>
-          <p style={{ fontSize: 16, color: '#898989', lineHeight: 1.65, maxWidth: 480, margin: 0 }}>
-            Start free. Upgrade when you need more. No hidden fees. No minimums. Cancel anytime.
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>
+            Start free. Upgrade when you need more. No hidden fees. Cancel anytime.
           </p>
         </div>
 

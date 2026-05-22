@@ -1,0 +1,71 @@
+:root {
+  /* Background */
+  --bg-base:        #171717;
+  --bg-surface:     #1F1F1F;
+  --bg-overlay:     #2A2A2A;
+
+  /* Border */
+  --border-default: #2E2E2E;
+  --border-strong:  #3E3E3E;
+
+  /* Text */
+  --text-primary:   #EDEDED;
+  --text-secondary: #B4B4B4;
+  --text-muted:     #6E6E6E;
+  --text-disabled:  #3E3E3E;
+
+  /* Brand */
+  --brand-primary:  #3ECF8E;
+  --brand-bg:       #2A7252;
+  --brand-border:   #3ECF8E;
+  --brand-muted:    rgba(62,207,142,0.1);
+
+  /* Status */
+  --success:        #3ECF8E;
+  --success-bg:     rgba(62,207,142,0.1);
+  --success-border: rgba(62,207,142,0.2);
+
+  --warning:        #F59E0B;
+  --warning-bg:     rgba(245,158,11,0.1);
+  --warning-border: rgba(245,158,11,0.2);
+
+  --error:          #EF4444;
+  --error-bg:       rgba(239,68,68,0.08);
+  --error-border:   rgba(239,68,68,0.2);
+
+  --info:           #3B82F6;
+  --info-bg:        rgba(59,130,246,0.1);
+  --info-border:    rgba(59,130,246,0.2);
+
+  /* Typography */
+  --font-sans:      'Roboto', -apple-system, sans-serif;
+  --font-mono:      'Roboto Mono', 'Courier New', monospace;
+
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 14px;
+  --text-lg:   16px;
+  --text-xl:   20px;
+  --text-2xl:  24px;
+
+  /* Spacing */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+}

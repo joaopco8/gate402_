@@ -478,11 +478,7 @@ export default function DashboardPage() {
       <PageContainer>
         <ProBanner isPro={isPro} />
 
-        <PageHeader
-          eyebrow="Gate402"
-          title="Overview"
-          subtitle={`${userData?.plan === 'pro' ? 'Pro plan' : 'Free plan'} · ${userData?.network === 'mainnet' ? 'Solana Mainnet' : 'Solana Devnet'}`}
-        />
+        <PageHeader title="Overview" />
 
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>

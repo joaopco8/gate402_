@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { createClient } from '../../../lib/supabase/client'
 import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
+import PageHeader from '../components/PageHeader'
 import Card from '../components/Card'
 import { useUser } from '../hooks/useUser'
 
@@ -147,11 +148,7 @@ export default function AnalyticsPage() {
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-xl)' }}>
-          <div>
-            <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Analytics</div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: 0, fontFamily: SANS }}>Revenue & Usage</h1>
-            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4, fontFamily: SANS }}>Pro plan — 90 days of data</div>
-          </div>
+          <PageHeader title="Analytics" />
           <div style={{ display: 'flex', gap: 4, paddingTop: 4 }}>
             {(['7d', '30d', '90d'] as Period[]).map(p => (
               <button

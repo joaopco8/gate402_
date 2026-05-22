@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap');
+@import '../styles/tokens.css';
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -84,9 +86,11 @@
 }
 
 body {
-  background: var(--bg);
+  background: var(--bg-base);
   color: var(--text-primary);
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -172,6 +176,25 @@ a { text-decoration: none; color: inherit; }
   from { height: var(--radix-accordion-content-height); }
   to   { height: 0; }
 }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1 }
+  50% { opacity: 0.4 }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg) }
+  to { transform: rotate(360deg) }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px) }
+  to { opacity: 1; transform: translateY(0) }
+}
+
+.animate-pulse { animation: pulse 2s ease-in-out infinite }
+.animate-spin  { animation: spin 1s linear infinite }
+.animate-fade  { animation: fadeIn 0.2s ease-out }
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(12px); }

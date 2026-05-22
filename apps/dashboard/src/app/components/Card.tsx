@@ -18,15 +18,15 @@ export default function Card({ children, style, accent, glass, hover }: CardProp
       onMouseEnter={() => hover && setHovered(true)}
       onMouseLeave={() => hover && setHovered(false)}
       style={{
-        background: glass ? 'rgba(13,13,13,0.6)' : 'var(--card)',
+        background: glass ? 'rgba(23,23,23,0.8)' : 'var(--bg-surface)',
         backdropFilter: glass ? 'blur(12px)' : undefined,
         border: `1px solid ${accent
-          ? 'rgba(0,188,125,0.2)'
+          ? 'var(--success-border)'
           : hovered
-            ? 'var(--border-hover)'
-            : 'var(--border)'}`,
-        borderRadius: 12,
-        padding: 24,
+            ? 'var(--border-strong)'
+            : 'var(--border-default)'}`,
+        borderRadius: 'var(--radius-xl)',
+        padding: 'var(--space-6)',
         transition: 'border-color 200ms ease, box-shadow 200ms ease',
         boxShadow: hovered
           ? '0 0 0 1px rgba(255,255,255,0.03), 0 8px 32px rgba(0,0,0,0.4)'

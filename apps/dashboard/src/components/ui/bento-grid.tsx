@@ -45,12 +45,12 @@ const itemsSample: BentoItem[] = [
         tags: ["mcp", "agents", "anthropic"],
     },
     {
-        title: "Python SDK",
-        meta: "pip install gate402",
-        description: "Flask and FastAPI support out of the box. Same protocol, same dashboard, same Solana wallet.",
+        title: "Next.js Plugin",
+        meta: "v0.1.0-alpha",
+        description: "Monetize API routes natively in Next.js App Router. No separate Express server. Edge-compatible.",
         icon: <Code2 style={{ width: 16, height: 16, color: '#a855f7' }} />,
-        status: "Stable",
-        tags: ["python", "flask", "fastapi"],
+        status: "Coming Soon",
+        tags: ["nextjs", "vercel", "edge"],
     },
     {
         title: "Rust Gateway",

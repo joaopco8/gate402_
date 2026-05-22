@@ -260,11 +260,7 @@ export default function WalletPage() {
   return (
     <DashboardLayout>
       <PageContainer>
-        <PageHeader
-          eyebrow="Gate402"
-          title="Wallet"
-          subtitle={`Revenue monitoring · Solana ${network === 'mainnet' ? 'Mainnet' : 'Devnet'}`}
-        />
+        <PageHeader title="Wallet" />
 
         {/* ── Stat cards ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
