@@ -127,7 +127,7 @@ export default function PlaygroundPage() {
     } finally { setLoading(null) }
   }
 
-  const panelBox: React.CSSProperties = { background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 6, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }
+  const panelBox: React.CSSProperties = { background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 6, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }
 
   return (
     <DashboardLayout>
@@ -144,7 +144,7 @@ export default function PlaygroundPage() {
 
                 {/* Method + endpoint */}
                 <div style={{ padding: '16px 16px 0', display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <div style={{ display: 'flex', background: '#111', border: '1px solid #1a1a1a', borderRadius: 6, padding: 2, flexShrink: 0 }}>
+                  <div style={{ display: 'flex', background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 6, padding: 2, flexShrink: 0 }}>
                     {(['GET', 'POST'] as const).map(m => (
                       <button key={m} onClick={() => setMethod(m)}
                         style={{ padding: '6px 14px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: MONO, fontSize: 12, fontWeight: 600, transition: 'all 150ms',
@@ -158,7 +158,7 @@ export default function PlaygroundPage() {
                   </div>
                   <div style={{ flex: 1, position: 'relative' }}>
                     <select value={selectedPath} onChange={e => setSelectedPath(e.target.value)}
-                      style={{ width: '100%', background: '#111', border: '1px solid #1a1a1a', borderRadius: 6, padding: '8px 32px 8px 12px', fontSize: 13, color: '#ccc', fontFamily: MONO, outline: 'none', cursor: 'pointer', appearance: 'none' }}>
+                      style={{ width: '100%', background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 6, padding: '8px 32px 8px 12px', fontSize: 13, color: 'var(--text-secondary)', fontFamily: MONO, outline: 'none', cursor: 'pointer', appearance: 'none' }}>
                       {endpoints.length === 0 && <option value="">No endpoints configured</option>}
                       {endpoints.map(ep => <option key={ep.id} value={ep.path}>{ep.path}</option>)}
                     </select>
@@ -201,14 +201,14 @@ export default function PlaygroundPage() {
                           {copied ? 'Copied' : 'Copy'}
                         </button>
                       </div>
-                      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: 14 }}>
+                      <div style={{ background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 6, padding: 14 }}>
                         <JsonDisplay data={response.data} />
                       </div>
                     </div>
                   )}
                   {activeTab === 'headers' && !response && <div style={{ color: '#2a2a2a', fontFamily: MONO, fontSize: 12 }}>Make a request to see headers</div>}
                   {activeTab === 'headers' && response && (
-                    <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: 14 }}>
+                    <div style={{ background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 6, padding: 14 }}>
                       {Object.entries(response.headers).map(([k, v]) => (
                         <div key={k} style={{ marginBottom: 6 }}><span style={{ color: '#555', fontFamily: MONO, fontSize: 12 }}>{k}: </span><span style={{ color: '#aaa', fontFamily: MONO, fontSize: 12 }}>{v}</span></div>
                       ))}
@@ -224,7 +224,7 @@ export default function PlaygroundPage() {
                           {curlCopied ? 'Copied' : 'Copy cURL'}
                         </button>
                       </div>
-                      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: 14 }}>
+                      <div style={{ background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 6, padding: 14 }}>
                         <pre style={{ margin: 0, color: '#aaa', fontFamily: MONO, fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{response.curlCmd}</pre>
                       </div>
                     </div>
@@ -236,21 +236,21 @@ export default function PlaygroundPage() {
                   <div style={{ padding: '0 16px 12px', borderTop: '1px solid #111' }}>
                     <div style={{ fontFamily: MONO, fontSize: 11, color: '#444', fontWeight: 500, marginBottom: 8, marginTop: 12 }}>Request body</div>
                     <textarea value={body} onChange={e => setBody(e.target.value)}
-                      style={{ width: '100%', boxSizing: 'border-box', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: 6, padding: 12, fontSize: 12, color: '#ccc', fontFamily: MONO, lineHeight: 1.6, height: 90, resize: 'vertical', outline: 'none' }}
+                      style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 6, padding: 12, fontSize: 12, color: 'var(--text-secondary)', fontFamily: MONO, lineHeight: 1.6, height: 90, resize: 'vertical', outline: 'none' }}
                       spellCheck={false} />
                   </div>
                 )}
 
                 {/* Actions */}
-                <div style={{ padding: '12px 16px', borderTop: '1px solid #1a1a1a', display: 'flex', gap: 8 }}>
+                <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border-default)', display: 'flex', gap: 8 }}>
                   <button onClick={() => doCall(false)} disabled={loading !== null || !selectedPath}
-                    style={{ flex: 1, padding: '10px 0', background: 'transparent', border: '1px solid #1a1a1a', borderRadius: 6, fontSize: 13, color: loading ? '#333' : '#666', fontFamily: SANS, fontWeight: 500, cursor: loading !== null || !selectedPath ? 'not-allowed' : 'pointer', opacity: !selectedPath ? 0.4 : 1, transition: 'all 150ms' }}
-                    onMouseEnter={e => { if (!loading && selectedPath) { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#fff' } }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a1a1a'; e.currentTarget.style.color = loading ? '#333' : '#666' }}>
+                    style={{ flex: 1, padding: '10px 0', background: 'transparent', border: '1px solid var(--border-default)', borderRadius: 6, fontSize: 13, color: loading ? 'var(--text-faint)' : 'var(--text-muted)', fontFamily: SANS, fontWeight: 500, cursor: loading !== null || !selectedPath ? 'not-allowed' : 'pointer', opacity: !selectedPath ? 0.4 : 1, transition: 'all 150ms' }}
+                    onMouseEnter={e => { if (!loading && selectedPath) { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.color = 'var(--text-primary)' } }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-default)'; e.currentTarget.style.color = loading ? 'var(--text-faint)' : 'var(--text-muted)' }}>
                     {loading === 'unpaid' ? 'Calling...' : 'Call free'}
                   </button>
                   <button onClick={() => doCall(true)} disabled={loading !== null || !selectedPath}
-                    style={{ flex: 1, padding: '10px 0', background: !selectedPath ? '#0d0d0d' : '#00bc7d', border: 'none', borderRadius: 6, fontSize: 13, color: '#000', fontFamily: SANS, fontWeight: 600, cursor: loading !== null || !selectedPath ? 'not-allowed' : 'pointer', opacity: loading !== null || !selectedPath ? 0.4 : 1, transition: 'opacity 150ms' }}>
+                    style={{ flex: 1, padding: '10px 0', background: !selectedPath ? 'var(--bg-surface)' : '#2A7252', border: `1px solid ${!selectedPath ? 'var(--border-default)' : '#3ECF8E'}`, borderRadius: 6, fontSize: 13, color: !selectedPath ? 'var(--text-muted)' : '#3ECF8E', fontFamily: SANS, fontWeight: 600, cursor: loading !== null || !selectedPath ? 'not-allowed' : 'pointer', opacity: loading !== null || !selectedPath ? 0.4 : 1, transition: 'opacity 150ms' }}>
                     {loading === 'paid' ? 'Paying...' : 'Pay & call \u2192'}
                   </button>
                 </div>
@@ -306,8 +306,8 @@ export default function PlaygroundPage() {
                           {history.map((h, i) => (
                             <div key={i}>
                               <div onClick={() => setExpandedHistory(expandedHistory === i ? null : i)}
-                                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', cursor: 'pointer', borderBottom: '1px solid #111', background: expandedHistory === i ? '#0f0f0f' : 'transparent', transition: 'background 100ms' }}
-                                onMouseEnter={e => { if (expandedHistory !== i) e.currentTarget.style.background = '#0a0a0a' }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', cursor: 'pointer', borderBottom: '1px solid var(--border-default)', background: expandedHistory === i ? 'var(--bg-overlay)' : 'transparent', transition: 'background 100ms' }}
+                                onMouseEnter={e => { if (expandedHistory !== i) e.currentTarget.style.background = 'var(--bg-overlay)' }}
                                 onMouseLeave={e => { if (expandedHistory !== i) e.currentTarget.style.background = 'transparent' }}>
                                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: h.status === 200 ? '#00bc7d' : h.status === 402 ? '#f59e0b' : '#555', flexShrink: 0 }} />
                                 <MethodBadge method={h.method} />
@@ -317,12 +317,12 @@ export default function PlaygroundPage() {
                                 <span style={{ fontFamily: MONO, fontSize: 11, color: '#222', flexShrink: 0, minWidth: 56, textAlign: 'right' }}>{timeAgo(h.timestamp)}</span>
                               </div>
                               {expandedHistory === i && (
-                                <div style={{ padding: '12px 16px', background: '#0a0a0a', borderBottom: '1px solid #111' }}>
-                                  <div style={{ background: '#000', border: '1px solid #1a1a1a', borderRadius: 6, padding: 12, marginBottom: 8 }}>
+                                <div style={{ padding: '12px 16px', background: 'var(--bg-overlay)', borderBottom: '1px solid var(--border-default)' }}>
+                                  <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border-default)', borderRadius: 6, padding: 12, marginBottom: 8 }}>
                                     <JsonDisplay data={h.data} />
                                   </div>
                                   <button onClick={() => { setResponse(h); setActiveTab('response'); setExpandedHistory(null) }}
-                                    style={{ padding: '5px 12px', background: 'transparent', border: '1px solid #1a1a1a', borderRadius: 6, fontSize: 12, color: '#555', fontFamily: SANS, cursor: 'pointer' }}>
+                                    style={{ padding: '5px 12px', background: 'transparent', border: '1px solid var(--border-default)', borderRadius: 6, fontSize: 12, color: 'var(--text-muted)', fontFamily: SANS, cursor: 'pointer' }}>
                                     Use this response
                                   </button>
                                 </div>

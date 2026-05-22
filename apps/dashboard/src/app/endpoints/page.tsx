@@ -216,7 +216,7 @@ function EndpointCard({
               style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
               onClick={e => { if (e.target === e.currentTarget && !deleting) { setShowDeleteModal(false); setDeleteError(null) } }}
             >
-              <div style={{ background: '#0d0d0d', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 6, width: 400, maxWidth: '90vw', padding: 28 }}>
+              <div style={{ background: 'var(--bg-surface)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 6, width: 400, maxWidth: '90vw', padding: 28 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -309,7 +309,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
       style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{ background: '#0d0d0d', border: '1px solid var(--border)', borderRadius: 6, width: 440, maxWidth: '90vw', padding: 28 }}>
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 6, width: 440, maxWidth: '90vw', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', fontFamily: SANS }}>{title}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
@@ -331,14 +331,14 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
-  background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 6,
+  background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 6,
   padding: '9px 12px', fontSize: 13, color: 'var(--text-primary)',
   fontFamily: MONO, outline: 'none',
 }
 
 const btnPrimary: React.CSSProperties = {
-  padding: '9px 20px', background: 'var(--green)', color: '#000',
-  border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600,
+  padding: '9px 20px', background: '#2A7252', color: '#3ECF8E',
+  border: '1px solid #3ECF8E', borderRadius: 6, fontSize: 13, fontWeight: 600,
   cursor: 'pointer', fontFamily: SANS,
 }
 
@@ -400,7 +400,7 @@ function AddModal({ supabaseId, onClose, onAdded }: { supabaseId: string; onClos
       )}
 
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-        <button onClick={onClose} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: SANS }}>
+        <button onClick={onClose} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid var(--border-default)', borderRadius: 6, fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: SANS }}>
           Cancel
         </button>
         <button onClick={handleSubmit} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.6 : 1 }}>
@@ -455,7 +455,7 @@ function EditModal({ ep, supabaseId, onClose, onSaved }: { ep: Endpoint; supabas
       )}
 
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-        <button onClick={onClose} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: SANS }}>
+        <button onClick={onClose} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid var(--border-default)', borderRadius: 6, fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: SANS }}>
           Cancel
         </button>
         <button onClick={handleSubmit} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.6 : 1 }}>
@@ -527,7 +527,7 @@ function ActionsMenu({ ep, supabaseId, onRefresh, onEdit }: { ep: Endpoint; supa
       <button
         onClick={() => { setOpen(v => !v); setDeleteStep('idle') }}
         style={{
-          background: 'var(--surface)', border: '1px solid var(--border)',
+          background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
           borderRadius: 6, color: 'var(--text-secondary)', cursor: 'pointer',
           padding: '5px 12px', fontSize: 14, lineHeight: 1,
           display: 'flex', alignItems: 'center', gap: 2,
@@ -539,14 +539,14 @@ function ActionsMenu({ ep, supabaseId, onRefresh, onEdit }: { ep: Endpoint; supa
       {open && (
         <div style={{
           position: 'absolute', right: 0, top: 'calc(100% + 4px)',
-          background: '#0e0e0e', border: '1px solid var(--border)',
+          background: '#0e0e0e', border: '1px solid var(--border-default)',
           borderRadius: 6, minWidth: 180, zIndex: 200,
           padding: '4px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
         }}>
           <button
             onClick={() => { setOpen(false); setDeleteStep('idle'); onEdit() }}
             style={itemStyle}
-            onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface)')}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'none')}
           >
             Edit price & description
@@ -555,13 +555,13 @@ function ActionsMenu({ ep, supabaseId, onRefresh, onEdit }: { ep: Endpoint; supa
           <button
             onClick={toggleActive}
             style={itemStyle}
-            onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface)')}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'none')}
           >
             {ep.active ? 'Deactivate' : 'Activate'}
           </button>
 
-          <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+          <div style={{ height: 1, background: 'var(--border-default)', margin: '4px 0' }} />
 
           <button
             onClick={handleDelete}
@@ -621,8 +621,8 @@ export default function EndpointsPage() {
   }
 
   const badgeColor = count >= 3 ? '#ef4444' : count >= 2 ? '#f59e0b' : 'var(--text-muted)'
-  const badgeBg = count >= 3 ? 'rgba(239,68,68,0.08)' : count >= 2 ? 'rgba(245,158,11,0.08)' : 'var(--surface)'
-  const badgeBorder = count >= 3 ? 'rgba(239,68,68,0.25)' : count >= 2 ? 'rgba(245,158,11,0.2)' : 'var(--border)'
+  const badgeBg = count >= 3 ? 'rgba(239,68,68,0.08)' : count >= 2 ? 'rgba(245,158,11,0.08)' : 'var(--bg-surface)'
+  const badgeBorder = count >= 3 ? 'rgba(239,68,68,0.25)' : count >= 2 ? 'rgba(245,158,11,0.2)' : 'var(--border-default)'
 
   return (
     <DashboardLayout>
@@ -649,9 +649,9 @@ export default function EndpointsPage() {
               title={atLimit ? 'Upgrade to Pro for unlimited endpoints' : undefined}
               style={{
                 padding: '9px 18px',
-                background: atLimit ? 'var(--surface)' : 'var(--green)',
-                color: atLimit ? 'var(--text-muted)' : '#000',
-                border: atLimit ? '1px solid var(--border)' : 'none',
+                background: atLimit ? 'var(--bg-surface)' : '#2A7252',
+                color: atLimit ? 'var(--text-muted)' : '#3ECF8E',
+                border: atLimit ? '1px solid var(--border-default)' : '1px solid #3ECF8E',
                 borderRadius: 6, fontSize: 13, fontWeight: 600,
                 cursor: atLimit ? 'not-allowed' : 'pointer',
                 fontFamily: SANS, opacity: atLimit ? 0.5 : 1,
