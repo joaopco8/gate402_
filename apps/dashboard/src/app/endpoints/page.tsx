@@ -337,8 +337,8 @@ const inputStyle: React.CSSProperties = {
 }
 
 const btnPrimary: React.CSSProperties = {
-  padding: '9px 20px', background: '#2A7252', color: '#3ECF8E',
-  border: '1px solid #3ECF8E', borderRadius: 6, fontSize: 13, fontWeight: 600,
+  padding: '9px 20px', background: '#006239', color: '#fff',
+  border: '0.5px solid #128353', borderRadius: 6, fontSize: 13, fontWeight: 600,
   cursor: 'pointer', fontFamily: SANS,
 }
 
@@ -400,7 +400,7 @@ function AddModal({ supabaseId, onClose, onAdded }: { supabaseId: string; onClos
       )}
 
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-        <button onClick={onClose} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid var(--border-default)', borderRadius: 6, fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: SANS }}>
+        <button onClick={onClose} style={{ padding: '9px 16px', background: '#242424', border: '0.5px solid #363636', borderRadius: 6, fontSize: 13, color: '#fff', cursor: 'pointer', fontFamily: SANS }}>
           Cancel
         </button>
         <button onClick={handleSubmit} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.6 : 1 }}>
@@ -455,7 +455,7 @@ function EditModal({ ep, supabaseId, onClose, onSaved }: { ep: Endpoint; supabas
       )}
 
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-        <button onClick={onClose} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid var(--border-default)', borderRadius: 6, fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: SANS }}>
+        <button onClick={onClose} style={{ padding: '9px 16px', background: '#242424', border: '0.5px solid #363636', borderRadius: 6, fontSize: 13, color: '#fff', cursor: 'pointer', fontFamily: SANS }}>
           Cancel
         </button>
         <button onClick={handleSubmit} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.6 : 1 }}>
@@ -649,9 +649,9 @@ export default function EndpointsPage() {
               title={atLimit ? 'Upgrade to Pro for unlimited endpoints' : undefined}
               style={{
                 padding: '9px 18px',
-                background: atLimit ? 'var(--bg-surface)' : '#2A7252',
-                color: atLimit ? 'var(--text-muted)' : '#3ECF8E',
-                border: atLimit ? '1px solid var(--border-default)' : '1px solid #3ECF8E',
+                background: atLimit ? '#242424' : '#006239',
+                color: '#fff',
+                border: atLimit ? '0.5px solid #363636' : '0.5px solid #128353',
                 borderRadius: 6, fontSize: 13, fontWeight: 600,
                 cursor: atLimit ? 'not-allowed' : 'pointer',
                 fontFamily: SANS, opacity: atLimit ? 0.5 : 1,
