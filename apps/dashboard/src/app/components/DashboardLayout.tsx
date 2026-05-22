@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
 import Link from 'next/link'
 import { useUser } from '../hooks/useUser'
@@ -350,6 +350,184 @@ function DocsSearch() {
   )
 }
 
+// ─── AvatarMenu ───────────────────────────────────────────────────────────────
+
+function AvatarMenu({ avatarUrl, firstName, initial, email, isPro }: {
+  avatarUrl: string | null
+  firstName: string
+  initial: string
+  email: string | null
+  isPro: boolean
+}) {
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    if (open) document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [open])
+
+  async function handleLogout() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/auth/login')
+  }
+
+  const menuItems = [
+    {
+      label: isPro ? 'Manage subscription' : 'Upgrade to Pro',
+      href: '/billing',
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="1" y="2.5" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+          <path d="M1 6h12" stroke="currentColor" strokeWidth="1.3"/>
+        </svg>
+      ),
+      accent: !isPro,
+    },
+    {
+      label: 'Settings',
+      href: '/settings',
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="2" stroke="currentColor" strokeWidth="1.3"/>
+          <path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.7 2.7l1.06 1.06M10.24 10.24l1.06 1.06M2.7 11.3l1.06-1.06M10.24 3.76l1.06-1.06" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+        </svg>
+      ),
+    },
+  ]
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      {/* Avatar trigger */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: 30, height: 30, borderRadius: '50%',
+          overflow: 'hidden', flexShrink: 0,
+          border: `1px solid ${open ? 'var(--border-strong)' : 'var(--border-default)'}`,
+          background: 'none', padding: 0, cursor: 'pointer',
+          transition: 'border-color 150ms',
+        }}
+      >
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={firstName}
+            referrerPolicy="no-referrer"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <div style={{
+            width: '100%', height: '100%',
+            background: 'var(--brand-bg)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, fontWeight: 600,
+            color: 'var(--brand-primary)', fontFamily: 'var(--font-mono)',
+          }}>
+            {initial}
+          </div>
+        )}
+      </button>
+
+      {/* Dropdown */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.13 }}
+            style={{
+              position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+              width: 220,
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-default)',
+              borderRadius: 6,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+              zIndex: 100,
+              overflow: 'hidden',
+            }}
+          >
+            {/* User info */}
+            <div style={{
+              padding: '12px 14px',
+              borderBottom: '1px solid var(--border-default)',
+            }}>
+              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2 }}>
+                {firstName}
+              </div>
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {email}
+              </div>
+              {isPro && (
+                <span style={{
+                  display: 'inline-flex', marginTop: 6,
+                  fontSize: 9, fontWeight: 600, letterSpacing: '0.08em',
+                  color: 'var(--brand-primary)', background: 'var(--brand-muted)',
+                  border: '1px solid var(--brand-border)', borderRadius: 6,
+                  padding: '1px 6px',
+                }}>PRO</span>
+              )}
+            </div>
+
+            {/* Menu items */}
+            <div style={{ padding: '4px 0' }}>
+              {menuItems.map(item => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '8px 14px', textDecoration: 'none',
+                    fontSize: 'var(--text-sm)',
+                    color: item.accent ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                    transition: 'background 100ms',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <span style={{ color: item.accent ? 'var(--brand-primary)' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+                    {item.icon}
+                  </span>
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Logout */}
+            <div style={{ borderTop: '1px solid var(--border-default)', padding: '4px 0' }}>
+              <button
+                onClick={handleLogout}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  width: '100%', padding: '8px 14px',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: 'var(--text-sm)', color: 'var(--text-muted)',
+                  fontFamily: 'var(--font-sans)', textAlign: 'left',
+                  transition: 'background 100ms, color 100ms',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--error-bg)'; e.currentTarget.style.color = 'var(--error)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M5 1H2a1 1 0 00-1 1v10a1 1 0 001 1h3M9 10l4-3-4-3M13 7H5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Log out
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -446,31 +624,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </svg>
             </div>
 
-            {/* Avatar */}
-            <div style={{
-              width: 30, height: 30, borderRadius: '50%',
-              overflow: 'hidden', flexShrink: 0,
-              border: '1px solid var(--border-default)',
-            }}>
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={firstName}
-                  referrerPolicy="no-referrer"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
-              ) : (
-                <div style={{
-                  width: '100%', height: '100%',
-                  background: 'var(--brand-bg)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 600,
-                  color: 'var(--brand-primary)', fontFamily: 'var(--font-mono)',
-                }}>
-                  {initial}
-                </div>
-              )}
-            </div>
+            {/* Avatar + dropdown */}
+            <AvatarMenu
+              avatarUrl={avatarUrl}
+              firstName={firstName}
+              initial={initial}
+              email={email}
+              isPro={isPro}
+            />
           </div>
         </header>
 
