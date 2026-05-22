@@ -599,8 +599,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 24px', flexShrink: 0, zIndex: 9,
         }}>
-          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-            Hi, <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{firstName}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <img src="/icon-logo.png" alt="Gate402" style={{ height: 22, width: 'auto', display: 'block' }} />
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+              Hi, <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{firstName}</span>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
