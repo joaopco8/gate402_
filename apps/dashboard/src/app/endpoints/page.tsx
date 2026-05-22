@@ -96,7 +96,7 @@ function EndpointCard({
       style={{
         height: '28rem',
         width: '100%',
-        background: '#0A0A0A',
+        background: '#1F1F1F',
         border: ep ? '1px solid rgba(38,38,38,0.5)' : '1px solid rgba(38,38,38,0.25)',
       }}
     >
