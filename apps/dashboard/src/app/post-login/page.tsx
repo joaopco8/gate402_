@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { createClient } from '../../../lib/supabase/client'
-import { clearUserCache } from '../hooks/useUser'
+import { clearUserCacheCompat as clearUserCache } from '@/contexts/UserContext'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
 

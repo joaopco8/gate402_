@@ -9,7 +9,7 @@ import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
 import PageHeader from '../components/PageHeader'
 import Card from '../components/Card'
-import { useUser } from '../hooks/useUser'
+import { useUser } from '@/contexts/UserContext'
 
 const labelStyle: React.CSSProperties = {
   fontSize: 13,

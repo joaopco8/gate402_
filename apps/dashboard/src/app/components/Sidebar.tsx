@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
-import { useUser } from '../hooks/useUser'
+import { useUser } from '@/contexts/UserContext'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { CheckIcon } from 'lucide-react'
 import { motion } from 'framer-motion'

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Space_Grotesk, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import { UserProvider } from '@/contexts/UserContext';
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -31,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
-        {children}
+        <UserProvider>{children}</UserProvider>
       </body>
       <GoogleAnalytics gaId="G-NS4QRRXMQ2" />
     </html>

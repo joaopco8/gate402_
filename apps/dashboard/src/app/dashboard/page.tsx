@@ -11,7 +11,7 @@ import PageHeader from '../components/PageHeader'
 import Card from '../components/Card'
 import { ProGate } from '../components/ProGate'
 import { ProBanner } from '../components/ProBanner'
-import { useUser } from '../hooks/useUser'
+import { useUser } from '@/contexts/UserContext'
 import { useDashboardData } from '../hooks/useDashboardData'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 

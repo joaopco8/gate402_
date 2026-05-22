@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
 import Link from 'next/link'
-import { useUser } from '../hooks/useUser'
+import { useUser } from '@/contexts/UserContext'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // ─── Docs search index ────────────────────────────────────────────────────────

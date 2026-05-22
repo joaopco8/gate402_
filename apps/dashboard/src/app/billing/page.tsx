@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { CheckIcon } from 'lucide-react'
 import { createClient } from '../../../lib/supabase/client'
-import { useUser } from '../hooks/useUser'
+import { useUser } from '@/contexts/UserContext'
 import DashboardLayout from '../components/DashboardLayout'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'

@@ -11,7 +11,7 @@ import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
 import PageHeader from '../components/PageHeader'
 import Card from '../components/Card'
-import { useUser } from '../hooks/useUser'
+import { useUser } from '@/contexts/UserContext'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
 const MONO = 'var(--font-code)'
