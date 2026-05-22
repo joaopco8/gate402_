@@ -89,14 +89,47 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
     // ── STEP 2: No payment header → 402 ────────────────────────────────────
     const rawPaymentHeader = req.headers['x-payment-payload'] as string | undefined;
     if (!rawPaymentHeader) {
+      const userNetwork = network;
       res.status(402).json({
         error: 'Payment Required',
-        price: { total: price, currency: 'USDC', network: `solana-${network}` },
+        message: 'This API requires payment via the x402 protocol.',
+        price: {
+          total: price,
+          currency: 'USDC',
+          network: `solana-${userNetwork}`,
+        },
         splits: {
-          provider: { wallet: providerWallet, amount: providerAmount },
+          provider: {
+            wallet: providerWallet,
+            amount: price,
+          },
         },
         endpoint: endpointPath,
-        instructions: 'Send USDC on Solana and include tx hash in X-Payment-Payload header.',
+        instructions: 'Send USDC on Solana and include the tx hash in X-Payment-Payload header.',
+        quickstart: {
+          agent_sdk: {
+            install: 'npm install gate402-agent',
+            docs: 'https://gate402.dev/docs#installation-agent',
+            example: [
+              "import { Gate402Agent } from 'gate402-agent'",
+              '',
+              'const agent = new Gate402Agent({',
+              '  privateKey: process.env.AGENT_WALLET_KEY,',
+              `  network: '${userNetwork}'`,
+              '})',
+              '',
+              "const data = await agent.fetch('YOUR_API_URL')",
+              '// Pays automatically on HTTP 402',
+            ].join('\n'),
+          },
+          manual: {
+            step1: 'Send USDC to the provider wallet above',
+            step2: 'Get the transaction hash from Solana',
+            step3: 'Retry with header: X-Payment-Payload: <txHash>',
+            explorer: 'https://explorer.solana.com',
+          },
+          learn_more: 'https://gate402.dev/docs',
+        },
       });
       return;
     }
