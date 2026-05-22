@@ -38,7 +38,7 @@ router.post('/billing/checkout', async (req, res) => {
     return res.json({ url: session.url, sessionId: session.id })
   } catch (error: any) {
     console.error('[billing/checkout] Error:', error)
-    return res.status(500).json({ error: error.message })
+    return res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -48,8 +48,8 @@ router.post('/billing/webhook', async (req, res) => {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
   if (!webhookSecret || webhookSecret === 'placeholder_will_update') {
-    console.warn('[billing/webhook] No webhook secret configured — skipping verification')
-    return res.json({ received: true })
+    console.error('[billing/webhook] STRIPE_WEBHOOK_SECRET not configured — rejecting event')
+    return res.status(500).json({ error: 'Webhook not configured' })
   }
 
   let event: ReturnType<typeof stripe.webhooks.constructEvent>

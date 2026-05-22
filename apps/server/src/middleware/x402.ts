@@ -134,9 +134,25 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       return;
     }
 
-    // ── STEP 3: Parse tx hashes ─────────────────────────────────────────────
-    const [txHashProvider, txHashPlatform] = rawPaymentHeader.split(',').map(h => h.trim());
-    const isDemoMode = txHashProvider?.startsWith('demo_');
+    // ── STEP 3: Parse + sanitize tx hashes ──────────────────────────────────
+    if (rawPaymentHeader.length > 500) {
+      res.status(400).json({ error: 'X-Payment-Payload too long' });
+      return;
+    }
+
+    const sanitizeTxHash = (hash: string): string =>
+      hash.slice(0, 200).replace(/[^a-zA-Z0-9_\-]/g, '');
+
+    const [rawProvider, rawPlatform] = rawPaymentHeader.split(',').map(h => h.trim());
+    const txHashProvider = sanitizeTxHash(rawProvider ?? '');
+    const txHashPlatform = rawPlatform ? sanitizeTxHash(rawPlatform) : undefined;
+
+    if (!txHashProvider) {
+      res.status(400).json({ error: 'Invalid payment payload' });
+      return;
+    }
+
+    const isDemoMode = txHashProvider.startsWith('demo_');
 
     // Block demo_ on mainnet
     const userNetwork = (currentUser as any)?.network || 'devnet';

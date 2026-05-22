@@ -81,11 +81,26 @@ router.post('/endpoints', async (req, res) => {
   if (!path || priceUsdc === undefined) {
     return res.status(400).json({ error: 'path and priceUsdc are required' })
   }
+  if (typeof path !== 'string') {
+    return res.status(400).json({ error: 'path must be a string' })
+  }
   if (!path.startsWith('/')) {
     return res.status(400).json({ error: 'path must start with /' })
   }
+  if (path.length > 200) {
+    return res.status(400).json({ error: 'path too long (max 200 characters)' })
+  }
+  if (!/^[a-zA-Z0-9/_\-:.{}]+$/.test(path)) {
+    return res.status(400).json({ error: 'path contains invalid characters' })
+  }
+  if (typeof priceUsdc !== 'number' || isNaN(priceUsdc) || !isFinite(priceUsdc)) {
+    return res.status(400).json({ error: 'priceUsdc must be a valid number' })
+  }
   if (priceUsdc < 0.0001) {
     return res.status(400).json({ error: 'minimum price is 0.0001 USDC' })
+  }
+  if (priceUsdc > 1000) {
+    return res.status(400).json({ error: 'maximum price is 1000 USDC' })
   }
 
   const user = await prisma.user.findUnique({ where: { supabaseId } })

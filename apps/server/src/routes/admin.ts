@@ -1,12 +1,25 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
 import { getRevenueStats } from '../lib/revenueLog'
+import { timingSafeEqual } from 'crypto'
 
 const router = Router()
 
+function verifyAdminSecret(provided: string | undefined): boolean {
+  const expected = process.env.ADMIN_SECRET
+  if (!provided || !expected) return false
+  try {
+    const a = Buffer.from(provided)
+    const b = Buffer.from(expected)
+    if (a.length !== b.length) return false
+    return timingSafeEqual(a, b)
+  } catch {
+    return false
+  }
+}
+
 router.post('/admin/set-plan', async (req, res) => {
-  const adminSecret = req.headers['x-admin-secret'] as string
-  if (adminSecret !== process.env.ADMIN_SECRET) {
+  if (!verifyAdminSecret(req.headers['x-admin-secret'] as string)) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
@@ -30,13 +43,12 @@ router.post('/admin/set-plan', async (req, res) => {
     return res.json({ success: true, user })
   } catch (error: any) {
     console.error('[admin/set-plan] Error:', error.message)
-    return res.status(500).json({ error: error.message })
+    return res.status(500).json({ error: 'Internal server error' })
   }
 })
 
 router.get('/admin/revenue', async (req, res) => {
-  const adminSecret = req.headers['x-admin-secret'] as string
-  if (adminSecret !== process.env.ADMIN_SECRET) {
+  if (!verifyAdminSecret(req.headers['x-admin-secret'] as string)) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 

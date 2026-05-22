@@ -3,6 +3,7 @@ dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import { x402Middleware } from './middleware/x402';
 import { requirePro, requireAccount } from './middleware/plan';
 import { globalRateLimit, unpaidRateLimit } from './middleware/rateLimiter';
@@ -22,15 +23,46 @@ import { walletAddress } from './solana/wallet';
 const app = express();
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
 
+const ALLOWED_ORIGINS = [
+  'https://gate402.dev',
+  'https://www.gate402.dev',
+  'https://app.gate402.dev',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: [
+        "'self'",
+        'https://api.devnet.solana.com',
+        'https://api.mainnet-beta.solana.com',
+      ],
+    },
+  },
+}));
+
 app.use(cors({
-  origin: '*',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (server-to-server, curl, SDK)
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    }
+  },
   allowedHeaders: [
     'Content-Type',
     'X-Payment-Payload',
     'x-user-id',
     'x-api-key',
+    'x-agent-wallet',
     'Authorization',
     'stripe-signature',
+    'x-admin-secret',
   ],
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   optionsSuccessStatus: 200,
@@ -114,6 +146,12 @@ app.use('/api', meteringRouter);
 // x402 paywall middleware — runs after all management routes
 app.use('/api', x402Middleware);
 app.use('/api', demoRoutes);
+
+// Global error handler — must be last middleware
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('[error]', err.message);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log('[startup] Gate402 running on port', PORT);
