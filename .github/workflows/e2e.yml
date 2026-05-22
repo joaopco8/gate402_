@@ -1,0 +1,80 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: cd apps/server && npm install
+
+      - name: Run unit tests
+        run: cd apps/server && npm test
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: unit
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          pip install selenium webdriver-manager pytest python-dotenv
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Create .env.test
+        run: |
+          cat > tests/e2e/.env.test << 'EOF'
+          GATE402_EMAIL=${{ secrets.GATE402_EMAIL }}
+          GATE402_PASSWORD=${{ secrets.GATE402_PASSWORD }}
+          GATE402_URL=https://www.gate402.dev
+          EOF
+
+      - name: Run E2E tests (auth + navigation)
+        env:
+          CI: true
+          PYTHONIOENCODING: utf-8
+        run: |
+          python -m pytest tests/e2e/ \
+            --ignore=tests/e2e/test_z_logout.py \
+            -v -s --tb=short 2>&1
+
+      - name: Run logout test last
+        env:
+          CI: true
+          PYTHONIOENCODING: utf-8
+        run: |
+          python -m pytest tests/e2e/test_z_logout.py -v -s --tb=short 2>&1
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: tests/e2e/screenshots/
+          if-no-files-found: ignore
