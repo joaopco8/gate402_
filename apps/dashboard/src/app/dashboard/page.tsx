@@ -77,9 +77,22 @@ function StatsCard({ label, value, sub, loading, current, previous, chartData }:
   const linePath = useMemo(() => generateSmoothPath(normalizedData, svgWidth, svgHeight), [normalizedData])
   const areaPath = useMemo(() => linePath.startsWith('M') ? `${linePath} L ${svgWidth} ${svgHeight} L 0 ${svgHeight} Z` : '', [linePath])
 
-  const isUp = change?.direction === 'up'
-  const graphStroke = isUp ? '#00bc7d' : change?.direction === 'down' ? '#ef4444' : '#6b7280'
-  const gradientId = `statsGrad_${label.replace(/\s+/g, '')}${isUp ? 'Up' : 'Down'}`
+  const graphStroke = useMemo(() => {
+    if (normalizedData.length < 2) return '#6b7280'
+    const first = normalizedData[0]
+    const last = normalizedData[normalizedData.length - 1]
+    const mid = normalizedData.reduce((a, b) => a + b, 0) / normalizedData.length
+    const delta = last - first
+    // check if trend is volatile/flat relative to swing
+    const range = Math.max(...normalizedData) - Math.min(...normalizedData)
+    if (range < 5) return '#f59e0b' // essentially flat → yellow
+    if (delta > 4) return '#00bc7d' // trending up → green
+    if (delta < -4) return '#ef4444' // trending down → red
+    // last point below midpoint means recent decline → yellow/red
+    if (last < mid - 5) return '#f59e0b'
+    return '#00bc7d'
+  }, [normalizedData])
+  const gradientId = `statsGrad_${label.replace(/\s+/g, '')}`
 
   useEffect(() => {
     const path = linePathRef.current
@@ -561,10 +574,10 @@ export default function DashboardPage() {
 
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
-          <StatsCard label="Total Calls"   value={loading ? '—' : (data?.totalCalls || 0).toLocaleString()} sub="all time"        loading={loading} current={data?.callsThisWeek}   previous={data?.callsLastWeek}  chartData={data?.callsPerDay?.map((d: { count: number }) => d.count)} />
-          <StatsCard label="Total Earned"  value={loading ? '—' : `$${(data?.totalUsdc || 0).toFixed(4)}`}  sub="USDC · all time" loading={loading} current={data?.revenueThisWeek} previous={data?.revenueLastWeek} />
-          <StatsCard label="Calls Today"   value={loading ? '—' : (data?.callsToday || 0).toLocaleString()} sub="since 00:00 UTC" loading={loading} current={data?.callsToday}      previous={data?.callsYesterday} />
-          <StatsCard label="Revenue Today" value={loading ? '—' : `$${(data?.usdcToday || 0).toFixed(4)}`}  sub="USDC today"      loading={loading} current={data?.usdcToday}       previous={data?.usdcYesterday} />
+          <StatsCard label="Total Calls"   value={loading ? '—' : (data?.totalCalls || 0).toLocaleString()} sub="all time"        loading={loading} current={data?.callsThisWeek}   previous={data?.callsLastWeek}  chartData={data?.callsPerDay?.map(d => d.count)} />
+          <StatsCard label="Total Earned"  value={loading ? '—' : `$${(data?.totalUsdc || 0).toFixed(4)}`}  sub="USDC · all time" loading={loading} current={data?.revenueThisWeek} previous={data?.revenueLastWeek} chartData={data?.callsPerDay?.map(d => d.amount)} />
+          <StatsCard label="Calls Today"   value={loading ? '—' : (data?.callsToday || 0).toLocaleString()} sub="since 00:00 UTC" loading={loading} current={data?.callsToday}      previous={data?.callsYesterday} chartData={data?.callsPerDay?.map(d => d.count)} />
+          <StatsCard label="Revenue Today" value={loading ? '—' : `$${(data?.usdcToday || 0).toFixed(4)}`}  sub="USDC today"      loading={loading} current={data?.usdcToday}       previous={data?.usdcYesterday} chartData={data?.callsPerDay?.map(d => d.amount)} />
         </div>
 
         {/* Chart */}
