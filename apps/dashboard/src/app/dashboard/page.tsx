@@ -558,8 +558,6 @@ export default function DashboardPage() {
   }, [supabaseUserId, isPro])
 
   const loading = dataLoading
-  const weeklyAmount = data?.callsPerDay?.reduce((s, d) => s + (d.amount || 0), 0) || 0
-  const mrrProjected = (weeklyAmount / 7) * 30
 
   // Spark data: normalize raw values to 0–100 scale
   const toSpark = (vals: number[]) => {
@@ -601,67 +599,49 @@ export default function DashboardPage() {
           <StatsCard label="Revenue Today" value={loading ? '—' : `$${(data?.usdcToday || 0).toFixed(4)}`}  sub="USDC today"      sparkData={revenueSpark} change={revenueChange} loading={loading} />
         </div>
 
-        {/* Chart + MRR */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
-          <Card>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <span style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-muted)', }}>
-                Calls
+        {/* Chart */}
+        <Card style={{ marginBottom: 'var(--space-xl)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <span style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-muted)' }}>
+              Calls
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-secondary)' }}>
+                {data?.callsPerDay?.reduce((s, d) => s + d.count, 0) || 0} total
               </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-secondary)' }}>
-                  {data?.callsPerDay?.reduce((s, d) => s + d.count, 0) || 0} total
-                </span>
-                <Select
-                  value={String(chartDays)}
-                  onValueChange={v => setChartDays(Number(v))}
-                  indicatorPosition="right"
-                >
-                  <SelectTrigger size="sm" className="w-[130px] font-mono text-[11px]" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PERIOD_OPTIONS.map(opt => (
-                      (!isPro && opt.value !== '7') ? null : (
-                        <SelectItem key={opt.value} value={opt.value} className="font-mono text-[11px]">
-                          {opt.label}
-                          {!isPro && opt.value !== '7' && <span className="ml-1 text-[10px] opacity-50">Pro</span>}
-                        </SelectItem>
-                      )
-                    ))}
-                    {!isPro && (
-                      <>
-                        <SelectItem value="30" disabled className="font-mono text-[11px]">
-                          Last 30 days <span className="ml-1 text-[10px] opacity-50">Pro</span>
-                        </SelectItem>
-                        <SelectItem value="90" disabled className="font-mono text-[11px]">
-                          Last 90 days <span className="ml-1 text-[10px] opacity-50">Pro</span>
-                        </SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select
+                value={String(chartDays)}
+                onValueChange={v => setChartDays(Number(v))}
+                indicatorPosition="right"
+              >
+                <SelectTrigger size="sm" className="w-[130px] font-mono text-[11px]" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PERIOD_OPTIONS.map(opt => (
+                    (!isPro && opt.value !== '7') ? null : (
+                      <SelectItem key={opt.value} value={opt.value} className="font-mono text-[11px]">
+                        {opt.label}
+                        {!isPro && opt.value !== '7' && <span className="ml-1 text-[10px] opacity-50">Pro</span>}
+                      </SelectItem>
+                    )
+                  ))}
+                  {!isPro && (
+                    <>
+                      <SelectItem value="30" disabled className="font-mono text-[11px]">
+                        Last 30 days <span className="ml-1 text-[10px] opacity-50">Pro</span>
+                      </SelectItem>
+                      <SelectItem value="90" disabled className="font-mono text-[11px]">
+                        Last 90 days <span className="ml-1 text-[10px] opacity-50">Pro</span>
+                      </SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
             </div>
-            {loading ? <Skeleton height={280} /> : <MiniChart data={data?.callsPerDay || []} days={chartDays} />}
-          </Card>
-
-          <ProGate isPro={isPro} feature="MRR Projection">
-            <Card style={{ height: '100%', boxSizing: 'border-box' }}>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>MRR Projected</div>
-              <div style={{ fontSize: 26, fontWeight: 600, color: 'var(--green)', letterSpacing: '-0.5px' }}>${mrrProjected.toFixed(2)}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, marginBottom: 16 }}>based on last 7 days</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {(data?.callsPerDay || []).slice(-3).map((d, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-muted)' }}>{d.date}</span>
-                    <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-secondary)' }}>{d.count} calls</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </ProGate>
-        </div>
+          </div>
+          {loading ? <Skeleton height={280} /> : <MiniChart data={data?.callsPerDay || []} days={chartDays} />}
+        </Card>
 
         {/* Recent calls */}
         <div style={{ marginBottom: 'var(--space-xl)' }}>

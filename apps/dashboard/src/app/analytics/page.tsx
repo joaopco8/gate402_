@@ -216,13 +216,44 @@ export default function AnalyticsPage() {
         {/* ══ SECTION 2 — SUCCESS RATE & MRR ════════════════════════════════ */}
         <div style={{ marginBottom: 'var(--space-md)' }}>
           <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Success Rate & MRR</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-sm)' }}>
-            {loading ? Array(3).fill(0).map((_, i) => <Card key={i}><Skeleton height={56} /></Card>) : (
-              <>
-                <StatCard label="Success Rate" value={successRate ? `${successRate.successRate}%` : '—'} sub="Last 7 days" color={srColor} />
-                <StatCard label="MRR Projected" value={successRate ? `$${successRate.mrrProjected?.toFixed(2)}/mo` : '—'} sub="Based on 7d" />
-                <StatCard label="Failed Calls" value={successRate ? String(successRate.failedCalls ?? 0) : '—'} sub="Last 7 days" color={successRate?.failedCalls > 0 ? '#ef4444' : undefined} />
-              </>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 'var(--space-sm)' }}>
+            {/* Left — Success Rate + Failed Calls */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+              {loading ? (
+                <>
+                  <Card><Skeleton height={56} /></Card>
+                  <Card><Skeleton height={56} /></Card>
+                </>
+              ) : (
+                <>
+                  <StatCard label="Success Rate" value={successRate ? `${successRate.successRate}%` : '—'} sub="Last 7 days" color={srColor} />
+                  <StatCard label="Failed Calls" value={successRate ? String(successRate.failedCalls ?? 0) : '—'} sub="Last 7 days" color={successRate?.failedCalls > 0 ? '#ef4444' : undefined} />
+                </>
+              )}
+            </div>
+
+            {/* Right — MRR Projected full card */}
+            {loading ? (
+              <Card><Skeleton height={140} /></Card>
+            ) : (
+              <Card style={{ height: '100%', boxSizing: 'border-box' }}>
+                <div style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>MRR Projected</div>
+                <div style={{ fontSize: 26, fontWeight: 600, color: GREEN, letterSpacing: '-0.5px' }}>
+                  ${successRate?.mrrProjected?.toFixed(2) ?? '0.00'}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, marginBottom: 16 }}>based on last 7 days</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {byDay.slice(-3).map((d: any, i: number) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)' }}>{d.date}</span>
+                      <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-secondary)' }}>${(d.gross ?? 0).toFixed(5)}</span>
+                    </div>
+                  ))}
+                  {byDay.length === 0 && (
+                    <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)' }}>No data yet</span>
+                  )}
+                </div>
+              </Card>
             )}
           </div>
         </div>
