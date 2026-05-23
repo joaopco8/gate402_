@@ -13,6 +13,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 config = dotenv_values("tests/e2e/.env.test")
 
+if not config.get("GATE402_EMAIL") or not config.get("GATE402_PASSWORD"):
+    import sys
+    print("[FATAL] GATE402_EMAIL or GATE402_PASSWORD missing in .env.test — set GitHub secrets", file=sys.stderr)
+
 SUPABASE_URL = "https://ungrnesvfazuhjcyslfb.supabase.co"
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuZ3JuZXN2ZmF6dWhqY3lzbGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4OTY5OTksImV4cCI6MjA5MzQ3Mjk5OX0.FcyeYCJt_NaW7VA9bLc1Grj2ohysw08JVuSn75A9sA8"
 STORAGE_KEY = "sb-ungrnesvfazuhjcyslfb-auth-token"
