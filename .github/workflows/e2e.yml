@@ -19,13 +19,17 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install server dependencies
+      - name: Test server
         working-directory: apps/server
-        run: npm install --ignore-scripts
+        run: npm install --ignore-scripts && npm test
 
-      - name: Run unit tests
-        working-directory: apps/server
-        run: npm test -- --passWithNoTests
+      - name: Test SDK
+        working-directory: packages/sdk
+        run: npm install --ignore-scripts && npm test
+
+      - name: Test SDK Agent
+        working-directory: packages/sdk-agent
+        run: npm install --ignore-scripts && npm test
 
   e2e:
     needs: unit
