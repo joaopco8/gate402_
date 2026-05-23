@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useMemo, useEffect, useState } from 'react'
+import { useMemo, useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ComposedChart, Area, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import DashboardLayout from '../components/DashboardLayout'
@@ -34,36 +34,114 @@ function Skeleton({ width = '100%', height = 16 }: { width?: string | number; he
 
 // ── StatsCard ─────────────────────────────────────────────────────────────────
 
-function StatsCard({ label, value, sub, loading, current, previous }: {
-  label: string; value: string; sub?: string; loading?: boolean; current?: number; previous?: number
+function generateSmoothPath(points: number[], width: number, height: number): string {
+  if (!points || points.length < 2) return `M 0 ${height}`
+  const xStep = width / (points.length - 1)
+  const pathData = points.map((point, i) => {
+    const x = i * xStep
+    const y = height - (point / 100) * (height * 0.8) - (height * 0.1)
+    return [x, y]
+  })
+  let path = `M ${pathData[0][0]} ${pathData[0][1]}`
+  for (let i = 0; i < pathData.length - 1; i++) {
+    const [x1, y1] = pathData[i]
+    const [x2, y2] = pathData[i + 1]
+    const midX = (x1 + x2) / 2
+    path += ` C ${midX},${y1} ${midX},${y2} ${x2},${y2}`
+  }
+  return path
+}
+
+function StatsCard({ label, value, sub, loading, current, previous, chartData }: {
+  label: string; value: string; sub?: string; loading?: boolean
+  current?: number; previous?: number; chartData?: number[]
 }) {
   const change = (current !== undefined && previous !== undefined)
     ? calcChange(current, previous)
     : null
 
+  const linePathRef = useRef<SVGPathElement>(null)
+  const areaPathRef = useRef<SVGPathElement>(null)
+
+  const svgWidth = 150
+  const svgHeight = 60
+
+  const normalizedData = useMemo(() => {
+    const raw = chartData && chartData.length >= 2
+      ? chartData
+      : [previous ?? 0, current ?? 0]
+    const max = Math.max(...raw, 1)
+    return raw.map(v => (v / max) * 90)
+  }, [chartData, current, previous])
+
+  const linePath = useMemo(() => generateSmoothPath(normalizedData, svgWidth, svgHeight), [normalizedData])
+  const areaPath = useMemo(() => linePath.startsWith('M') ? `${linePath} L ${svgWidth} ${svgHeight} L 0 ${svgHeight} Z` : '', [linePath])
+
+  const isUp = change?.direction === 'up'
+  const graphStroke = isUp ? '#00bc7d' : change?.direction === 'down' ? '#ef4444' : '#6b7280'
+  const gradientId = `statsGrad_${label.replace(/\s+/g, '')}${isUp ? 'Up' : 'Down'}`
+
+  useEffect(() => {
+    const path = linePathRef.current
+    const area = areaPathRef.current
+    if (!path || !area) return
+    const length = path.getTotalLength()
+    path.style.transition = 'none'
+    path.style.strokeDasharray = `${length} ${length}`
+    path.style.strokeDashoffset = `${length}`
+    area.style.transition = 'none'
+    area.style.opacity = '0'
+    path.getBoundingClientRect()
+    path.style.transition = 'stroke-dashoffset 0.8s ease-in-out'
+    path.style.strokeDashoffset = '0'
+    area.style.transition = 'opacity 0.8s ease-in-out 0.2s'
+    area.style.opacity = '1'
+  }, [linePath])
+
   return (
     <Card>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: 14, marginBottom: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {/* Label + change */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: 13 }}>
           <span>{label}</span>
           {change && change.direction !== 'none' && (
-            <span style={{
-              fontSize: 11, fontWeight: 600, color: change.color,
-              background: change.direction === 'up' ? 'rgba(62,207,142,0.1)' : change.direction === 'down' ? 'rgba(239,68,68,0.1)' : 'rgba(100,100,100,0.1)',
-              border: `1px solid ${change.color}33`,
-              borderRadius: 4, padding: '2px 6px', fontFamily: 'var(--font-mono)',
-            }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 12, fontWeight: 600, color: change.color }}>
               {change.label}
+              {change.direction === 'up'
+                ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+              }
             </span>
           )}
         </div>
-        {loading
-          ? <Skeleton height={36} width={120} />
-          : <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-1px', lineHeight: 1.1 }}>{value}</div>
-        }
-        {sub && !loading && (
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{sub}</div>
-        )}
+
+        {/* Value + chart */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4 }}>
+          <div>
+            {loading
+              ? <Skeleton height={36} width={120} />
+              : <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-1px', lineHeight: 1.1 }}>{value}</div>
+            }
+            {sub && !loading && (
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{sub}</div>
+            )}
+          </div>
+
+          {!loading && (
+            <div style={{ width: 80, height: 44, flexShrink: 0 }}>
+              <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={graphStroke} stopOpacity={0.35}/>
+                    <stop offset="100%" stopColor={graphStroke} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <path ref={areaPathRef} d={areaPath} fill={`url(#${gradientId})`} />
+                <path ref={linePathRef} d={linePath} fill="none" stroke={graphStroke} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          )}
+        </div>
       </div>
     </Card>
   )
@@ -195,6 +273,17 @@ function EndpointIcon({ path }: { path: string }) {
   )
 }
 
+function sparkColor(data: number[]): string {
+  if (!data || data.length < 2) return '#f59e0b'
+  const nonZero = data.filter(v => v > 0)
+  if (nonZero.length === 0) return '#f59e0b'
+  const first = data.find(v => v > 0) ?? 0
+  const last = [...data].reverse().find(v => v > 0) ?? 0
+  if (last > first) return '#3ECF8E'
+  if (last < first) return '#ef4444'
+  return '#f59e0b'
+}
+
 function Sparkline({ data }: { data: number[] }) {
   if (!data || data.length < 2) return null
   const min = Math.min(...data)
@@ -205,11 +294,12 @@ function Sparkline({ data }: { data: number[] }) {
     const y = 16 - ((v - min) / range) * 13
     return `${x},${y}`
   }).join(' ')
+  const color = sparkColor(data)
   return (
     <motion.svg width="56" height="16" viewBox="0 0 56 16" style={{ overflow: 'visible' }}
       initial={{ opacity: 0, scaleX: 0.7 }} animate={{ opacity: 1, scaleX: 1 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.2 }}>
-      <motion.polyline points={pts} fill="none" stroke="#3ECF8E" strokeWidth="1.5"
+      <motion.polyline points={pts} fill="none" stroke={color} strokeWidth="1.5"
         strokeLinecap="round" strokeLinejoin="round"
         initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
         transition={{ duration: 0.7, ease: 'easeOut', delay: 0.25 }} />
@@ -250,7 +340,7 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
         padding: '9px 20px', borderBottom: '1px solid var(--border-default)',
         background: 'var(--bg-base)' }}>
         {['', 'Endpoint', 'Amount', 'Payer', 'Chart', 'Time'].map(h => (
-          <span key={h} style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+          <span key={h} style={{ fontFamily: "'Roboto', sans-serif", fontSize: 11,
             color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
             {h}
           </span>
@@ -265,7 +355,7 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
         ))
       ) : calls.length === 0 ? (
         <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)',
-          fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+          fontFamily: "'Roboto', sans-serif", fontSize: 12 }}>
           No calls yet — make your first request
         </div>
       ) : (
@@ -273,7 +363,6 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
           {calls.map((call, i) => {
             const amount = call.amountUsdc ? Number(call.amountUsdc) : null
             const spark = sparkMap[call.endpoint || '/'] ?? []
-            const isPaid = !!amount && amount > 0
             return (
               <motion.div key={call.id} variants={rowVariants}>
                 <div style={{
@@ -287,25 +376,17 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
                 >
                   <EndpointIcon path={call.endpoint} />
 
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12,
+                  <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: 12,
                     color: 'var(--text-primary)', overflow: 'hidden',
                     textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>
                     {call.endpoint || '—'}
                   </span>
 
-                  {/* Amount badge */}
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center',
-                    padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 500,
-                    fontFamily: 'var(--font-mono)',
-                    background: isPaid ? 'rgba(0,98,57,0.18)' : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${isPaid ? 'rgba(18,131,83,0.4)' : 'var(--border-default)'}`,
-                    color: isPaid ? '#3ECF8E' : 'var(--text-muted)',
-                  }}>
+                  <span style={{ fontSize: 11, fontFamily: "'Roboto', sans-serif", color: 'var(--text-muted)' }}>
                     {amount ? `$${amount.toFixed(5)}` : 'free'}
-                  </div>
+                  </span>
 
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                  <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: 11,
                     color: 'var(--text-secondary)', overflow: 'hidden',
                     textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {call.payerWallet
@@ -317,7 +398,7 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
                     <Sparkline data={spark.length >= 2 ? spark : [0, amount ?? 0, amount ?? 0]} />
                   </div>
 
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11,
+                  <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: 11,
                     color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                     {call.createdAt ? timeAgo(call.createdAt) : '—'}
                   </span>
@@ -331,10 +412,10 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
       {!isPro && !loading && calls.length >= 5 && (
         <div style={{ padding: '10px 20px', borderTop: '1px solid var(--border-default)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: "'Roboto', sans-serif" }}>
             Showing last 5 calls
           </span>
-          <a href="/billing" style={{ fontSize: 12, color: '#3ECF8E', fontFamily: 'var(--font-mono)' }}>
+          <a href="/billing" style={{ fontSize: 12, color: '#3ECF8E', fontFamily: "'Roboto', sans-serif" }}>
             Upgrade for last 50 →
           </a>
         </div>
@@ -480,7 +561,7 @@ export default function DashboardPage() {
 
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
-          <StatsCard label="Total Calls"   value={loading ? '—' : (data?.totalCalls || 0).toLocaleString()} sub="all time"        loading={loading} current={data?.callsThisWeek}   previous={data?.callsLastWeek} />
+          <StatsCard label="Total Calls"   value={loading ? '—' : (data?.totalCalls || 0).toLocaleString()} sub="all time"        loading={loading} current={data?.callsThisWeek}   previous={data?.callsLastWeek}  chartData={data?.callsPerDay?.map((d: { count: number }) => d.count)} />
           <StatsCard label="Total Earned"  value={loading ? '—' : `$${(data?.totalUsdc || 0).toFixed(4)}`}  sub="USDC · all time" loading={loading} current={data?.revenueThisWeek} previous={data?.revenueLastWeek} />
           <StatsCard label="Calls Today"   value={loading ? '—' : (data?.callsToday || 0).toLocaleString()} sub="since 00:00 UTC" loading={loading} current={data?.callsToday}      previous={data?.callsYesterday} />
           <StatsCard label="Revenue Today" value={loading ? '—' : `$${(data?.usdcToday || 0).toFixed(4)}`}  sub="USDC today"      loading={loading} current={data?.usdcToday}       previous={data?.usdcYesterday} />
@@ -489,11 +570,11 @@ export default function DashboardPage() {
         {/* Chart */}
         <Card style={{ marginBottom: 'var(--space-xl)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <span style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-muted)' }}>
+            <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>
               Calls
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-secondary)' }}>
+              <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: 11, color: 'var(--text-secondary)' }}>
                 {data?.callsPerDay?.reduce((s, d) => s + d.count, 0) || 0} total
               </span>
               <Select
@@ -501,13 +582,13 @@ export default function DashboardPage() {
                 onValueChange={v => setChartDays(Number(v))}
                 indicatorPosition="right"
               >
-                <SelectTrigger size="sm" className="w-[130px] font-mono text-[11px]" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
+                <SelectTrigger size="sm" className="w-[130px] text-[11px]" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontFamily: "'Roboto', sans-serif" }}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {PERIOD_OPTIONS.map(opt => (
                     (!isPro && opt.value !== '7') ? null : (
-                      <SelectItem key={opt.value} value={opt.value} className="font-mono text-[11px]">
+                      <SelectItem key={opt.value} value={opt.value} className="text-[11px]" style={{ fontFamily: "'Roboto', sans-serif" }}>
                         {opt.label}
                         {!isPro && opt.value !== '7' && <span className="ml-1 text-[10px] opacity-50">Pro</span>}
                       </SelectItem>
@@ -515,10 +596,10 @@ export default function DashboardPage() {
                   ))}
                   {!isPro && (
                     <>
-                      <SelectItem value="30" disabled className="font-mono text-[11px]">
+                      <SelectItem value="30" disabled className="text-[11px]" style={{ fontFamily: "'Roboto', sans-serif" }}>
                         Last 30 days <span className="ml-1 text-[10px] opacity-50">Pro</span>
                       </SelectItem>
-                      <SelectItem value="90" disabled className="font-mono text-[11px]">
+                      <SelectItem value="90" disabled className="text-[11px]" style={{ fontFamily: "'Roboto', sans-serif" }}>
                         Last 90 days <span className="ml-1 text-[10px] opacity-50">Pro</span>
                       </SelectItem>
                     </>
