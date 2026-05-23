@@ -22,7 +22,13 @@ export interface DashboardData {
   totalCalls: number
   totalUsdc: number
   callsToday: number
+  callsYesterday: number
   usdcToday: number
+  usdcYesterday: number
+  callsThisWeek: number
+  callsLastWeek: number
+  revenueThisWeek: number
+  revenueLastWeek: number
   recentCalls: Array<{
     id: string
     endpoint: string
@@ -80,7 +86,13 @@ export function useDashboardData(userId: string | null, isPro?: boolean, days = 
           totalCalls: metrics.totalCalls ?? 0,
           totalUsdc: metrics.totalUsdc ?? 0,
           callsToday: metrics.callsToday ?? 0,
+          callsYesterday: metrics.callsYesterday ?? 0,
           usdcToday: metrics.usdcToday ?? 0,
+          usdcYesterday: metrics.usdcYesterday ?? 0,
+          callsThisWeek: metrics.callsThisWeek ?? 0,
+          callsLastWeek: metrics.callsLastWeek ?? 0,
+          revenueThisWeek: metrics.revenueThisWeek ?? 0,
+          revenueLastWeek: metrics.revenueLastWeek ?? 0,
           recentCalls: json.recentCalls ?? [],
           callsPerDay,
           endpoints: json.endpoints ?? [],

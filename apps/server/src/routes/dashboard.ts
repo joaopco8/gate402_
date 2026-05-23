@@ -24,6 +24,14 @@ router.get('/dashboard', async (req, res) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
+    const yesterdayStart = new Date(today)
+    yesterdayStart.setDate(yesterdayStart.getDate() - 1)
+    const yesterdayEnd = today
+
+    const weekStart = new Date(Date.now() - 7 * 24 * 3600 * 1000)
+    const lastWeekStart = new Date(Date.now() - 14 * 24 * 3600 * 1000)
+    const lastWeekEnd = weekStart
+
     const rawDays = parseInt(req.query.days as string) || 7
     const chartDays = user.plan === 'pro' ? Math.min(rawDays, 90) : Math.min(rawDays, 7)
     const sinceN = new Date(Date.now() - chartDays * 24 * 3600 * 1000)
@@ -33,15 +41,27 @@ router.get('/dashboard', async (req, res) => {
     const [
       totalCalls,
       callsToday,
+      callsYesterday,
       revenueAll,
       revenueToday,
+      revenueYesterday,
+      callsThisWeek,
+      callsLastWeek,
+      revenueThisWeek,
+      revenueLastWeek,
       recentCalls,
       perDay,
     ] = await Promise.all([
       prisma.apiCall.count({ where: { userId: user.id } }),
       prisma.apiCall.count({ where: { userId: user.id, createdAt: { gte: today } } }),
+      prisma.apiCall.count({ where: { userId: user.id, createdAt: { gte: yesterdayStart, lt: yesterdayEnd } } }),
       prisma.apiCall.aggregate({ where: { userId: user.id }, _sum: { amountUsdc: true } }),
       prisma.apiCall.aggregate({ where: { userId: user.id, createdAt: { gte: today } }, _sum: { amountUsdc: true } }),
+      prisma.apiCall.aggregate({ where: { userId: user.id, createdAt: { gte: yesterdayStart, lt: yesterdayEnd } }, _sum: { amountUsdc: true } }),
+      prisma.apiCall.count({ where: { userId: user.id, createdAt: { gte: weekStart } } }),
+      prisma.apiCall.count({ where: { userId: user.id, createdAt: { gte: lastWeekStart, lt: lastWeekEnd } } }),
+      prisma.apiCall.aggregate({ where: { userId: user.id, createdAt: { gte: weekStart } }, _sum: { amountUsdc: true } }),
+      prisma.apiCall.aggregate({ where: { userId: user.id, createdAt: { gte: lastWeekStart, lt: lastWeekEnd } }, _sum: { amountUsdc: true } }),
       prisma.apiCall.findMany({
         where: { userId: user.id },
         include: { endpoint: { select: { path: true } } },
@@ -97,8 +117,14 @@ router.get('/dashboard', async (req, res) => {
       metrics: {
         totalCalls,
         callsToday,
+        callsYesterday,
         totalUsdc: revenueAll._sum.amountUsdc ?? 0,
         usdcToday: revenueToday._sum.amountUsdc ?? 0,
+        usdcYesterday: revenueYesterday._sum.amountUsdc ?? 0,
+        callsThisWeek,
+        callsLastWeek,
+        revenueThisWeek: revenueThisWeek._sum.amountUsdc ?? 0,
+        revenueLastWeek: revenueLastWeek._sum.amountUsdc ?? 0,
       },
       recentCalls: recentCalls.map(c => ({
         id: c.id,
