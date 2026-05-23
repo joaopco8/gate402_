@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import { LogoCloud } from "@/components/ui/logo-cloud-3";
 import { LandingNavbar } from "@/components/ui/landing-navbar";
 import React, {
@@ -709,22 +710,19 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <style>{`
                         @keyframes shimmer-ltr {
-                            0%   { background-position: -100% center; }
-                            100% { background-position: 200% center; }
+                            0%   { transform: translateX(-300%); }
+                            100% { transform: translateX(300%); }
                         }
                         .superteam-logo-wrap {
                             position: relative;
                             display: inline-block;
                             cursor: pointer;
                         }
-                        .superteam-shimmer {
+                        .superteam-shimmer-mask {
                             position: absolute;
                             inset: 0;
-                            background: linear-gradient(105deg, transparent 0%, transparent 35%, rgba(255,255,255,0.95) 50%, transparent 65%, transparent 100%);
-                            background-size: 300% 100%;
-                            background-position: -100% center;
-                            -webkit-mask-image: url('/logos/superteam-logo.png');
-                            mask-image: url('/logos/superteam-logo.png');
+                            -webkit-mask-image: url('/logos/superteam-logo.svg');
+                            mask-image: url('/logos/superteam-logo.svg');
                             -webkit-mask-size: contain;
                             mask-size: contain;
                             -webkit-mask-repeat: no-repeat;
@@ -732,6 +730,15 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
                             -webkit-mask-position: center;
                             mask-position: center;
                             pointer-events: none;
+                            overflow: hidden;
+                        }
+                        .superteam-shimmer {
+                            position: absolute;
+                            top: 0;
+                            bottom: 0;
+                            left: -60%;
+                            width: 60%;
+                            background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.95) 50%, transparent 100%);
                             animation: shimmer-ltr 2.5s ease infinite;
                         }
                     `}</style>
@@ -741,8 +748,10 @@ const InteractiveHero: React.FC<{ children?: ReactNode }> = ({ children }) => {
                         rel="noopener noreferrer"
                         className="superteam-logo-wrap"
                     >
-                        <img src="/logos/superteam-logo.png" alt="Superteam" style={{ height: 32, opacity: 0.8, display: 'block' }} />
-                        <div className="superteam-shimmer" />
+                        <Image src="/logos/superteam-logo.webp" alt="Superteam" width={160} height={32} loading="lazy" style={{ height: 32, width: 'auto', opacity: 0.8, display: 'block' }} />
+                        <div className="superteam-shimmer-mask">
+                            <div className="superteam-shimmer" />
+                        </div>
                     </a>
                 </div>
             </motion.div>

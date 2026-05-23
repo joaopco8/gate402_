@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -75,9 +76,12 @@ export function FAQSection({
             border: '1px solid rgba(255,255,255,0.08)',
             aspectRatio: '1 / 1',
           }}>
-            <img
+            <Image
               src="/faq-img.jpg"
               alt="FAQ"
+              width={600}
+              height={600}
+              loading="lazy"
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
           </div>

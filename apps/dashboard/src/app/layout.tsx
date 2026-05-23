@@ -33,8 +33,8 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
         <UserProvider>{children}</UserProvider>
+        <GoogleAnalytics gaId="G-NS4QRRXMQ2" />
       </body>
-      <GoogleAnalytics gaId="G-NS4QRRXMQ2" />
     </html>
   );
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { Space_Grotesk, JetBrains_Mono } from 'next/font/google'
+import Image from 'next/image'
 import { createClient } from '../../lib/supabase/client'
 import InteractiveHero from '@/components/ui/hero-section-nexus'
 import { WaitlistSection } from '@/components/ui/waitlist-section'
@@ -15,18 +15,6 @@ import { Features as Features7 } from '@/components/blocks/features-7'
 import FeaturedSectionStats from '@/components/ui/featured-section-stats'
 import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { Layers, ShieldCheck, Zap } from 'lucide-react'
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  weight: ['300', '400', '500'],
-  variable: '--font-space',
-})
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-mono',
-})
 
 /* ─── DESIGN SYSTEM CSS ──────────────────────────────────────────────────── */
 
@@ -249,7 +237,7 @@ function Nav() {
     }}>
       {/* Logo — esquerda */}
       <a href="/">
-        <img src="/logo-gate.png" alt="Gate402" style={{ height: 22, width: 'auto', display: 'block' }} />
+        <Image src="/logo-gate.png" alt="Gate402" width={110} height={22} priority style={{ height: 22, width: 'auto', display: 'block' }} />
       </a>
 
       {/* Links — centro absoluto */}
@@ -2083,7 +2071,7 @@ function BlurReveal({ children, delay = 0 }: { children: React.ReactNode; delay?
 export default function LandingPage() {
   return (
     <div
-      className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+      className=""
       style={{ background: '#111111', minHeight: '100vh', fontFamily: 'var(--font-space), sans-serif', overflowX: 'hidden' }}
     >
       <style>{CSS}</style>
@@ -2166,7 +2154,7 @@ export default function LandingPage() {
         <p style={{ fontSize: 16, color: '#898989', maxWidth: 540, margin: '0 auto', lineHeight: 1.65, fontFamily: 'var(--font-space)' }}>Real-time payment flows for every role in the stack — provider, agent, and MCP server.</p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 28 }}>
           <a href="/auth/login" className="btn-primary" style={{ fontFamily: 'var(--font-space)' }}>Try for free →</a>
-          <a href="/#pricing" className="btn-ghost" style={{ fontFamily: 'var(--font-space)' }}>View pricing</a>
+          <a href="/pricing" className="btn-ghost" style={{ fontFamily: 'var(--font-space)' }}>View pricing</a>
         </div>
       </div>
       </BlurReveal>

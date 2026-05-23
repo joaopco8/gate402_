@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Key, LayoutDashboard, Wallet, Zap } from 'lucide-react'
 
 export function Features() {
@@ -24,12 +25,13 @@ export function Features() {
                                     background: 'linear-gradient(to top, #111111 0%, transparent 100%)',
                                     pointerEvents: 'none',
                                 }} />
-                                <img
+                                <Image
                                     src="/IMG-TELA.png"
-                                    style={{ width: '100%', height: 'auto', display: 'block' }}
                                     alt="Gate402 real-time payment dashboard"
                                     width={1920}
                                     height={1080}
+                                    loading="lazy"
+                                    style={{ width: '100%', height: 'auto', display: 'block' }}
                                 />
                             </div>
                         </div>
