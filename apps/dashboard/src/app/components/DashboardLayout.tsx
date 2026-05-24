@@ -464,15 +464,9 @@ function AvatarMenu({ avatarUrl, firstName, initial, email, isPro }: {
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {email}
               </div>
-              {isPro && (
-                <span style={{
-                  display: 'inline-flex', marginTop: 6,
-                  fontSize: 9, fontWeight: 600, letterSpacing: '0.08em',
-                  color: 'var(--brand-primary)', background: 'var(--brand-muted)',
-                  border: '1px solid var(--brand-border)', borderRadius: 6,
-                  padding: '1px 6px',
-                }}>PRO</span>
-              )}
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                {isPro ? 'PLAN PRO' : 'PLAN FREE'}
+              </div>
             </div>
 
             {/* Menu items */}
@@ -534,6 +528,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(true)
   const [email, setEmail] = useState<string | null>(null)
+  const [displayName, setDisplayName] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const { userData } = useUser()
   const isPro = userData?.plan === 'pro' || userData?.plan === 'enterprise'
@@ -544,12 +539,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       const { data: { user } } = await supabase.auth.getUser()
       setEmail(user?.email ?? null)
       setAvatarUrl(user?.user_metadata?.avatar_url ?? null)
+      // Use real name from metadata (GitHub: full_name, email signup: name)
+      const meta = user?.user_metadata ?? {}
+      const name = meta.full_name || meta.name || null
+      setDisplayName(name ? name.split(' ')[0] : null)
     }
     load()
   }, [])
 
-  const firstName = email ? email.split('@')[0] : 'User'
-  const initial = email ? email[0].toUpperCase() : '?'
+  const firstName = displayName ?? (email ? email.split('@')[0] : 'User')
+  const initial = firstName[0]?.toUpperCase() ?? '?'
 
   return (
     <div style={{
