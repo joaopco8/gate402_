@@ -214,8 +214,8 @@ export default function AnalyticsPage() {
     <DashboardLayout>
       <style>{`
         @keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
-        .period-btn:hover { background: rgba(255,255,255,0.05) !important; color: var(--text-secondary) !important; border-color: var(--border-hover) !important; }
-        .period-btn.active:hover { background: transparent !important; color: #00bc7d !important; border-color: rgba(0,188,125,0.4) !important; }
+        .period-btn:hover { background: rgba(255,255,255,0.05) !important; color: var(--text-secondary) !important; }
+        .period-btn.active:hover { background: #313131 !important; color: #fff !important; }
       `}</style>
       <PageContainer>
 
@@ -230,9 +230,9 @@ export default function AnalyticsPage() {
                 className={`period-btn${period === p ? ' active' : ''}`}
                 style={{
                   padding: '6px 14px', borderRadius: 6, fontSize: 12, fontFamily: MONO, cursor: 'pointer',
-                  background: 'transparent',
-                  color: period === p ? GREEN : 'var(--text-muted)',
-                  border: `1px solid ${period === p ? 'rgba(0,188,125,0.4)' : 'var(--border)'}`,
+                  background: period === p ? '#313131' : 'transparent',
+                  color: period === p ? '#fff' : 'var(--text-muted)',
+                  border: '1px solid transparent',
                   transition: 'all 150ms',
                 }}
               >
