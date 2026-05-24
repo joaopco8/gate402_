@@ -1,7 +1,32 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
+import { redisGet, redisSet } from '../lib/redis'
 
 const router = Router()
+
+// In-memory user cache to eliminate sequential round trip (supabaseId → user row)
+const userCache = new Map<string, { user: any; ts: number }>()
+const USER_CACHE_TTL = 5 * 60 * 1000 // 5 min
+
+async function getCachedUser(supabaseId: string) {
+  const hit = userCache.get(supabaseId)
+  if (hit && Date.now() - hit.ts < USER_CACHE_TTL) return hit.user
+  const user = await prisma.user.findUnique({
+    where: { supabaseId },
+    include: {
+      endpoints: {
+        orderBy: { createdAt: 'desc' },
+        include: { _count: { select: { calls: true } } },
+      },
+    },
+  })
+  if (user) userCache.set(supabaseId, { user, ts: Date.now() })
+  return user
+}
+
+export function invalidateDashboardCache(supabaseId: string) {
+  userCache.delete(supabaseId)
+}
 
 // GET /api/dashboard — single aggregated endpoint for the dashboard
 router.get('/dashboard', async (req, res) => {
@@ -9,16 +34,18 @@ router.get('/dashboard', async (req, res) => {
     const supabaseId = req.headers['x-user-id'] as string
     if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' })
 
-    const user = await prisma.user.findUnique({
-      where: { supabaseId },
-      include: {
-        endpoints: {
-          orderBy: { createdAt: 'desc' },
-          include: { _count: { select: { calls: true } } },
-        },
-      },
-    })
+    const rawDays = parseInt(req.query.days as string) || 7
 
+    // Redis full-response cache (30s TTL) — eliminates both round trips on cache hit
+    const cacheKey = `dash:${supabaseId}:d${rawDays}`
+    const cached = await redisGet(cacheKey)
+    if (cached) {
+      res.setHeader('X-Cache', 'HIT')
+      return res.json(JSON.parse(cached))
+    }
+
+    // Resolve user from in-memory cache (eliminates 1st sequential round trip on warm requests)
+    const user = await getCachedUser(supabaseId)
     if (!user) return res.status(404).json({ error: 'User not found' })
 
     const today = new Date()
@@ -32,7 +59,6 @@ router.get('/dashboard', async (req, res) => {
     const lastWeekStart = new Date(Date.now() - 14 * 24 * 3600 * 1000)
     const lastWeekEnd = weekStart
 
-    const rawDays = parseInt(req.query.days as string) || 7
     const chartDays = user.plan === 'pro' ? Math.min(rawDays, 90) : Math.min(rawDays, 7)
     const sinceN = new Date(Date.now() - chartDays * 24 * 3600 * 1000)
 
@@ -98,7 +124,7 @@ router.get('/dashboard', async (req, res) => {
       })
     }
 
-    return res.json({
+    const payload = {
       user: {
         id: user.id,
         plan: user.plan,
@@ -144,7 +170,12 @@ router.get('/dashboard', async (req, res) => {
         totalCalls: ep._count.calls,
         createdAt: ep.createdAt,
       })),
-    })
+    }
+
+    // Cache full response in Redis for 30s (fire-and-forget)
+    redisSet(cacheKey, JSON.stringify(payload), 30).catch(() => {})
+
+    return res.json(payload)
   } catch (err) {
     console.error('[dashboard]', err)
     res.status(500).json({ error: 'Internal server error' })

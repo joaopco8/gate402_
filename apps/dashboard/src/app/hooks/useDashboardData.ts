@@ -2,19 +2,43 @@
 import { useEffect, useState } from 'react'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
-const CACHE_TTL = 10_000 // 10 seconds
+const MEM_TTL = 30_000   // 30s in-memory (matches Redis TTL)
+const SESS_TTL = 120_000 // 2min sessionStorage (stale-while-revalidate)
+const SESS_KEY = (url: string) => `g402_dash_${btoa(url).slice(0, 32)}`
 
-const cache = new Map<string, { data: any; timestamp: number }>()
+const memCache = new Map<string, { data: any; ts: number }>()
 
-async function fetchWithCache(url: string, headers: Record<string, string>) {
-  const cached = cache.get(url)
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.data
+function readSession(url: string): any | null {
+  try {
+    const raw = sessionStorage.getItem(SESS_KEY(url))
+    if (!raw) return null
+    const { data, ts } = JSON.parse(raw)
+    if (Date.now() - ts > SESS_TTL) { sessionStorage.removeItem(SESS_KEY(url)); return null }
+    return data
+  } catch { return null }
+}
+
+function writeSession(url: string, data: any) {
+  try { sessionStorage.setItem(SESS_KEY(url), JSON.stringify({ data, ts: Date.now() })) } catch {}
+}
+
+async function fetchWithCache(url: string, headers: Record<string, string>, onStale?: (d: any) => void) {
+  // 1. In-memory cache (fresh)
+  const mem = memCache.get(url)
+  if (mem && Date.now() - mem.ts < MEM_TTL) return mem.data
+
+  // 2. sessionStorage (stale) — return immediately, revalidate in background
+  const stale = readSession(url)
+  if (stale && onStale) {
+    onStale(stale)
+    // fall through to fetch fresh data
   }
+
   const res = await window.fetch(url, { headers })
   if (!res.ok) throw new Error(`fetch ${url} failed: ${res.status}`)
   const data = await res.json()
-  cache.set(url, { data, timestamp: Date.now() })
+  memCache.set(url, { data, ts: Date.now() })
+  writeSession(url, data)
   return data
 }
 
@@ -53,6 +77,30 @@ export interface DashboardData {
   _raw?: any
 }
 
+function parseJson(json: any): DashboardData {
+  const metrics = json.metrics ?? {}
+  const rawPerDay = json.callsPerDay ?? []
+  const callsPerDay = rawPerDay.map((d: any) => ({
+    date: d.date, count: d.count ?? 0, amount: d.amount ?? 0,
+  }))
+  return {
+    totalCalls: metrics.totalCalls ?? 0,
+    totalUsdc: metrics.totalUsdc ?? 0,
+    callsToday: metrics.callsToday ?? 0,
+    callsYesterday: metrics.callsYesterday ?? 0,
+    usdcToday: metrics.usdcToday ?? 0,
+    usdcYesterday: metrics.usdcYesterday ?? 0,
+    callsThisWeek: metrics.callsThisWeek ?? 0,
+    callsLastWeek: metrics.callsLastWeek ?? 0,
+    revenueThisWeek: metrics.revenueThisWeek ?? 0,
+    revenueLastWeek: metrics.revenueLastWeek ?? 0,
+    recentCalls: json.recentCalls ?? [],
+    callsPerDay,
+    endpoints: json.endpoints ?? [],
+    _raw: json,
+  }
+}
+
 export function useDashboardData(userId: string | null, isPro?: boolean, days = 7) {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -68,46 +116,23 @@ export function useDashboardData(userId: string | null, isPro?: boolean, days = 
         const chartDays = isPro ? 30 : 7
         const effectiveDays = Math.min(days, chartDays)
         const url = `${SERVER_URL}/api/dashboard?days=${effectiveDays}`
-        const json = await fetchWithCache(url, { 'x-user-id': userId! })
+
+        const json = await fetchWithCache(url, { 'x-user-id': userId! }, (stale) => {
+          if (!cancelled) { setData(parseJson(stale)); setLoading(false) }
+        })
 
         if (cancelled) return
-
-        const metrics = json.metrics ?? {}
-        const rawPerDay = json.callsPerDay ?? []
-
-        // callsPerDay already has ISO dates from new route
-        const callsPerDay = rawPerDay.map((d: any) => ({
-          date: d.date,
-          count: d.count ?? 0,
-          amount: d.amount ?? 0,
-        }))
-
-        setData({
-          totalCalls: metrics.totalCalls ?? 0,
-          totalUsdc: metrics.totalUsdc ?? 0,
-          callsToday: metrics.callsToday ?? 0,
-          callsYesterday: metrics.callsYesterday ?? 0,
-          usdcToday: metrics.usdcToday ?? 0,
-          usdcYesterday: metrics.usdcYesterday ?? 0,
-          callsThisWeek: metrics.callsThisWeek ?? 0,
-          callsLastWeek: metrics.callsLastWeek ?? 0,
-          revenueThisWeek: metrics.revenueThisWeek ?? 0,
-          revenueLastWeek: metrics.revenueLastWeek ?? 0,
-          recentCalls: json.recentCalls ?? [],
-          callsPerDay,
-          endpoints: json.endpoints ?? [],
-          _raw: json,
-        })
+        setData(parseJson(json))
         setLoading(false)
       } catch (e: any) {
         if (!cancelled) setError(e.message)
       }
     }
 
-    // Bust cache immediately when period changes
+    // Bust in-memory cache when period changes
     const chartDays = isPro ? 30 : 7
     const effectiveDays = Math.min(days, chartDays)
-    cache.delete(`${SERVER_URL}/api/dashboard?days=${effectiveDays}`)
+    memCache.delete(`${SERVER_URL}/api/dashboard?days=${effectiveDays}`)
     setLoading(true)
     fetchAll()
     const interval = setInterval(fetchAll, 15_000)
