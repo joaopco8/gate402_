@@ -1,7 +1,20 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
+import { redisGet, redisSet } from '../lib/redis';
+import { getCachedUser } from '../lib/userCache';
 
 const router = Router();
+
+// Helper: try Redis cache, return parsed value or null
+async function fromCache(key: string): Promise<any | null> {
+  const raw = await redisGet(key);
+  return raw ? JSON.parse(raw) : null;
+}
+
+// Helper: write to Redis fire-and-forget
+function toCache(key: string, data: any, ttl: number) {
+  redisSet(key, JSON.stringify(data), ttl).catch(() => {});
+}
 
 // GET /api/metrics
 router.get('/metrics', async (req, res) => {
@@ -9,7 +22,11 @@ router.get('/metrics', async (req, res) => {
     const supabaseId = req.headers['x-user-id'] as string;
     if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const user = await prisma.user.findUnique({ where: { supabaseId }, select: { id: true } });
+    const cacheKey = `metrics:${supabaseId}`;
+    const cached = await fromCache(cacheKey);
+    if (cached) return res.json(cached);
+
+    const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const startOfDay = new Date();
@@ -23,13 +40,15 @@ router.get('/metrics', async (req, res) => {
       prisma.endpoint.findFirst({ where: { userId: user.id }, orderBy: { calls: { _count: 'desc' } } }),
     ]);
 
-    res.json({
+    const payload = {
       totalCalls,
       totalUsdc: totalUsdcResult._sum.amountUsdc ?? 0,
       todayCalls,
       todayUsdc: todayUsdcResult._sum.amountUsdc ?? 0,
       topEndpoint: topEndpoint?.path ?? null,
-    });
+    };
+    toCache(cacheKey, payload, 30);
+    return res.json(payload);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -42,14 +61,18 @@ router.get('/calls/per-day', async (req, res) => {
     const supabaseId = req.headers['x-user-id'] as string;
     if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const user = await prisma.user.findUnique({ where: { supabaseId }, select: { id: true, plan: true } });
+    const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const maxDays = (user.plan === 'pro' || user.plan === 'enterprise') ? 90 : 7;
     const requestedDays = Math.min(parseInt(req.query.days as string) || 7, maxDays);
     const days = Math.max(1, requestedDays);
-    const since = new Date(Date.now() - days * 24 * 3600 * 1000);
 
+    const cacheKey = `cpd:${user.id}:d${days}`;
+    const cached = await fromCache(cacheKey);
+    if (cached) return res.json(cached);
+
+    const since = new Date(Date.now() - days * 24 * 3600 * 1000);
     const rows = await prisma.$queryRaw<Array<{ date: string; calls: number; usdc: number }>>`
       SELECT
         TO_CHAR(DATE("createdAt"), 'DD/MM') as date,
@@ -72,7 +95,8 @@ router.get('/calls/per-day', async (req, res) => {
       result.push({ date: key, calls: found?.calls ?? 0, usdc: found?.usdc ?? 0 });
     }
 
-    res.json(result);
+    toCache(cacheKey, result, 30);
+    return res.json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -85,11 +109,15 @@ router.get('/calls/recent', async (req, res) => {
     const supabaseId = req.headers['x-user-id'] as string;
     if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const user = await prisma.user.findUnique({ where: { supabaseId }, select: { id: true, plan: true } });
+    const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const planLimit = user.plan === 'pro' ? 50 : 5;
     const limit = Math.max(1, Math.min(planLimit, parseInt(req.query.limit as string) || planLimit));
+
+    const cacheKey = `recent:${user.id}:l${limit}`;
+    const cached = await fromCache(cacheKey);
+    if (cached) return res.json(cached);
 
     const calls = await prisma.apiCall.findMany({
       where: { userId: user.id },
@@ -97,7 +125,9 @@ router.get('/calls/recent', async (req, res) => {
       orderBy: { createdAt: 'desc' },
       include: { endpoint: { select: { path: true } } },
     });
-    res.json(calls);
+
+    toCache(cacheKey, calls, 15);
+    return res.json(calls);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -110,15 +140,19 @@ router.get('/endpoints/revenue', async (req, res) => {
     const supabaseId = req.headers['x-user-id'] as string;
     if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const user = await prisma.user.findUnique({ where: { supabaseId }, select: { id: true } });
+    const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const cacheKey = `ep-rev:${user.id}`;
+    const cached = await fromCache(cacheKey);
+    if (cached) return res.json(cached);
 
     const endpoints = await prisma.endpoint.findMany({
       where: { userId: user.id },
       include: { calls: { select: { amountUsdc: true } } },
     });
 
-    const revenue = endpoints
+    const payload = endpoints
       .map(ep => ({
         name: ep.path,
         value: ep.calls.reduce((sum, c) => sum + c.amountUsdc, 0),
@@ -126,7 +160,8 @@ router.get('/endpoints/revenue', async (req, res) => {
       }))
       .filter(ep => ep.value > 0);
 
-    res.json(revenue);
+    toCache(cacheKey, payload, 30);
+    return res.json(payload);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -137,14 +172,14 @@ router.get('/endpoints/revenue', async (req, res) => {
 router.get('/transactions', async (req, res) => {
   try {
     const supabaseId = req.headers['x-user-id'] as string | undefined;
-    if (!supabaseId) {
-      return res.status(401).json({ error: 'x-user-id header required' });
-    }
+    if (!supabaseId) return res.status(401).json({ error: 'x-user-id header required' });
 
-    const user = await prisma.user.findUnique({ where: { supabaseId } });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found', supabaseId });
-    }
+    const user = await getCachedUser(supabaseId);
+    if (!user) return res.status(404).json({ error: 'User not found', supabaseId });
+
+    const cacheKey = `txns:${user.id}`;
+    const cached = await fromCache(cacheKey);
+    if (cached) return res.json(cached);
 
     const [transactions, stats] = await Promise.all([
       prisma.transaction.findMany({
@@ -160,7 +195,7 @@ router.get('/transactions', async (req, res) => {
       }),
     ]);
 
-    return res.json({
+    const payload = {
       transactions: transactions.map(t => ({
         id: t.id,
         endpoint: t.endpoint?.path ?? 'unknown',
@@ -178,7 +213,10 @@ router.get('/transactions', async (req, res) => {
         totalFeesPaid: stats._sum.platformFee ?? 0,
         transactionCount: stats._count.id,
       },
-    });
+    };
+
+    toCache(cacheKey, payload, 30);
+    return res.json(payload);
   } catch (err) {
     console.error('[transactions] error:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -191,11 +229,16 @@ router.get('/analytics/revenue', async (req, res) => {
     const supabaseId = req.headers['x-user-id'] as string;
     if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const period = (req.query.period as string) || '7d';
     const days = period === '30d' ? 30 : period === '90d' ? 90 : 7;
+
+    const cacheKey = `a-rev:${user.id}:${period}`;
+    const cached = await fromCache(cacheKey);
+    if (cached) return res.json(cached);
+
     const since = new Date(Date.now() - days * 24 * 3600 * 1000);
 
     const [gross, transactions, byDay] = await Promise.all([
@@ -229,7 +272,7 @@ router.get('/analytics/revenue', async (req, res) => {
       ? (((gross._sum.platformFee || 0) / gross._sum.totalAmount) * 100).toFixed(2)
       : '1.00';
 
-    return res.json({
+    const payload = {
       summary: {
         grossRevenue: gross._sum.totalAmount || 0,
         netRevenue: gross._sum.providerAmount || 0,
@@ -248,7 +291,10 @@ router.get('/analytics/revenue', async (req, res) => {
         status: t.status,
         createdAt: t.createdAt,
       })),
-    });
+    };
+
+    toCache(cacheKey, payload, 60);
+    return res.json(payload);
   } catch (err) {
     console.error('[analytics/revenue]', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -261,8 +307,12 @@ router.get('/analytics/top-agents', async (req, res) => {
     const supabaseId = req.headers['x-user-id'] as string;
     if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const cacheKey = `top-agents:${user.id}`;
+    const cached = await fromCache(cacheKey);
+    if (cached) return res.json(cached);
 
     const topAgents = await prisma.transaction.groupBy({
       by: ['payerWallet'],
@@ -273,7 +323,7 @@ router.get('/analytics/top-agents', async (req, res) => {
       take: 10,
     });
 
-    return res.json({
+    const payload = {
       agents: topAgents.map(a => ({
         wallet: a.payerWallet,
         walletShort: a.payerWallet
@@ -283,7 +333,10 @@ router.get('/analytics/top-agents', async (req, res) => {
         netReceived: a._sum.providerAmount || 0,
         callCount: a._count.id,
       })),
-    });
+    };
+
+    toCache(cacheKey, payload, 60);
+    return res.json(payload);
   } catch (err) {
     console.error('[analytics/top-agents]', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -296,8 +349,12 @@ router.get('/analytics/latency', async (req, res) => {
     const supabaseId = req.headers['x-user-id'] as string;
     if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const cacheKey = `latency:${user.id}`;
+    const cached = await fromCache(cacheKey);
+    if (cached) return res.json(cached);
 
     const calls = await prisma.apiCall.findMany({
       where: { userId: user.id, latencyMs: { not: null } },
@@ -319,16 +376,19 @@ router.get('/analytics/latency', async (req, res) => {
       return sorted[Math.max(0, Math.ceil((p / 100) * sorted.length) - 1)];
     };
 
-    const latencyStats = Object.entries(byEndpoint).map(([path, latencies]) => ({
-      endpoint: path,
-      p50: percentile(latencies, 50),
-      p95: percentile(latencies, 95),
-      p99: percentile(latencies, 99),
-      avg: Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length),
-      count: latencies.length,
-    }));
+    const payload = {
+      latency: Object.entries(byEndpoint).map(([path, latencies]) => ({
+        endpoint: path,
+        p50: percentile(latencies, 50),
+        p95: percentile(latencies, 95),
+        p99: percentile(latencies, 99),
+        avg: Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length),
+        count: latencies.length,
+      })),
+    };
 
-    return res.json({ latency: latencyStats });
+    toCache(cacheKey, payload, 60);
+    return res.json(payload);
   } catch (err) {
     console.error('[analytics/latency]', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -341,8 +401,12 @@ router.get('/analytics/success-rate', async (req, res) => {
     const supabaseId = req.headers['x-user-id'] as string;
     if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const cacheKey = `success-rate:${user.id}`;
+    const cached = await fromCache(cacheKey);
+    if (cached) return res.json(cached);
 
     const since = new Date(Date.now() - 7 * 24 * 3600 * 1000);
 
@@ -357,30 +421,31 @@ router.get('/analytics/success-rate', async (req, res) => {
     ]);
 
     const weekNet = weekRevenue._sum.providerAmount || 0;
-    const mrrProjected = (weekNet / 7) * 30;
-
-    return res.json({
+    const payload = {
       successRate: total > 0 ? parseFloat(((confirmed / total) * 100).toFixed(1)) : 0,
       failRate: total > 0 ? parseFloat(((failed / total) * 100).toFixed(1)) : 0,
       totalCalls: total,
       confirmedCalls: confirmed,
       failedCalls: failed,
-      mrrProjected: parseFloat(mrrProjected.toFixed(6)),
+      mrrProjected: parseFloat(((weekNet / 7) * 30).toFixed(6)),
       period: '7d',
-    });
+    };
+
+    toCache(cacheKey, payload, 30);
+    return res.json(payload);
   } catch (err) {
     console.error('[analytics/success-rate]', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// GET /api/analytics/export — CSV export of all transactions
+// GET /api/analytics/export — CSV export (no cache — user expects fresh data)
 router.get('/analytics/export', async (req, res) => {
   try {
     const supabaseId = req.headers['x-user-id'] as string;
     if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const transactions = await prisma.transaction.findMany({
@@ -419,8 +484,12 @@ router.get('/analytics/failed', async (req, res) => {
     const supabaseId = req.headers['x-user-id'] as string;
     if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const user = await prisma.user.findUnique({ where: { supabaseId } });
+    const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const cacheKey = `failed:${user.id}`;
+    const cached = await fromCache(cacheKey);
+    if (cached) return res.json(cached);
 
     const since = new Date(Date.now() - 7 * 24 * 3600 * 1000);
 
@@ -445,7 +514,7 @@ router.get('/analytics/failed', async (req, res) => {
       }),
     ]);
 
-    return res.json({
+    const payload = {
       failed: failed.map(f => ({
         id: f.id,
         endpoint: f.endpoint?.path || 'unknown',
@@ -457,7 +526,10 @@ router.get('/analytics/failed', async (req, res) => {
       replayedCount,
       byStatus,
       period: '7d',
-    });
+    };
+
+    toCache(cacheKey, payload, 30);
+    return res.json(payload);
   } catch (err) {
     console.error('[analytics/failed]', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -466,4 +538,3 @@ router.get('/analytics/failed', async (req, res) => {
 
 // v1.1.0 — phase 5 analytics
 export default router;
-

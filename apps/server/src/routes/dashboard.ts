@@ -1,16 +1,17 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
 import { redisGet, redisSet } from '../lib/redis'
+import { evictUser } from '../lib/userCache'
 
 const router = Router()
 
-// In-memory user cache to eliminate sequential round trip (supabaseId → user row)
-const userCache = new Map<string, { user: any; ts: number }>()
-const USER_CACHE_TTL = 5 * 60 * 1000 // 5 min
+// Full user cache (includes endpoints) — dashboard needs more than just id+plan
+const fullUserCache = new Map<string, { user: any; ts: number }>()
+const FULL_USER_TTL = 5 * 60 * 1000
 
-async function getCachedUser(supabaseId: string) {
-  const hit = userCache.get(supabaseId)
-  if (hit && Date.now() - hit.ts < USER_CACHE_TTL) return hit.user
+async function getCachedFullUser(supabaseId: string) {
+  const hit = fullUserCache.get(supabaseId)
+  if (hit && Date.now() - hit.ts < FULL_USER_TTL) return hit.user
   const user = await prisma.user.findUnique({
     where: { supabaseId },
     include: {
@@ -20,12 +21,13 @@ async function getCachedUser(supabaseId: string) {
       },
     },
   })
-  if (user) userCache.set(supabaseId, { user, ts: Date.now() })
+  if (user) fullUserCache.set(supabaseId, { user, ts: Date.now() })
   return user
 }
 
 export function invalidateDashboardCache(supabaseId: string) {
-  userCache.delete(supabaseId)
+  fullUserCache.delete(supabaseId)
+  evictUser(supabaseId)
 }
 
 // GET /api/dashboard — single aggregated endpoint for the dashboard
@@ -45,7 +47,7 @@ router.get('/dashboard', async (req, res) => {
     }
 
     // Resolve user from in-memory cache (eliminates 1st sequential round trip on warm requests)
-    const user = await getCachedUser(supabaseId)
+    const user = await getCachedFullUser(supabaseId)
     if (!user) return res.status(404).json({ error: 'User not found' })
 
     const today = new Date()
