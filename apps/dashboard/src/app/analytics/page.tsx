@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { ComposedChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { createClient } from '../../../lib/supabase/client'
 import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
@@ -15,6 +15,75 @@ const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.de
 const MONO = 'var(--font-code)'
 const SANS = 'var(--font-display)'
 const GREEN = '#00bc7d'
+
+const CHART_CSS = `
+  .g402-rev-chart .recharts-cartesian-axis-tick text { fill: var(--text-muted); font-size: 12px; }
+  .g402-rev-chart .recharts-layer, .g402-rev-chart .recharts-sector, .g402-rev-chart .recharts-surface { outline: none; }
+  .g402-rev-chart .recharts-curve.recharts-tooltip-cursor { stroke: ${GREEN}; stroke-dasharray: none; }
+`
+
+function RevenueChart({ data }: { data: any[] }) {
+  if (!data?.length) return (
+    <div style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 12, fontFamily: MONO }}>
+      No data for this period
+    </div>
+  )
+  return (
+    <>
+      <style>{CHART_CSS}</style>
+      <div className="g402-rev-chart" style={{ width: '100%', height: 280 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={data} margin={{ top: 25, right: 25, left: 0, bottom: 25 }} style={{ overflow: 'visible' }}>
+            <defs>
+              <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={GREEN} stopOpacity={0.15} />
+                <stop offset="100%" stopColor={GREEN} stopOpacity={0} />
+              </linearGradient>
+              <filter id="revDotShadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="2" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,0.5)" />
+              </filter>
+            </defs>
+            <CartesianGrid strokeDasharray="4 12" stroke="var(--border)" strokeOpacity={1} horizontal={true} vertical={false} />
+            <XAxis
+              dataKey="date"
+              axisLine={false} tickLine={false}
+              tick={{ fontSize: 12, fill: 'var(--text-muted)' }}
+              tickMargin={12} dy={10}
+              tickFormatter={(v: string) => {
+                const d = new Date(v)
+                return isNaN(d.getTime()) ? v : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+              }}
+            />
+            <YAxis
+              axisLine={false} tickLine={false}
+              tick={{ fontSize: 12, fill: 'var(--text-muted)' }}
+              tickMargin={12} tickCount={5}
+              tickFormatter={(v: number) => `$${v.toFixed(2)}`}
+              width={60}
+            />
+            <Tooltip
+              cursor={{ stroke: GREEN, strokeWidth: 1, strokeDasharray: 'none' }}
+              content={({ active, payload, label }: any) => {
+                if (!active || !payload?.length) return null
+                return (
+                  <div style={{ background: '#18181b', color: '#fff', borderRadius: 6, padding: '8px 12px', fontSize: 12, fontFamily: MONO, boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}>
+                    <div style={{ fontSize: 12, color: '#a1a1aa', marginBottom: 4 }}>{label}</div>
+                    <div style={{ color: GREEN }}>Gross: ${Number(payload[0]?.value ?? 0).toFixed(4)}</div>
+                    <div style={{ color: '#888' }}>Net: ${Number(payload[1]?.value ?? 0).toFixed(4)}</div>
+                  </div>
+                )
+              }}
+            />
+            <Area type="linear" dataKey="gross" stroke="transparent" fill="url(#revGrad)" strokeWidth={0} dot={false} />
+            <Line type="linear" dataKey="gross" stroke={GREEN} strokeWidth={3} dot={false}
+              activeDot={{ r: 6, fill: GREEN, stroke: '#fff', strokeWidth: 2, filter: 'url(#revDotShadow)' }} />
+            <Line type="linear" dataKey="net" stroke="rgba(0,188,125,0.4)" strokeWidth={2} dot={false} strokeDasharray="4 4" />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    </>
+  )
+}
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
@@ -189,32 +258,7 @@ export default function AnalyticsPage() {
 
           <Card>
             <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>Revenue by Day</div>
-            {loading ? <Skeleton height={200} /> : byDay.length === 0 ? (
-              <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 12, fontFamily: MONO }}>No data for this period</div>
-            ) : (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={byDay} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#555', fontFamily: MONO }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: '#555', fontFamily: MONO }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `$${v}`} width={48} />
-                  <Tooltip
-                    cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-                    content={({ active, payload, label }: any) => {
-                      if (!active || !payload?.length) return null
-                      return (
-                        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 12px', fontSize: 12, fontFamily: MONO }}>
-                          <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>{label}</div>
-                          <div style={{ color: GREEN }}>Gross: ${(payload[0]?.value as number)?.toFixed(5)}</div>
-                          <div style={{ color: '#888' }}>Net: ${(payload[1]?.value as number)?.toFixed(5)}</div>
-                        </div>
-                      )
-                    }}
-                  />
-                  <Bar dataKey="gross" fill={GREEN} radius={[2, 2, 0, 0]} maxBarSize={32} />
-                  <Bar dataKey="net" fill="rgba(0,188,125,0.35)" radius={[2, 2, 0, 0]} maxBarSize={32} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+            {loading ? <Skeleton height={280} /> : <RevenueChart data={byDay} />}
           </Card>
         </div>
 
