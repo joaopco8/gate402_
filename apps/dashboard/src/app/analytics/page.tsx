@@ -143,7 +143,11 @@ export default function AnalyticsPage() {
 
   return (
     <DashboardLayout>
-      <style>{`@keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }`}</style>
+      <style>{`
+        @keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
+        .period-btn:hover { background: rgba(255,255,255,0.05) !important; color: var(--text-secondary) !important; border-color: var(--border-hover) !important; }
+        .period-btn.active:hover { background: transparent !important; color: #00bc7d !important; border-color: rgba(0,188,125,0.4) !important; }
+      `}</style>
       <PageContainer>
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
@@ -154,6 +158,7 @@ export default function AnalyticsPage() {
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
+                className={`period-btn${period === p ? ' active' : ''}`}
                 style={{
                   padding: '6px 14px', borderRadius: 6, fontSize: 12, fontFamily: MONO, cursor: 'pointer',
                   background: 'transparent',
@@ -174,10 +179,10 @@ export default function AnalyticsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-sm)', marginBottom: 'var(--space-md)' }}>
             {loading ? Array(4).fill(0).map((_, i) => <Card key={i}><Skeleton height={56} /></Card>) : (
               <>
-                <StatCard label="Gross Revenue" value={revenue ? `$${revenue.totalGross?.toFixed(4)}` : '—'} sub="All time" />
-                <StatCard label="Net Revenue (99%)" value={revenue ? `$${revenue.totalNet?.toFixed(4)}` : '—'} sub="Goes to you" color={GREEN} />
-                <StatCard label="Platform Fees (1%)" value={revenue ? `$${revenue.totalFees?.toFixed(5)}` : '—'} sub="Gate402 fee" />
-                <StatCard label="Transactions" value={revenue ? String(revenue.transactionCount ?? 0) : '—'} sub={`Last ${period}`} />
+                <StatCard label="Gross Revenue" value={revenue ? `$${Number(revenue.summary?.grossRevenue ?? 0).toFixed(4)}` : '—'} sub="All time" />
+                <StatCard label="Net Revenue (100%)" value={revenue ? `$${Number(revenue.summary?.netRevenue ?? 0).toFixed(4)}` : '—'} sub="Goes to you" color={GREEN} />
+                <StatCard label="Platform Fees" value="Free" sub="Gate402 fee" />
+                <StatCard label="Transactions" value={revenue ? String(revenue.summary?.transactionCount ?? 0) : '—'} sub={`Last ${period}`} />
               </>
             )}
           </div>
