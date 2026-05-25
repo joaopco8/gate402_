@@ -115,17 +115,24 @@ export class Gate402Agent {
 
       if (response402.splits) {
         const { provider, platform } = response402.splits
-        this.log('Paying split — provider:', provider.amount, 'platform:', platform.amount)
 
-        const result = await this.wallet.sendSplitPayment(
-          provider.wallet,
-          provider.amount,
-          platform.wallet,
-          platform.amount
-        )
-
-        txHashProvider = result.txHashProvider
-        txHashPlatform = result.txHashPlatform
+        if (platform && platform.wallet && platform.amount > 0) {
+          this.log('Paying split — provider:', provider.amount, 'platform:', platform.amount)
+          const result = await this.wallet.sendSplitPayment(
+            provider.wallet,
+            provider.amount,
+            platform.wallet,
+            platform.amount
+          )
+          txHashProvider = result.txHashProvider
+          txHashPlatform = result.txHashPlatform
+        } else {
+          this.log('Paying provider only:', provider.wallet, provider.amount)
+          txHashProvider = await this.wallet.sendUsdc(
+            provider.wallet,
+            provider.amount
+          )
+        }
 
       } else if (response402.payTo) {
         this.log('Paying legacy format — wallet:', response402.payTo)

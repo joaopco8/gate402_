@@ -1,6 +1,6 @@
 {
   "name": "gate402-agent",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Agent-side SDK for Gate402 — automatic x402 payment handling",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +12,9 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
-    "testMatch": ["**/__tests__/**/*.test.ts"]
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ]
   },
   "keywords": [
     "gate402",
