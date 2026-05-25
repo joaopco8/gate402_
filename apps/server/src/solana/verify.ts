@@ -65,6 +65,7 @@ export async function verifyPayment({
     const usdcMint = network === 'mainnet' ? USDC_MAINNET_MINT : USDC_DEVNET_MINT;
     const connection = new Connection(rpcUrl, 'confirmed');
 
+    console.log('[solana] network:', network);
     console.log('[solana] fetching tx:', txHash.slice(0, 20));
     console.log('[solana] connection url:', connection.rpcEndpoint.slice(0, 50));
 
