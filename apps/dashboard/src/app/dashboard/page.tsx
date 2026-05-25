@@ -78,20 +78,20 @@ function StatsCard({ label, value, sub, loading, current, previous, chartData }:
   const areaPath = useMemo(() => linePath.startsWith('M') ? `${linePath} L ${svgWidth} ${svgHeight} L 0 ${svgHeight} Z` : '', [linePath])
 
   const graphStroke = useMemo(() => {
+    // Primary: drive color from current vs previous (same signal as % badge)
+    if (current !== undefined && previous !== undefined) {
+      if (current === 0 && previous === 0) return '#6b7280'
+      if (current > previous) return '#00bc7d'
+      if (current < previous) return '#ef4444'
+      return '#6b7280'
+    }
+    // Fallback: chart shape trend
     if (normalizedData.length < 2) return '#6b7280'
-    const first = normalizedData[0]
-    const last = normalizedData[normalizedData.length - 1]
-    const mid = normalizedData.reduce((a, b) => a + b, 0) / normalizedData.length
-    const delta = last - first
-    // check if trend is volatile/flat relative to swing
-    const range = Math.max(...normalizedData) - Math.min(...normalizedData)
-    if (range < 5) return '#f59e0b' // essentially flat → yellow
-    if (delta > 4) return '#00bc7d' // trending up → green
-    if (delta < -4) return '#ef4444' // trending down → red
-    // last point below midpoint means recent decline → yellow/red
-    if (last < mid - 5) return '#f59e0b'
-    return '#00bc7d'
-  }, [normalizedData])
+    const delta = normalizedData[normalizedData.length - 1] - normalizedData[0]
+    if (delta > 4) return '#00bc7d'
+    if (delta < -4) return '#ef4444'
+    return '#6b7280'
+  }, [normalizedData, current, previous])
   const gradientId = `statsGrad_${label.replace(/\s+/g, '')}`
 
   useEffect(() => {
@@ -271,20 +271,6 @@ const containerVariants = {
   visible: { transition: { staggerChildren: 0.045, delayChildren: 0.05 } },
 }
 
-function EndpointIcon({ path }: { path: string }) {
-  const letter = (path?.replace(/^\//, '')[0] ?? '?').toUpperCase()
-  return (
-    <div style={{
-      width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-      background: 'rgba(0,98,57,0.18)', border: '1px solid rgba(18,131,83,0.35)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600, color: '#3ECF8E' }}>
-        {letter}
-      </span>
-    </div>
-  )
-}
 
 function sparkColor(data: number[]): string {
   if (!data || data.length < 2) return '#f59e0b'
@@ -343,7 +329,7 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
     return map
   }, [calls])
 
-  const COLS = '36px 1fr 90px 120px 64px 90px'
+  const COLS = '1fr 90px 120px 64px 90px'
 
   return (
     <div style={{ borderRadius: 6, border: '1px solid var(--border-default)', background: 'var(--bg-surface)', overflow: 'hidden' }}>
@@ -352,7 +338,7 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
       <div style={{ display: 'grid', gridTemplateColumns: COLS, columnGap: 8,
         padding: '9px 20px', borderBottom: '1px solid var(--border-default)',
         background: 'var(--bg-base)' }}>
-        {['', 'Endpoint', 'Amount', 'Payer', 'Chart', 'Time'].map(h => (
+        {['Endpoint', 'Amount', 'Payer', 'Chart', 'Time'].map(h => (
           <span key={h} style={{ fontFamily: "'Roboto', sans-serif", fontSize: 11,
             color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
             {h}
@@ -387,8 +373,6 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
                   onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.025)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <EndpointIcon path={call.endpoint} />
-
                   <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: 12,
                     color: 'var(--text-primary)', overflow: 'hidden',
                     textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>

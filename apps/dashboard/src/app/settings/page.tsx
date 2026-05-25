@@ -10,6 +10,9 @@ import PageContainer from '../components/PageContainer'
 import PageHeader from '../components/PageHeader'
 import Card from '../components/Card'
 import { useUser } from '@/contexts/UserContext'
+import { NetworkSwitch } from '@/components/ui/network-switch'
+import { motion, AnimatePresence } from 'motion/react'
+import OnboardCard from '@/components/ui/onboard-card'
 
 const labelStyle: React.CSSProperties = {
   fontSize: 13,
@@ -79,6 +82,7 @@ export default function SettingsPage() {
   const [emailAlerts, setEmailAlerts] = useState<boolean | null>(null)
   const [togglingEmail, setTogglingEmail] = useState(false)
   const [togglingNetwork, setTogglingNetwork] = useState(false)
+  const [targetNetwork, setTargetNetwork] = useState<string>('')
 
   // Webhook state
   const [webhookUrl, setWebhookUrl] = useState('')
@@ -99,6 +103,7 @@ export default function SettingsPage() {
 
   async function handleNetworkSwitch(network: string) {
     if (togglingNetwork) return
+    setTargetNetwork(network)
     setTogglingNetwork(true)
     try {
       const supabase = createClient()
@@ -112,13 +117,15 @@ export default function SettingsPage() {
       })
       const data = await res.json()
       if (res.ok) {
+        // wait for animation to finish before reload
+        await new Promise(r => setTimeout(r, 3200))
         window.location.reload()
       } else {
         alert(data.error)
+        setTogglingNetwork(false)
       }
     } catch (err) {
       console.error('[handleNetworkSwitch]', err)
-    } finally {
       setTogglingNetwork(false)
     }
   }
@@ -350,62 +357,16 @@ export default function SettingsPage() {
         {/* Network */}
         <Card style={{ marginBottom: 16 }}>
           <div style={labelStyle}>Network</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <span style={{
-              background: 'rgba(0,188,125,0.1)',
-              color: '#3ECF8E',
-              border: '1px solid rgba(0,188,125,0.25)',
-              borderRadius: 6,
-              padding: '2px 10px',
-              fontSize: 12,
-              fontFamily: 'var(--font-display)',
-              fontWeight: 500,
-            }}>
-              {loading ? '...' : (userData?.network ?? 'devnet')}
-            </span>
-          </div>
-          <div style={{ ...subtextStyle, marginBottom: 14 }}>
-            {userData?.network === 'mainnet'
-              ? 'Live on mainnet — receiving real USDC payments'
-              : 'Switch to mainnet to receive real USDC payments. Requires a wallet configured.'}
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={() => handleNetworkSwitch('devnet')}
-              disabled={loading || togglingNetwork || userData?.network === 'devnet'}
-              style={{
-                background: userData?.network === 'devnet' ? 'rgba(0,188,125,0.1)' : 'transparent',
-                border: `1px solid ${userData?.network === 'devnet' ? 'rgba(0,188,125,0.3)' : 'var(--border-default)'}`,
-                borderRadius: 6,
-                padding: '7px 16px',
-                fontSize: 13,
-                fontFamily: 'var(--font-display)',
-                color: userData?.network === 'devnet' ? '#3ECF8E' : 'var(--text-muted)',
-                cursor: userData?.network === 'devnet' ? 'default' : 'pointer',
-                transition: 'all 150ms',
-              }}
-            >
-              Devnet
-            </button>
-            <button
-              onClick={() => handleNetworkSwitch('mainnet')}
-              disabled={loading || togglingNetwork || userData?.network === 'mainnet'}
-              style={{
-                background: userData?.network === 'mainnet' ? 'rgba(0,188,125,0.1)' : 'transparent',
-                border: `1px solid ${userData?.network === 'mainnet' ? 'rgba(0,188,125,0.3)' : 'var(--border-default)'}`,
-                borderRadius: 6,
-                padding: '7px 16px',
-                fontSize: 13,
-                fontFamily: 'var(--font-display)',
-                color: userData?.network === 'mainnet' ? '#3ECF8E' : 'var(--text-muted)',
-                cursor: loading || togglingNetwork || userData?.network === 'mainnet' ? 'not-allowed' : 'pointer',
-                opacity: loading || togglingNetwork ? 0.5 : 1,
-                transition: 'all 150ms',
-              }}
-            >
-              {togglingNetwork ? 'Switching...' : 'Mainnet'}
-            </button>
-          </div>
+          <NetworkSwitch
+            defaultValue={userData?.network ?? 'devnet'}
+            onChange={(val) => {
+              if (val !== userData?.network) handleNetworkSwitch(val)
+            }}
+          >
+            <NetworkSwitch.Control label="Devnet" value="devnet" disabled={loading || togglingNetwork} />
+            <NetworkSwitch.Control label="Mainnet" value="mainnet" disabled={loading || togglingNetwork} />
+          </NetworkSwitch>
+
         </Card>
 
         {/* Email Alerts */}
@@ -626,6 +587,32 @@ if (sig !== \`sha256=\${expected}\`) {
         </Card>
 
       </PageContainer>
+
+      {/* Network switch animation — fixed bottom-right */}
+      <AnimatePresence>
+        {togglingNetwork && (
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24, scale: 0.95 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            style={{
+              position: 'fixed',
+              bottom: 28,
+              right: 28,
+              zIndex: 9999,
+            }}
+          >
+            <OnboardCard
+              duration={3000}
+              step1={userData?.network === 'mainnet' ? 'Mainnet Active' : 'Devnet Active'}
+              step2="Switching Network"
+              step3={targetNetwork === 'mainnet' ? 'Mainnet' : 'Devnet'}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </DashboardLayout>
   )
 }
