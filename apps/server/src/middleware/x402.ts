@@ -43,14 +43,21 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         },
       });
       console.log('[x402] user by apiKey:', !!user, user?.id?.slice(0, 8), '| endpoints:', user?.endpoints?.map(e => e.path));
-      if (user) {
-        currentUser = user as any;
-        // prefer exact endpointPath match
-        currentEndpoint = user.endpoints.find(e => e.path === endpointPath)
-          ?? user.endpoints.find(e => e.path === shortPath)
-          ?? user.endpoints[0]
-          ?? null;
+      if (!user) {
+        res.status(402).json({
+          error: 'Invalid API key',
+          code: 'INVALID_API_KEY',
+          message: 'The x-api-key header contains an invalid key.',
+          docs: 'https://gate402.dev/docs',
+        });
+        return;
       }
+      currentUser = user as any;
+      // prefer exact endpointPath match
+      currentEndpoint = user.endpoints.find(e => e.path === endpointPath)
+        ?? user.endpoints.find(e => e.path === shortPath)
+        ?? user.endpoints[0]
+        ?? null;
     }
 
     // Fallback: find by path without apiKey constraint
