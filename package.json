@@ -12,8 +12,9 @@
     "db:studio": "cd packages/db && npx prisma studio"
   },
   "dependencies": {
-    "ioredis": "^5.10.1",
-    "bullmq": "^5.76.8"
+    "bullmq": "^5.76.8",
+    "gate402-agent": "^0.1.4",
+    "ioredis": "^5.10.1"
   },
   "devDependencies": {
     "concurrently": "^9.0.0",

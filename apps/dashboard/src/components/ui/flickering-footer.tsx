@@ -555,15 +555,6 @@ export const siteConfig = {
   },
   footerLinks: [
     {
-      title: "Product",
-      links: [
-        { id: 1, title: "Documentation", url: "/docs" },
-        { id: 2, title: "Pricing", url: "/#pricing" },
-        { id: 3, title: "Dashboard", url: "/dashboard" },
-        { id: 4, title: "Playground", url: "/playground" },
-      ],
-    },
-    {
       title: "Developers",
       links: [
         { id: 5, title: "Getting started", url: "/docs#introduction" },
@@ -612,6 +603,19 @@ export const Component = () => {
           <p style={{ fontSize: 14, color: '#555', lineHeight: 1.6, margin: 0 }}>
             {siteConfig.hero.description}
           </p>
+          <a
+            href="https://x.com/gate402dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, border: '1px solid #222', color: '#555', transition: 'color 150ms, border-color 150ms' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#555'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#555'; e.currentTarget.style.borderColor = '#222'; }}
+            aria-label="Twitter / X"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.745l7.73-8.835L1.254 2.25H8.08l4.259 5.631L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+          </a>
         </div>
 
         {/* Right — link columns */}

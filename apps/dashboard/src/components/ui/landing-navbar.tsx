@@ -22,30 +22,6 @@ interface DropdownSection {
 }
 
 /* ── data ── */
-const PRODUCT_SECTIONS: DropdownSection[] = [
-  {
-    items: [
-      { label: 'Overview', desc: 'The x402 billing layer for AI agents', href: '/' },
-    ],
-  },
-  {
-    title: 'SDKs',
-    items: [
-      { label: 'Provider SDK',    desc: 'Monetize any API',                href: '/docs#installation' },
-      { label: 'Agent SDK',       desc: 'Agents that pay automatically',    href: '/docs#installation-agent' },
-      { label: 'MCP Integration', desc: 'Charge per tool call',             href: '/docs#add-to-existing-mcp' },
-      { label: 'Rust Gateway',    desc: 'High-performance proxy',           href: '/docs#rust-gateway', badge: 'BETA' },
-    ],
-  },
-  {
-    title: 'PLATFORM',
-    items: [
-      { label: 'Dashboard',  desc: 'Real-time payment visibility', href: '/dashboard' },
-      { label: 'Analytics',  desc: 'Revenue, latency, top agents', href: '/dashboard' },
-    ],
-  },
-];
-
 const DEVELOPERS_SECTIONS: DropdownSection[] = [
   {
     items: [
@@ -73,8 +49,6 @@ const DEVELOPERS_SECTIONS: DropdownSection[] = [
 const COMPANY_SECTIONS: DropdownSection[] = [
   {
     items: [
-      { label: 'About',     desc: 'Why we built this',      href: '/about' },
-      { label: 'Blog',      desc: 'Updates and insights',   href: '/blog' },
       { label: 'Twitter/X', desc: '@gate402',               href: 'https://x.com/gate402dev', target: '_blank' },
       { label: 'GitHub',    desc: 'joaopco8/gate402_',      href: 'https://github.com/joaopco8/gate402_', target: '_blank' },
     ],
@@ -225,13 +199,6 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
         <motion.div key="mobile-menu" variants={variants} initial="hidden" animate="visible" exit="exit"
           style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'rgba(17,17,17,0.98)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '16px 24px 24px', zIndex: 99 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <MobileSection label="Product" items={[
-              { label: 'Overview', href: '/' },
-              { label: 'Provider SDK', href: '/docs#installation' },
-              { label: 'Agent SDK', href: '/docs#installation-agent' },
-              { label: 'MCP Integration', href: '/docs#add-to-existing-mcp' },
-              { label: 'Rust Gateway', href: '/docs#rust-gateway', badge: 'BETA' },
-            ]} />
             <MobileSection label="Developers" items={[
               { label: 'Documentation', href: '/docs' },
               { label: 'Quick Start', href: '/docs#quick-start' },
@@ -239,8 +206,6 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
               { label: 'GitHub', href: 'https://github.com/joaopco8/gate402_', target: '_blank' },
             ]} />
             <MobileSection label="Company" items={[
-              { label: 'About', href: '/about' },
-              { label: 'Blog', href: '/blog' },
               { label: 'Twitter/X', href: 'https://x.com/gate402dev', target: '_blank' },
             ]} />
             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 12 }}>
@@ -292,8 +257,6 @@ export function LandingNavbar({ activePage }: { activePage?: string }) {
 
         {/* Desktop center nav */}
         <div className="lnav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '0 24px' }}>
-          <NavDropdown label="Product" sections={PRODUCT_SECTIONS}
-            isOpen={openDropdown === 'product'} onOpen={() => setOpenDropdown('product')} onClose={() => setOpenDropdown(null)} />
           <NavDropdown label="Developers" sections={DEVELOPERS_SECTIONS}
             isOpen={openDropdown === 'developers'} onOpen={() => setOpenDropdown('developers')} onClose={() => setOpenDropdown(null)} />
           <NavDropdown label="Company" sections={COMPANY_SECTIONS} grid

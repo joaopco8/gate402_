@@ -43,3 +43,4 @@ Thumbs.db
 .vercel
 # Added by code-review-graph
 .code-review-graph/
+tests/e2e/.env.test

@@ -277,10 +277,12 @@ function Nav() {
           fontSize: 14,
           fontFamily: 'var(--font-space)',
           fontWeight: 500,
-          color: '#000',
-          background: '#00bc7d',
+          color: '#00bc7d',
+          background: 'rgba(0,188,125,0.08)',
+          border: '1px solid rgba(0,188,125,0.3)',
           padding: '8px 18px',
           borderRadius: 6,
+          textDecoration: 'none',
         }}>Start free →</a>
       </div>
     </nav>

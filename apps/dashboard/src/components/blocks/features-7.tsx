@@ -26,7 +26,7 @@ export function Features() {
                                     pointerEvents: 'none',
                                 }} />
                                 <Image
-                                    src="/IMG-TELA.png"
+                                    src="/preview-dash.png"
                                     alt="Gate402 real-time payment dashboard"
                                     width={1920}
                                     height={1080}
