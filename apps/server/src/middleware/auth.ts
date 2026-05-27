@@ -1,10 +1,16 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { Request, Response, NextFunction } from 'express'
 
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-)
+let _supabaseAdmin: SupabaseClient | null = null
+function getSupabaseAdmin(): SupabaseClient {
+  if (!_supabaseAdmin) {
+    const url = process.env.SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_KEY
+    if (!url || !key) throw new Error('[auth] SUPABASE_URL and SUPABASE_SERVICE_KEY are required')
+    _supabaseAdmin = createClient(url, key)
+  }
+  return _supabaseAdmin
+}
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization']
@@ -15,7 +21,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7)
     try {
-      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
+      const { data: { user }, error } = await getSupabaseAdmin().auth.getUser(token)
       if (error || !user) {
         console.warn('[auth] Invalid JWT:', error?.message)
         return res.status(401).json({ error: 'Unauthorized', code: 'INVALID_TOKEN', message: 'Invalid or expired token' })
