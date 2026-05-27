@@ -182,18 +182,29 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     async function init() {
       try {
-        const { data: { session: initSession } } = await supabase.auth.getSession()
-        const sbUser = initSession?.user ?? null
-        if (!sbUser) { setLoading(false); return }
+        let initSession = (await supabase.auth.getSession()).data.session
+        console.log('[UserContext] getSession:', !!initSession)
 
+        // Fallback: getUser() makes a network call to validate — handles edge cases
+        // where localStorage session isn't hydrated yet
+        if (!initSession) {
+          const { data: { user: sbUserFallback } } = await supabase.auth.getUser()
+          console.log('[UserContext] getUser fallback:', !!sbUserFallback)
+          if (!sbUserFallback) { setLoading(false); return }
+          // Re-fetch session after getUser() — it may have refreshed tokens
+          initSession = (await supabase.auth.getSession()).data.session
+          if (!initSession) { setLoading(false); return }
+        }
+
+        const sbUser = initSession.user
         setSupabaseUser(sbUser)
-        setAccessToken(initSession?.access_token ?? null)
+        setAccessToken(initSession.access_token ?? null)
+        console.log('[UserContext] token:', initSession.access_token?.slice(0, 20))
 
         const cached = readCache()
         if (cached) {
           setUserData(cached)
           setLoading(false)
-          // Silent background refresh
           fetchDbUser(sbUser.id)
           return
         }
@@ -210,6 +221,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('[UserContext] onAuthStateChange:', event, !!session)
+
         if (event === 'SIGNED_OUT') {
           setSupabaseUser(null)
           setUserData(null)
@@ -217,12 +230,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           clearCache()
           fetchedRef.current = false
         }
-        if (event === 'SIGNED_IN' && session?.user) {
+
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
           setSupabaseUser(session.user)
           setAccessToken(session.access_token ?? null)
-          fetchedRef.current = false
-          clearCache()
-          await fetchDbUser(session.user.id)
+          // Only fetch DB data if not already loaded
+          if (event === 'SIGNED_IN' || !userData) {
+            fetchedRef.current = false
+            if (event === 'SIGNED_IN') clearCache()
+            await fetchDbUser(session.user.id)
+          }
         }
       }
     )
