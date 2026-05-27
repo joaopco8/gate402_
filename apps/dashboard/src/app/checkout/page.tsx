@@ -7,9 +7,9 @@ export default function CheckoutPage() {
   useEffect(() => {
     async function go() {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
 
-      if (!user) {
+      if (!session) {
         window.location.href = '/auth/login?next=/checkout'
         return
       }
@@ -18,7 +18,7 @@ export default function CheckoutPage() {
       try {
         const res = await fetch(`${SERVER_URL}/api/billing/checkout`, {
           method: 'POST',
-          headers: { 'x-user-id': user.id },
+          headers: { 'Authorization': `Bearer ${session.access_token}` },
         })
         const data = await res.json()
         if (data.url) {

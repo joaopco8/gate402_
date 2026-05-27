@@ -1,8 +1,8 @@
 const BASE_URL = 'https://api.gate402.dev'
 
-const FREE_USER_ID = '694bd610-19c5-4eef-8da2-50e1b72da950'
-const PRO_USER_ID  = '4b25eb5d-7e35-4e5b-b631-9f1e9637269c'
-const PRO_API_KEY  = 'be9eb223-d6b8-44c4-8719-cfded77b10b6'
+const FREE_USER_ID = process.env.TEST_FREE_USER_ID || '00000000-0000-0000-0000-000000000001'
+const PRO_USER_ID  = process.env.TEST_PRO_USER_ID  || '00000000-0000-0000-0000-000000000002'
+const PRO_API_KEY  = process.env.TEST_PRO_API_KEY  || 'test-api-key-placeholder'
 
 async function get(path: string, userId?: string) {
   const headers: Record<string, string> = {}

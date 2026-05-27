@@ -83,6 +83,7 @@ interface UserContextValue {
   userData: UserData | null
   supabaseUserId: string | null
   supabaseUser: any | null
+  accessToken: string | null
   isPro: boolean
   loading: boolean
   refresh: () => Promise<void>
@@ -93,6 +94,7 @@ const UserContext = createContext<UserContextValue>({
   userData: null,
   supabaseUserId: null,
   supabaseUser: null,
+  accessToken: null,
   isPro: false,
   loading: true,
   refresh: async () => {},
@@ -105,11 +107,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const initialCache = typeof window !== 'undefined' ? readCache() : null
   const [userData, setUserData] = useState<UserData | null>(initialCache)
   const [supabaseUser, setSupabaseUser] = useState<any>(null)
+  const [accessToken, setAccessToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(!initialCache)
   const fetchedRef = useRef(false)
   const supabase = createClient()
 
   const fetchDbUser = useCallback(async (userId: string) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    const authH: Record<string, string> = session
+      ? { 'Authorization': `Bearer ${session.access_token}` }
+      : {}
     try {
       // Fire-and-forget sync
       fetch(`${SERVER_URL}/api/users/sync`, {
@@ -118,9 +125,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ supabaseId: userId }),
       }).catch(() => {})
 
-      const res = await fetch(`${SERVER_URL}/api/users/me`, {
-        headers: { 'x-user-id': userId },
-      })
+      const res = await fetch(`${SERVER_URL}/api/users/me`, { headers: authH })
       if (res.ok) {
         const data = await res.json()
         // Ensure limits exist
@@ -177,10 +182,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     async function init() {
       try {
-        const { data: { user: sbUser } } = await supabase.auth.getUser()
+        const { data: { session: initSession } } = await supabase.auth.getSession()
+        const sbUser = initSession?.user ?? null
         if (!sbUser) { setLoading(false); return }
 
         setSupabaseUser(sbUser)
+        setAccessToken(initSession?.access_token ?? null)
 
         const cached = readCache()
         if (cached) {
@@ -206,11 +213,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_OUT') {
           setSupabaseUser(null)
           setUserData(null)
+          setAccessToken(null)
           clearCache()
           fetchedRef.current = false
         }
         if (event === 'SIGNED_IN' && session?.user) {
           setSupabaseUser(session.user)
+          setAccessToken(session.access_token ?? null)
           fetchedRef.current = false
           clearCache()
           await fetchDbUser(session.user.id)
@@ -228,6 +237,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       userData,
       supabaseUserId: supabaseUser?.id ?? null,
       supabaseUser,
+      accessToken,
       isPro,
       loading,
       refresh,

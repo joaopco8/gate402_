@@ -72,6 +72,7 @@ export function useUser() {
   const cached = typeof window !== 'undefined' ? readCache() : null
   const [userData, setUserData] = useState<UserData | null>(cached)
   const [supabaseUserId, setSupabaseUserId] = useState<string | null>(null)
+  const [accessToken, setAccessToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(!cached)
 
   useEffect(() => {
@@ -80,9 +81,11 @@ export function useUser() {
 
     async function syncUser() {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) { setLoading(false); return }
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) { setLoading(false); return }
+        const user = session.user
         setSupabaseUserId(user.id)
+        setAccessToken(session.access_token)
 
         // Return immediately if cache still valid
         const hit = readCache()
@@ -97,7 +100,7 @@ export function useUser() {
 
         try {
           const res = await fetch(`${SERVER_URL}/api/users/me`, {
-            headers: { 'x-user-id': user.id },
+            headers: { 'Authorization': `Bearer ${session.access_token}` },
           })
           if (res.ok) {
             const data = await res.json()
@@ -144,5 +147,5 @@ export function useUser() {
 
   const isPro = userData?.plan === 'pro' || userData?.plan === 'enterprise'
 
-  return { userData, supabaseUserId, loading, isPro }
+  return { userData, supabaseUserId, accessToken, loading, isPro }
 }

@@ -529,18 +529,18 @@ const PERIOD_OPTIONS = [
 ]
 
 export default function DashboardPage() {
-  const { userData, supabaseUserId, loading: userLoading, isPro } = useUser()
+  const { userData, supabaseUserId, accessToken, loading: userLoading, isPro } = useUser()
   const [chartDays, setChartDays] = useState(7)
   const { data, loading: dataLoading } = useDashboardData(supabaseUserId, isPro, chartDays)
   const [meteringStats, setMeteringStats] = useState<any>(null)
 
   useEffect(() => {
-    if (!isPro || !supabaseUserId) return
-    fetch(`${SERVER_URL}/api/metering/stats`, { headers: { 'x-user-id': supabaseUserId } })
+    if (!isPro || !accessToken) return
+    fetch(`${SERVER_URL}/api/metering/stats`, { headers: { 'Authorization': `Bearer ${accessToken}` } })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setMeteringStats(d) })
       .catch(() => {})
-  }, [supabaseUserId, isPro])
+  }, [accessToken, isPro])
 
   const loading = dataLoading
 

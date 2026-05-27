@@ -161,10 +161,10 @@ export default function AnalyticsPage() {
     async function loadAll() {
       setLoading(true)
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setUserChecked(true); setLoading(false); return }
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { setUserChecked(true); setLoading(false); return }
 
-      const headers = { 'x-user-id': user.id }
+      const headers = { 'Authorization': `Bearer ${session.access_token}` }
 
       const [revRes, srRes, agRes, latRes, failRes] = await Promise.allSettled([
         fetch(`${SERVER_URL}/api/analytics/revenue?period=${period}`, { headers }),

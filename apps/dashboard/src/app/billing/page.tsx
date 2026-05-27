@@ -103,12 +103,12 @@ export default function BillingPage() {
     setError(null)
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { window.location.href = '/auth/login?next=/billing'; return }
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { window.location.href = '/auth/login?next=/billing'; return }
 
       const res = await fetch(`${SERVER_URL}/api/billing/portal`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
       })
       const data = await res.json()
       if (data.manualPlan) {
@@ -130,12 +130,12 @@ export default function BillingPage() {
     setError(null)
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { window.location.href = '/auth/login?next=/billing'; return }
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { window.location.href = '/auth/login?next=/billing'; return }
 
       const res = await fetch(`${SERVER_URL}/api/billing/checkout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
       })
       const data = await res.json()
       if (data.url) {

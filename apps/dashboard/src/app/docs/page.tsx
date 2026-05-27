@@ -950,7 +950,7 @@ app.listen(3000)`} />
                 description: <>
                   <span>Go to gate402.dev/settings → Network → Mainnet. Or via API:</span>
                   <CodeBlock lang="bash" code={`curl -X PATCH https://api.gate402.dev/api/users/network \\
-  -H "x-user-id: YOUR_SUPABASE_ID" \\
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{"network": "mainnet"}'`} />
                 </>,
@@ -1068,7 +1068,7 @@ app.post('/api/process', async (req, res) => {
             <H3>Setup</H3>
             <P>Go to gate402.dev/settings → Webhooks → Add URL and webhook secret. Or via API:</P>
             <CodeBlock lang="bash" code={`curl -X PATCH https://api.gate402.dev/api/users/webhook \\
-  -H "x-user-id: YOUR_SUPABASE_ID" \\
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{"webhookUrl": "https://your-app.com/webhook", "webhookSecret": "your-secret"}'`} />
             <H3>Headers sent with every webhook</H3>
@@ -1324,7 +1324,7 @@ GATE402_API_KEY=your-key-here`} />
             ]} />
             <P>Or via API:</P>
             <CodeBlock lang="bash" code={`curl -X POST https://api.gate402.dev/api/users/rotate-key \\
-  -H "x-user-id: YOUR_SUPABASE_ID"
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 
 # Response: { "apiKey": "new-key-here" }`} />
             <Callout type="danger">

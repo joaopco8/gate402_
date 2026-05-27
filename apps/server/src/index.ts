@@ -5,6 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { x402Middleware } from './middleware/x402';
+import { requireAuth } from './middleware/auth';
 import { requirePro, requireAccount } from './middleware/plan';
 import { globalRateLimit, unpaidRateLimit } from './middleware/rateLimiter';
 import { redis } from './lib/redis';
@@ -90,6 +91,9 @@ app.get('/health', async (_req, res) => {
 
 // Admin routes (protected by ADMIN_SECRET)
 app.use('/api', adminRouter);
+
+// Auth middleware — validates Bearer JWT, logs deprecated x-user-id usage
+app.use('/api', requireAuth);
 
 // Plan enforcement — Pro required for managed server features
 app.use('/api/verify-payment', requirePro);

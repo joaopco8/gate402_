@@ -17,6 +17,11 @@ const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.de
 const MONO = 'var(--font-code)'
 const SANS = 'var(--font-display)'
 
+async function authHeader(): Promise<Record<string, string>> {
+  const { data: { session } } = await createClient().auth.getSession()
+  return session ? { 'Authorization': `Bearer ${session.access_token}` } : {}
+}
+
 interface Endpoint {
   id: string
   path: string
@@ -74,7 +79,7 @@ function EndpointCard({
     try {
       const res = await fetch(`${SERVER_URL}/api/endpoints/${ep.id}`, {
         method: 'DELETE',
-        headers: { 'x-user-id': supabaseId },
+        headers: await authHeader(),
       })
       if (!res.ok) {
         const d = await res.json().catch(() => ({}))
@@ -359,7 +364,7 @@ function AddModal({ supabaseId, onClose, onAdded }: { supabaseId: string; onClos
     try {
       const res = await fetch(`${SERVER_URL}/api/endpoints`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': supabaseId },
+        headers: { 'Content-Type': 'application/json', ...await authHeader() },
         body: JSON.stringify({ path, priceUsdc: priceNum, description: desc || undefined }),
       })
       const d = await res.json()
@@ -426,7 +431,7 @@ function EditModal({ ep, supabaseId, onClose, onSaved }: { ep: Endpoint; supabas
     try {
       const res = await fetch(`${SERVER_URL}/api/endpoints/${ep.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': supabaseId },
+        headers: { 'Content-Type': 'application/json', ...await authHeader() },
         body: JSON.stringify({ priceUsdc: priceNum, description: desc || null }),
       })
       if (res.ok) { onSaved(); onClose(); return }
@@ -488,7 +493,7 @@ function ActionsMenu({ ep, supabaseId, onRefresh, onEdit }: { ep: Endpoint; supa
     setOpen(false)
     await fetch(`${SERVER_URL}/api/endpoints/${ep.id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'x-user-id': supabaseId },
+      headers: { 'Content-Type': 'application/json', ...await authHeader() },
       body: JSON.stringify({ active: !ep.active }),
     })
     onRefresh()
@@ -505,7 +510,7 @@ function ActionsMenu({ ep, supabaseId, onRefresh, onEdit }: { ep: Endpoint; supa
       try {
         await fetch(`${SERVER_URL}/api/endpoints/${ep.id}`, {
           method: 'DELETE',
-          headers: { 'x-user-id': supabaseId },
+          headers: await authHeader(),
         })
       } finally {
         setOpen(false)
@@ -599,9 +604,9 @@ export default function EndpointsPage() {
   const count = endpoints.length
   const atLimit = !isPro && count >= 3
 
-  async function loadEndpoints(uid: string) {
+  async function loadEndpoints() {
     try {
-      const res = await fetch(`${SERVER_URL}/api/endpoints`, { headers: { 'x-user-id': uid } })
+      const res = await fetch(`${SERVER_URL}/api/endpoints`, { headers: await authHeader() })
       if (res.ok) setEndpoints(await res.json())
     } finally {
       setLoading(false)
@@ -609,15 +614,15 @@ export default function EndpointsPage() {
   }
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data: { user } }) => {
-      if (!user) return
-      setSupabaseId(user.id)
-      loadEndpoints(user.id)
+    createClient().auth.getSession().then(({ data: { session } }) => {
+      if (!session) return
+      setSupabaseId(session.user.id)
+      loadEndpoints()
     })
   }, [])
 
   function refresh() {
-    if (supabaseId) loadEndpoints(supabaseId)
+    if (supabaseId) loadEndpoints()
   }
 
   const badgeColor = count >= 3 ? '#ef4444' : count >= 2 ? '#f59e0b' : 'var(--text-muted)'

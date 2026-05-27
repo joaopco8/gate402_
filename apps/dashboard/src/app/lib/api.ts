@@ -36,17 +36,17 @@ export interface RecentCall {
   endpoint: { path: string };
 }
 
-async function getUserId(): Promise<string | null> {
+async function getToken(): Promise<string | null> {
   const { createClient } = await import('../../../lib/supabase/client');
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  return user?.id ?? null;
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ?? null;
 }
 
 export async function getMetrics(): Promise<Metrics> {
   try {
-    const userId = await getUserId();
-    const headers = userId ? { 'x-user-id': userId } : {};
+    const token = await getToken();
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     const { data } = await axios.get(`${SERVER_URL}/api/metrics`, { headers });
     return data;
   } catch {
@@ -56,8 +56,8 @@ export async function getMetrics(): Promise<Metrics> {
 
 export async function getCallsPerDay(days = 7, endpoint?: string): Promise<DayData[]> {
   try {
-    const userId = await getUserId();
-    const headers = userId ? { 'x-user-id': userId } : {};
+    const token = await getToken();
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     const params = new URLSearchParams({ days: days.toString() });
     if (endpoint && endpoint !== 'all') params.append('endpoint', endpoint);
     const { data } = await axios.get(`${SERVER_URL}/api/calls/per-day?${params}`, { headers });
@@ -69,8 +69,8 @@ export async function getCallsPerDay(days = 7, endpoint?: string): Promise<DayDa
 
 export async function getEndpoints(): Promise<Endpoint[]> {
   try {
-    const userId = await getUserId();
-    const headers = userId ? { 'x-user-id': userId } : {};
+    const token = await getToken();
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     const { data } = await axios.get(`${SERVER_URL}/api/endpoints`, { headers });
     return data;
   } catch {
@@ -80,8 +80,8 @@ export async function getEndpoints(): Promise<Endpoint[]> {
 
 export async function getRecentCalls(limit = 10): Promise<RecentCall[]> {
   try {
-    const userId = await getUserId();
-    const headers = userId ? { 'x-user-id': userId } : {};
+    const token = await getToken();
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     const { data } = await axios.get(`${SERVER_URL}/api/calls/recent?limit=${limit}`, { headers });
     return data;
   } catch {
@@ -90,16 +90,16 @@ export async function getRecentCalls(limit = 10): Promise<RecentCall[]> {
 }
 
 export async function createEndpoint(body: { path: string; priceUsdc: number; description?: string }) {
-  const userId = await getUserId();
-  const headers = userId ? { 'x-user-id': userId } : {};
+  const token = await getToken();
+  const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
   const { data } = await axios.post(`${SERVER_URL}/api/endpoints`, body, { headers });
   return data;
 }
 
 export async function getEndpointRevenue(): Promise<{ name: string; value: number; calls: number }[]> {
   try {
-    const userId = await getUserId();
-    const headers = userId ? { 'x-user-id': userId } : {};
+    const token = await getToken();
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     const { data } = await axios.get(`${SERVER_URL}/api/endpoints/revenue`, { headers });
     return data;
   } catch {
@@ -108,8 +108,8 @@ export async function getEndpointRevenue(): Promise<{ name: string; value: numbe
 }
 
 export async function getAllCalls() {
-  const userId = await getUserId();
-  const headers = userId ? { 'x-user-id': userId } : {};
+  const token = await getToken();
+  const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
   const { data } = await axios.get(`${SERVER_URL}/api/calls/recent?limit=1000`, { headers });
   return data;
 }
@@ -135,8 +135,8 @@ export interface TransactionStats {
 
 export async function getTransactions(): Promise<{ transactions: Transaction[]; stats: TransactionStats }> {
   try {
-    const userId = await getUserId();
-    const headers = userId ? { 'x-user-id': userId } : {};
+    const token = await getToken();
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     const { data } = await axios.get(`${SERVER_URL}/api/transactions`, { headers });
     return data;
   } catch {
@@ -145,8 +145,8 @@ export async function getTransactions(): Promise<{ transactions: Transaction[]; 
 }
 
 export async function toggleEndpoint(id: string, active: boolean) {
-  const userId = await getUserId();
-  const headers = userId ? { 'x-user-id': userId } : {};
+  const token = await getToken();
+  const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
   const { data } = await axios.patch(`${SERVER_URL}/api/endpoints/${id}`, { active }, { headers });
   return data;
 }
@@ -202,10 +202,10 @@ export interface MeteringStatsData {
 
 export async function getAnalyticsRevenue(period = '7d'): Promise<AnalyticsRevenueSummary | null> {
   try {
-    const userId = await getUserId();
-    if (!userId) return null;
+    const token = await getToken();
+    if (!token) return null;
     const { data } = await axios.get(`${SERVER_URL}/api/analytics/revenue?period=${period}`, {
-      headers: { 'x-user-id': userId },
+      headers: { 'Authorization': `Bearer ${token}` },
     });
     return data.summary ?? null;
   } catch {
@@ -215,10 +215,10 @@ export async function getAnalyticsRevenue(period = '7d'): Promise<AnalyticsReven
 
 export async function getSuccessRate(): Promise<SuccessRateData | null> {
   try {
-    const userId = await getUserId();
-    if (!userId) return null;
+    const token = await getToken();
+    if (!token) return null;
     const { data } = await axios.get(`${SERVER_URL}/api/analytics/success-rate`, {
-      headers: { 'x-user-id': userId },
+      headers: { 'Authorization': `Bearer ${token}` },
     });
     return data;
   } catch {
@@ -228,10 +228,10 @@ export async function getSuccessRate(): Promise<SuccessRateData | null> {
 
 export async function getTopAgents(): Promise<TopAgent[]> {
   try {
-    const userId = await getUserId();
-    if (!userId) return [];
+    const token = await getToken();
+    if (!token) return [];
     const { data } = await axios.get(`${SERVER_URL}/api/analytics/top-agents`, {
-      headers: { 'x-user-id': userId },
+      headers: { 'Authorization': `Bearer ${token}` },
     });
     return data.agents ?? [];
   } catch {
@@ -241,10 +241,10 @@ export async function getTopAgents(): Promise<TopAgent[]> {
 
 export async function getLatencyStats(): Promise<LatencyStatRow[]> {
   try {
-    const userId = await getUserId();
-    if (!userId) return [];
+    const token = await getToken();
+    if (!token) return [];
     const { data } = await axios.get(`${SERVER_URL}/api/analytics/latency`, {
-      headers: { 'x-user-id': userId },
+      headers: { 'Authorization': `Bearer ${token}` },
     });
     return data.latency ?? [];
   } catch {
@@ -270,10 +270,10 @@ export interface FailedRequestsData {
 
 export async function getFailedRequests(): Promise<FailedRequestsData | null> {
   try {
-    const userId = await getUserId();
-    if (!userId) return null;
+    const token = await getToken();
+    if (!token) return null;
     const { data } = await axios.get(`${SERVER_URL}/api/analytics/failed`, {
-      headers: { 'x-user-id': userId },
+      headers: { 'Authorization': `Bearer ${token}` },
     });
     return data;
   } catch {
@@ -283,10 +283,10 @@ export async function getFailedRequests(): Promise<FailedRequestsData | null> {
 
 export async function getMeteringStats(): Promise<MeteringStatsData | null> {
   try {
-    const userId = await getUserId();
-    if (!userId) return null;
+    const token = await getToken();
+    if (!token) return null;
     const { data } = await axios.get(`${SERVER_URL}/api/metering/stats`, {
-      headers: { 'x-user-id': userId },
+      headers: { 'Authorization': `Bearer ${token}` },
     });
     return data;
   } catch {

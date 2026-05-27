@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { createClient } from '../../../lib/supabase/client'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
 const MEM_TTL = 30_000   // 30s in-memory (matches Redis TTL)
@@ -117,7 +118,11 @@ export function useDashboardData(userId: string | null, isPro?: boolean, days = 
         const effectiveDays = Math.min(days, chartDays)
         const url = `${SERVER_URL}/api/dashboard?days=${effectiveDays}`
 
-        const json = await fetchWithCache(url, { 'x-user-id': userId! }, (stale) => {
+        const { data: { session } } = await createClient().auth.getSession()
+        const authHeaders: Record<string, string> = session
+          ? { 'Authorization': `Bearer ${session.access_token}` }
+          : {}
+        const json = await fetchWithCache(url, authHeaders, (stale) => {
           if (!cancelled) { setData(parseJson(stale)); setLoading(false) }
         })
 
