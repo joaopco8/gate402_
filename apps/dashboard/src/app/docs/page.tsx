@@ -23,6 +23,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Installation', id: 'api-installation' },
       { label: 'Basic setup', id: 'api-basic-setup' },
+      { label: 'Going to mainnet', id: 'going-to-mainnet' },
       { label: 'Endpoint pricing', id: 'endpoint-pricing' },
       { label: 'Managed mode', id: 'managed-mode' },
       { label: 'Token metering', id: 'token-metering' },
@@ -54,6 +55,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Dashboard', id: 'platform-dashboard' },
       { label: 'Analytics', id: 'analytics' },
       { label: 'Wallet & payouts', id: 'wallet-payouts' },
+      { label: 'API Key Management', id: 'api-key-management' },
     ],
   },
   {
@@ -61,6 +63,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'API endpoints', id: 'api-reference' },
       { label: 'Error codes', id: 'error-codes' },
+      { label: 'Troubleshooting', id: 'troubleshooting' },
     ],
   },
 ]
@@ -769,9 +772,9 @@ export default function DocsPage() {
               { type: 'blank',   text: '' },
               { type: 'comment', text: 'Step 2 — Gate402 returns HTTP 402' },
               { type: 'output',  text: 'HTTP/1.1 402 Payment Required' },
-              { type: 'output',  text: '{ "price": { "total": 0.001, "currency": "USDC" },' },
-              { type: 'output',  text: '  "splits": { "provider": "0.00099", "platform": "0.00001" },' },
-              { type: 'output',  text: '  "payTo": "DcL4mMaqX4FAHg4Cp1SstvMSMWytoXo93ktWycgGYABE" }' },
+              { type: 'output',  text: '{ "price": { "total": 0.001, "currency": "USDC", "network": "solana-mainnet" },' },
+              { type: 'output',  text: '  "splits": { "provider": { "wallet": "YOUR_WALLET", "amount": 0.001 } },' },
+              { type: 'output',  text: '  "endpoint": "/api/data", "instructions": "Send USDC on Solana and include tx hash in X-Payment-Payload" }' },
               { type: 'blank',   text: '' },
               { type: 'comment', text: 'Step 3 — Agent sends USDC on Solana (~400ms)' },
               { type: 'success', text: 'Transaction confirmed: 5kWq9mLP3rTxHJzUvBnCs...' },
@@ -788,12 +791,12 @@ export default function DocsPage() {
 
             {/* ══ QUICK START ══ */}
             <H2 id="quick-start">Quick start</H2>
-            <P>5 minutes to your first paid API call.</P>
+            <P>6 steps to your first paid API call — no credit card, no bank account.</P>
             <StepList steps={[
               {
-                title: 'Create your account',
+                title: 'Create account',
                 description: <>
-                  <span>Sign in at gate402.dev with GitHub. Copy your API key from Settings.</span>
+                  <span>Sign in at gate402.dev with GitHub or email. Copy your API key from Settings → API Key.</span>
                   <Terminal title="credentials" lines={[
                     { type: 'comment', text: 'Your API key looks like this:' },
                     { type: 'output',  text: 'GATE402_API_KEY=7d40dc5a-c0a9-49ac-b87c-89af2267ba32' },
@@ -805,7 +808,7 @@ export default function DocsPage() {
                 description: <CodeBlock lang="bash" code="npm install gate402" />,
               },
               {
-                title: 'Add middleware',
+                title: 'Add 3 lines to your Express app',
                 description: <CodeBlock lang="typescript" code={`import { gate402 } from 'gate402'
 import express from 'express'
 
@@ -819,6 +822,7 @@ app.use(gate402({
   }
 }))
 
+// Your existing handlers don't change
 app.get('/api/data', (req, res) => {
   res.json({ message: 'You paid 0.001 USDC!' })
 })
@@ -826,21 +830,35 @@ app.get('/api/data', (req, res) => {
 app.listen(3000)`} />,
               },
               {
-                title: 'Test',
+                title: 'Test in devnet (no real money)',
                 description: <Terminal title="terminal" lines={[
                   { type: 'comment', text: 'Without payment — returns 402' },
                   { type: 'command', text: 'curl http://localhost:3000/api/data' },
                   { type: 'error',   text: '402 Payment Required' },
                   { type: 'blank',   text: '' },
-                  { type: 'comment', text: 'With demo payment — bypasses blockchain' },
+                  { type: 'comment', text: 'With demo payment — works instantly, no blockchain' },
                   { type: 'command', text: 'curl http://localhost:3000/api/data \\' },
                   { type: 'output',  text: '  -H "X-Payment-Payload: demo_test_001"' },
                   { type: 'success', text: '200 OK — { "message": "You paid 0.001 USDC!" }' },
                 ]} />,
               },
               {
-                title: 'Open dashboard',
-                description: 'Go to gate402.dev/dashboard to see your calls in real time.',
+                title: 'Test with a real agent',
+                description: <CodeBlock lang="typescript" code={`import { Gate402Agent } from 'gate402-agent'
+
+const agent = new Gate402Agent({
+  privateKey: process.env.AGENT_WALLET_KEY,
+  network: 'devnet'
+})
+
+// Detects 402, pays automatically, retries
+const res = await agent.fetch('http://localhost:3000/api/data')
+const data = await res.json()
+// { "message": "You paid 0.001 USDC!" }`} />,
+              },
+              {
+                title: 'See it in the dashboard',
+                description: 'Open gate402.dev/dashboard — every call appears in real time with endpoint, amount, and status (demo on devnet, verified on mainnet).',
               },
             ]} />
 
@@ -850,34 +868,20 @@ app.listen(3000)`} />,
             <P>HTTP 402 Payment Required is a status code defined in 1991. The x402 protocol defines how to use it for machine-to-machine payments. Backed by Google, Microsoft, Stripe, Coinbase, and Cloudflare.</P>
 
             <H3>Fee split</H3>
-            <P>Every payment is automatically split. Gate402 never holds your funds.</P>
-            <div style={{ border: `1px solid ${T.border}`, borderRadius: 6, overflow: 'hidden', margin: '14px 0' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: T.card, borderBottom: `1px solid ${T.border}`, padding: '8px 14px', gap: 14 }}>
-                {['Payment', 'You receive (99%)', 'Gate402 (1%)'].map(h => (
-                  <span key={h} style={{ fontFamily: T.mono, fontSize: 10, color: T.textFaint, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>
-                ))}
-              </div>
-              {[
-                { pay: '0.001 USDC', you: '0.00099 USDC', fee: '0.00001 USDC' },
-                { pay: '0.010 USDC', you: '0.00990 USDC', fee: '0.00010 USDC' },
-                { pay: '1.000 USDC', you: '0.99000 USDC', fee: '0.01000 USDC' },
-              ].map((r, i) => (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: '9px 14px', gap: 14, borderBottom: i < 2 ? '1px solid #111' : 'none', background: i % 2 === 0 ? '#0a0a0a' : T.card }}>
-                  <code style={{ fontFamily: T.mono, fontSize: 12, color: T.textSecondary }}>{r.pay}</code>
-                  <code style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>{r.you}</code>
-                  <code style={{ fontFamily: T.mono, fontSize: 12, color: T.textMuted }}>{r.fee}</code>
-                </div>
-              ))}
-            </div>
+            <P>During early access, Gate402 charges no platform fee. You receive 100% of every payment directly in your wallet.</P>
+            <Callout type="success">
+              Gate402 takes 0% platform fee during early access. 100% of every payment goes directly to your wallet. This will change when we exit early access — you will be notified in advance.
+            </Callout>
 
             <H3>Demo mode</H3>
             <Terminal title="demo mode" lines={[
               { type: 'comment', text: 'Any hash starting with demo_ bypasses blockchain' },
               { type: 'command', text: 'curl /api/data -H "X-Payment-Payload: demo_any_string"' },
-              { type: 'success', text: 'Works in development — blocked in production' },
+              { type: 'success', text: 'Works on devnet — blocked automatically on mainnet' },
             ]} />
+            <P>Demo mode is controlled by the network setting in your Gate402 dashboard, not by NODE_ENV.</P>
             <Callout type="warning">
-              Set NODE_ENV=production in your deployment to disable demo mode automatically.
+              On devnet: demo_ hashes are accepted for development. On mainnet: demo_ hashes are rejected with DEMO_NOT_ALLOWED_ON_MAINNET. Switch your network in gate402.dev/settings — Gate402 blocks demo payments on mainnet automatically.
             </Callout>
 
             {/* ══ FOR API DEVELOPERS ══ */}
@@ -934,6 +938,48 @@ app.listen(3000)`} />
               { prop: 'endpoints',     type: 'Record<string, number>',    required: false, description: 'Map of URL paths to prices in USDC. Omit to use managed mode.' },
             ]} />
 
+            <H2 id="going-to-mainnet">Going to mainnet</H2>
+            <P>When you're ready to receive real USDC payments, follow these steps.</P>
+            <StepList steps={[
+              {
+                title: 'Configure your Solana wallet',
+                description: 'Go to gate402.dev/settings → Receiving Wallet. Add your Solana mainnet wallet address (Phantom, Backpack, or any Solana wallet).',
+              },
+              {
+                title: 'Switch to mainnet',
+                description: <>
+                  <span>Go to gate402.dev/settings → Network → Mainnet. Or via API:</span>
+                  <CodeBlock lang="bash" code={`curl -X PATCH https://api.gate402.dev/api/users/network \\
+  -H "x-user-id: YOUR_SUPABASE_ID" \\
+  -H "Content-Type: application/json" \\
+  -d '{"network": "mainnet"}'`} />
+                </>,
+              },
+              {
+                title: 'Configure Helius RPC (recommended)',
+                description: 'The public Solana RPC has rate limits. For production, use a dedicated RPC like Helius (free tier available). Go to helius.dev → create account → copy your RPC URL → paste in gate402.dev/settings.',
+              },
+              {
+                title: 'Test with real USDC',
+                description: <CodeBlock lang="typescript" code={`import { Gate402Agent } from 'gate402-agent'
+
+const agent = new Gate402Agent({
+  privateKey: process.env.AGENT_WALLET_KEY,
+  network: 'mainnet',
+  limits: { maxPerCall: 0.01, maxPerDay: 1.00 }
+})
+
+const res = await agent.fetch('https://your-api.dev/api/data')`} />,
+              },
+              {
+                title: 'Monitor in dashboard',
+                description: 'Every payment appears in gate402.dev/dashboard in real time with status "verified" (on-chain confirmed) and the tx hash on Solscan.',
+              },
+            ]} />
+            <Callout type="warning">
+              Always test thoroughly on devnet before switching to mainnet. Demo payments are blocked on mainnet automatically.
+            </Callout>
+
             <H2 id="endpoint-pricing">Endpoint pricing</H2>
             <P>Each entry in <code style={{ fontFamily: T.mono, fontSize: 13, color: T.textSecondary, background: T.card, padding: '1px 5px', borderRadius: 5 }}>endpoints</code> maps a URL path to a price in USDC. Prices can be as low as 0.0001 USDC ($0.0001).</P>
             <CodeBlock lang="typescript" code={`app.use(gate402({
@@ -946,7 +992,7 @@ app.listen(3000)`} />
     '/api/bulk':     0.100,   // $0.10   — bulk
   }
 }))`} />
-            <Callout type="info">Gate402 takes a 1% platform fee on each payment. The remaining 99% goes directly to your wallet. No monthly fees on the free tier.</Callout>
+            <Callout type="success">Gate402 takes 0% platform fee during early access. 100% of each payment goes directly to your wallet. No monthly fees on the free tier.</Callout>
 
             <H2 id="managed-mode">Managed mode</H2>
             <P>Fetch prices from the dashboard automatically. Change prices without redeploying your API.</P>
@@ -1020,42 +1066,52 @@ app.post('/api/process', async (req, res) => {
             <H2 id="webhooks">Webhooks</H2>
             <P>Receive a POST request after each confirmed payment.</P>
             <H3>Setup</H3>
-            <P>Go to gate402.dev/settings → Webhooks → Add URL</P>
+            <P>Go to gate402.dev/settings → Webhooks → Add URL and webhook secret. Or via API:</P>
+            <CodeBlock lang="bash" code={`curl -X PATCH https://api.gate402.dev/api/users/webhook \\
+  -H "x-user-id: YOUR_SUPABASE_ID" \\
+  -H "Content-Type: application/json" \\
+  -d '{"webhookUrl": "https://your-app.com/webhook", "webhookSecret": "your-secret"}'`} />
+            <H3>Headers sent with every webhook</H3>
+            <CodeBlock lang="bash" code={`X-Gate402-Signature: sha256=<hmac>
+X-Gate402-Event: payment.confirmed
+X-Gate402-Timestamp: 2026-05-27T01:04:51.630Z
+User-Agent: Gate402-Webhook/1.0`} />
             <H3>Payload</H3>
             <CodeBlock lang="json" code={`{
   "event": "payment.confirmed",
   "endpoint": "/api/data",
   "amount": 0.001,
   "currency": "USDC",
-  "network": "devnet",
+  "network": "mainnet",
   "txHash": "5kWq9mLP3rTxHJzUvBnCs...",
   "payerWallet": "DcL4mMaqX4FAHg4Cp1SstvMSMWytoXo93ktWycgGYABE",
-  "timestamp": "2026-05-14T12:00:00Z"
+  "timestamp": "2026-05-27T01:04:51.630Z"
 }`} />
             <H3>Verifying signatures</H3>
             <CodeBlock lang="typescript" code={`import crypto from 'crypto'
 
-app.post('/webhook',
-  express.raw({ type: 'application/json' }),
-  (req, res) => {
-    const signature = req.headers['x-gate402-signature'] as string
-    const secret = process.env.GATE402_WEBHOOK_SECRET
+app.post('/webhook', express.json(), (req, res) => {
+  const sig = req.headers['x-gate402-signature']
+  const secret = process.env.GATE402_WEBHOOK_SECRET
 
-    const expected = crypto
-      .createHmac('sha256', secret)
-      .update(JSON.stringify(req.body))
-      .digest('hex')
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(JSON.stringify(req.body))
+    .digest('hex')
 
-    if (signature !== \`sha256=\${expected}\`) {
-      return res.status(401).json({ error: 'Invalid signature' })
-    }
-
-    const event = req.body
-    console.log('Payment:', event.amount, 'USDC from', event.payerWallet)
-
-    res.json({ received: true })
+  if (sig !== \`sha256=\${expected}\`) {
+    return res.status(401).json({ error: 'Invalid signature' })
   }
-)`} />
+
+  console.log('Payment confirmed:', req.body.amount, 'USDC')
+  console.log('From:', req.body.payerWallet)
+  console.log('TxHash:', req.body.txHash)
+
+  res.json({ received: true })
+})`} />
+            <Callout type="info">
+              Webhooks only fire for payments through api.gate402.dev, not local MCP servers. Test with: POST /api/users/webhook/test
+            </Callout>
 
             {/* ══ FOR AGENT OPERATORS ══ */}
             <H2 id="agent-installation">Installation</H2>
@@ -1114,7 +1170,7 @@ try {
 const res = await agent.demoFetch('https://api.example.com/data')
 const data = await res.json()`} />
             <Callout type="warning">
-              demoFetch only works on APIs running in demo mode. Production APIs with NODE_ENV=production reject demo payments.
+              demoFetch only works on APIs whose account is set to devnet. APIs set to mainnet reject demo_ payments with DEMO_NOT_ALLOWED_ON_MAINNET.
             </Callout>
 
             <H2 id="getting-usdc">Getting USDC</H2>
@@ -1247,20 +1303,55 @@ curl https://api.gate402.dev/api/metrics \\
 
             <H2 id="wallet-payouts">Wallet & payouts</H2>
             <P>All payments land directly in your Solana wallet. There is no Gate402 escrow. You can withdraw or use USDC at any time through any Solana wallet (Phantom, Backpack, CLI).</P>
-            <Callout type="info">Gate402 takes 1% of each payment as a platform fee, deducted at the time of the split — not from your wallet later. You always receive exactly 99% of the configured price.</Callout>
+            <Callout type="success">During early access, Gate402 takes 0% platform fee. You receive 100% of every configured price directly in your Solana wallet. This will change when we exit early access — you will be notified in advance.</Callout>
+
+            <H2 id="api-key-management">API Key Management</H2>
+            <P>Your API key authenticates requests to Gate402. Never expose it in client-side code or public repositories.</P>
+            <H3>Using your key</H3>
+            <CodeBlock lang="bash" code={`# .env
+GATE402_API_KEY=your-key-here`} />
+            <CodeBlock lang="typescript" code={`app.use(gate402({
+  apiKey: process.env.GATE402_API_KEY,
+  serverUrl: 'https://api.gate402.dev',
+  endpoints: { '/api/data': 0.001 }
+}))`} />
+            <H3>Rotating your key</H3>
+            <P>If your key is compromised, rotate it immediately:</P>
+            <StepList steps={[
+              { title: 'Go to gate402.dev/settings', description: 'Navigate to Settings → API Key.' },
+              { title: 'Click "Rotate API key"', description: 'Your old key is invalidated immediately upon rotation.' },
+              { title: 'Update your environment variables', description: 'Replace GATE402_API_KEY in your .env and all deployment environments with the new key.' },
+            ]} />
+            <P>Or via API:</P>
+            <CodeBlock lang="bash" code={`curl -X POST https://api.gate402.dev/api/users/rotate-key \\
+  -H "x-user-id: YOUR_SUPABASE_ID"
+
+# Response: { "apiKey": "new-key-here" }`} />
+            <Callout type="danger">
+              Your old key is invalidated the moment you rotate. Update all services before rotating in production.
+            </Callout>
 
             {/* ══ REFERENCE ══ */}
             <H2 id="api-reference">API endpoints</H2>
             <P>Base URL: <code style={{ fontFamily: T.mono, fontSize: 13, color: T.textSecondary }}>https://api.gate402.dev</code></P>
             {[
-              { method: 'GET',    path: '/api/metrics',          auth: true,  desc: 'Total calls, revenue, unique callers',        response: '{ totalCalls, totalRevenue, uniqueCallers, topEndpoint }' },
-              { method: 'GET',    path: '/api/calls/recent',     auth: true,  desc: 'Last 50 API calls',                           response: '[{ id, endpoint, amount, txHash, callerIp, createdAt }]' },
-              { method: 'GET',    path: '/api/calls/per-day',    auth: true,  desc: 'Calls grouped by day (last 30 days)',          response: '[{ date, calls, revenue }]' },
-              { method: 'GET',    path: '/api/endpoints',        auth: true,  desc: 'Your configured endpoints',                   response: '[{ id, path, priceUsdc, active, calls }]' },
-              { method: 'POST',   path: '/api/endpoints',        auth: true,  desc: 'Create a new endpoint',                       response: '{ id, path, priceUsdc, active }' },
-              { method: 'DELETE', path: '/api/endpoints/:id',    auth: true,  desc: 'Delete an endpoint',                          response: '{ success: true }' },
-              { method: 'POST',   path: '/api/verify-payment',   auth: true,  desc: 'Verify a Solana tx hash',                     response: '{ valid: boolean, amount, wallet }' },
-              { method: 'GET',    path: '/api/weather',          auth: false, desc: 'Demo endpoint (requires 0.001 USDC payment)', response: '{ city, temp, humidity }' },
+              { method: 'GET',    path: '/api/metrics',                auth: true,  desc: 'Total calls, revenue, unique callers',                    response: '{ totalCalls, totalRevenue, uniqueCallers, topEndpoint }' },
+              { method: 'GET',    path: '/api/calls/recent',           auth: true,  desc: 'Last 50 API calls',                                       response: '[{ id, endpoint, amount, txHash, callerIp, createdAt }]' },
+              { method: 'GET',    path: '/api/calls/per-day',          auth: true,  desc: 'Calls grouped by day (last 30 days)',                      response: '[{ date, calls, revenue }]' },
+              { method: 'GET',    path: '/api/endpoints',              auth: true,  desc: 'Your configured endpoints',                               response: '[{ id, path, priceUsdc, active, calls }]' },
+              { method: 'POST',   path: '/api/endpoints',              auth: true,  desc: 'Create a new endpoint',                                   response: '{ id, path, priceUsdc, active }' },
+              { method: 'DELETE', path: '/api/endpoints/:id',          auth: true,  desc: 'Delete an endpoint',                                      response: '{ success: true }' },
+              { method: 'POST',   path: '/api/verify-payment',         auth: true,  desc: 'Verify a Solana tx hash',                                 response: '{ valid: boolean, amount, wallet }' },
+              { method: 'PATCH',  path: '/api/users/network',          auth: true,  desc: 'Switch network — body: { network: "devnet"|"mainnet" }',   response: '{ network, message }' },
+              { method: 'PATCH',  path: '/api/users/wallet',           auth: true,  desc: 'Update receiving wallet — body: { walletAddress }',       response: '{ walletAddress, message }' },
+              { method: 'PATCH',  path: '/api/users/webhook',          auth: true,  desc: 'Configure webhook — body: { webhookUrl, webhookSecret }', response: '{ webhookUrl, message }' },
+              { method: 'POST',   path: '/api/users/webhook/test',     auth: true,  desc: 'Send a test webhook to your configured URL',              response: '{ message, url }' },
+              { method: 'POST',   path: '/api/users/rotate-key',       auth: true,  desc: 'Rotate API key — old key invalidated immediately',        response: '{ apiKey }' },
+              { method: 'GET',    path: '/api/analytics/revenue',      auth: true,  desc: 'Revenue summary — query: ?period=7d|30d|90d (Pro)',        response: '{ summary: { grossRevenue, netRevenue, transactionCount }, byDay: [...] }' },
+              { method: 'GET',    path: '/api/analytics/top-agents',   auth: true,  desc: 'Top paying agent wallets (Pro)',                          response: '{ agents: [{ wallet, calls, totalPaid }] }' },
+              { method: 'GET',    path: '/api/analytics/latency',      auth: true,  desc: 'Latency percentiles per endpoint (Pro)',                  response: '{ latency: [{ endpoint, p50, p95, p99, avg }] }' },
+              { method: 'GET',    path: '/api/analytics/export',       auth: true,  desc: 'Export all transactions as CSV (Pro)',                    response: 'CSV file' },
+              { method: 'GET',    path: '/api/weather',                auth: false, desc: 'Demo endpoint (requires 0.001 USDC payment)',             response: '{ city, temp, humidity }' },
             ].map(ep => (
               <div key={ep.path + ep.method} style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 6, padding: 16, marginBottom: 8, transition: 'border-color 0.15s' }}
                 onMouseEnter={e => (e.currentTarget.style.borderColor = T.borderHover)}
@@ -1290,21 +1381,69 @@ curl https://api.gate402.dev/api/metrics \\
                 ))}
               </div>
               {[
-                { status: 402, code: 'PAYMENT_REQUIRED',      desc: 'No payment header. Response includes price and wallet.' },
-                { status: 402, code: 'PAYMENT_ALREADY_USED',  desc: 'This tx hash has already been consumed (anti-replay).' },
-                { status: 402, code: 'PAYMENT_INVALID',       desc: 'Tx not found on-chain or amount does not match.' },
-                { status: 401, code: 'INVALID_API_KEY',       desc: 'x-api-key header missing or not found in database.' },
-                { status: 401, code: 'MISSING_API_KEY',       desc: 'x-api-key header not present in request.' },
-                { status: 502, code: 'UPSTREAM_UNAVAILABLE',  desc: 'Origin API did not respond (managed mode only).' },
-                { status: 500, code: 'INTERNAL_ERROR',        desc: 'Unexpected error. Check server logs.' },
-              ].map((row, i) => (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '80px 200px 1fr', padding: '10px 14px', gap: 14, borderBottom: i < 6 ? '1px solid #111' : 'none', background: i % 2 === 0 ? '#0a0a0a' : T.card, alignItems: 'start' }}>
+                { status: 402, code: 'PAYMENT_REQUIRED',               desc: 'No payment header. Response includes price and wallet.' },
+                { status: 402, code: 'PAYMENT_ALREADY_USED',           desc: 'This tx hash has already been consumed (anti-replay).' },
+                { status: 402, code: 'PAYMENT_INVALID',                desc: 'Tx not found on-chain or amount does not match.' },
+                { status: 402, code: 'DEMO_NOT_ALLOWED_ON_MAINNET',    desc: 'Demo mode is disabled on mainnet. Send real USDC or switch to devnet.' },
+                { status: 401, code: 'INVALID_API_KEY',                desc: 'x-api-key header contains an invalid or unknown key.' },
+                { status: 401, code: 'MISSING_API_KEY',                desc: 'x-api-key header not present in request.' },
+                { status: 403, code: 'UPGRADE_REQUIRED',               desc: 'This feature requires a Pro plan. Upgrade at gate402.dev/billing.' },
+                { status: 400, code: 'INVALID_PATH',                   desc: 'Endpoint path must start with / and contain only valid characters.' },
+                { status: 400, code: 'INVALID_PRICE',                  desc: 'priceUsdc must be a positive number between 0.0001 and 1000.' },
+                { status: 502, code: 'UPSTREAM_UNAVAILABLE',           desc: 'Origin API did not respond (managed mode only).' },
+                { status: 500, code: 'INTERNAL_ERROR',                 desc: 'Unexpected error. Check server logs.' },
+              ].map((row, i, arr) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '80px 200px 1fr', padding: '10px 14px', gap: 14, borderBottom: i < arr.length - 1 ? '1px solid #111' : 'none', background: i % 2 === 0 ? '#0a0a0a' : T.card, alignItems: 'start' }}>
                   <span style={{ fontFamily: T.mono, fontSize: 12, color: row.status === 402 ? '#f59e0b' : '#ef4444' }}>{row.status}</span>
                   <code style={{ fontFamily: T.mono, fontSize: 11, color: T.green }}>{row.code}</code>
                   <span style={{ fontSize: 13, color: T.textMuted, lineHeight: 1.5, fontFamily: T.font }}>{row.desc}</span>
                 </div>
               ))}
             </div>
+
+            <H2 id="troubleshooting">Troubleshooting</H2>
+
+            <H3>"Invalid API key" error</H3>
+            <P>Your x-api-key header is invalid or missing. Check gate402.dev/settings for your current API key. If you rotated recently, update your environment variables.</P>
+
+            <H3>"Demo mode not allowed on mainnet"</H3>
+            <P>Your account is set to mainnet but you sent a demo_ hash. Switch to devnet for testing, or send a real Solana transaction.</P>
+
+            <H3>"Transaction not found"</H3>
+            <P>The tx hash doesn't exist on the expected network. Common causes:</P>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '8px 0 16px' }}>
+              {[
+                'Wrong network — sent mainnet tx but account is on devnet (or vice versa)',
+                'Transaction not yet finalized — wait 1–2 seconds and retry',
+                'Invalid tx hash format',
+              ].map(item => (
+                <div key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <span style={{ color: T.textMuted, fontFamily: T.mono, fontSize: 12, marginTop: 2 }}>–</span>
+                  <span style={{ color: T.textSecondary, fontSize: 14, fontFamily: T.font, lineHeight: 1.6 }}>{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <H3>"Insufficient amount: received 0, expected X"</H3>
+            <P>The transaction was found but the recipient received 0 USDC. Common causes:</P>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '8px 0 16px' }}>
+              {[
+                'Sender and recipient are the same wallet — use different wallets for testing',
+                'Wrong recipient address — check your wallet in Settings',
+                'RPC rate limit — use Helius for production',
+              ].map(item => (
+                <div key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <span style={{ color: T.textMuted, fontFamily: T.mono, fontSize: 12, marginTop: 2 }}>–</span>
+                  <span style={{ color: T.textSecondary, fontSize: 14, fontFamily: T.font, lineHeight: 1.6 }}>{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <H3>Payment goes through but dashboard shows 0</H3>
+            <P>Your API key might not match the endpoint owner. Make sure you're passing x-api-key in the middleware config and that it matches the key in gate402.dev/settings.</P>
+
+            <H3>Webhook not firing</H3>
+            <P>Check that your webhook URL is publicly accessible. Test with POST /api/users/webhook/test. Webhooks only fire for payments through api.gate402.dev, not local MCP servers.</P>
 
             <div style={{ height: 64 }} />
           </div>
