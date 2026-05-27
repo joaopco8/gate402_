@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts'
 import { createClient } from '../../../lib/supabase/client'
+import { getAuthHeaders } from '../lib/api'
 import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
 import PageHeader from '../components/PageHeader'
@@ -202,7 +203,7 @@ export default function WalletPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/login'); return }
 
-      const headers = { 'x-user-id': user.id }
+      const headers = { ...await getAuthHeaders() }
 
       const [revenueRes, endpointsRes, txRes] = await Promise.all([
         fetch(`${SERVER_URL}/api/analytics/revenue?period=30d`, { headers }),
@@ -237,7 +238,7 @@ export default function WalletPage() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const res = await fetch(`${SERVER_URL}/api/analytics/export`, { headers: { 'x-user-id': user.id } })
+    const res = await fetch(`${SERVER_URL}/api/analytics/export`, { headers: { ...await getAuthHeaders() } })
     if (!res.ok) return
     const blob = await res.blob()
     const url = URL.createObjectURL(blob)

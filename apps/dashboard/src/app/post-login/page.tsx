@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { createClient } from '../../../lib/supabase/client'
+import { getAuthHeaders } from '../lib/api'
 import { clearUserCacheCompat as clearUserCache } from '@/contexts/UserContext'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
@@ -43,7 +44,7 @@ export default function PostLoginPage() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-user-id': user.id,
+              ...await getAuthHeaders(),
             },
           })
           const data = await res.json()
@@ -67,7 +68,7 @@ export default function PostLoginPage() {
       // No intent — normal post-login flow
       try {
         const res = await fetch(`${SERVER_URL}/api/users/me`, {
-          headers: { 'x-user-id': user.id },
+          headers: { ...await getAuthHeaders() },
         })
         if (res.ok) {
           const userData = await res.json()

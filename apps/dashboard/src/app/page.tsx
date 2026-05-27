@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import Image from 'next/image'
 import { createClient } from '../../lib/supabase/client'
+import { getAuthHeaders } from './lib/api'
 import InteractiveHero from '@/components/ui/hero-section-nexus'
 import { WaitlistSection } from '@/components/ui/waitlist-section'
 import { Features as FeaturesGrid } from '@/components/ui/features-4'
@@ -1382,7 +1383,7 @@ function Pricing() {
       const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
       const res = await fetch(`${SERVER_URL}/api/billing/checkout`, {
         method: 'POST',
-        headers: { 'x-user-id': user.id },
+        headers: { ...await getAuthHeaders() },
       })
       const data = await res.json()
 

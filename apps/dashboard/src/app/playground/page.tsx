@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { createClient } from '../../../lib/supabase/client'
+import { getAuthHeaders } from '../lib/api'
 import DashboardLayout from '../components/DashboardLayout'
 import PageHeader from '../components/PageHeader'
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
@@ -75,10 +76,10 @@ export default function PlaygroundPage() {
   const [curlCopied, setCurlCopied] = useState(false)
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data: { user } }) => {
+    createClient().auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return
       setSupabaseId(user.id)
-      fetch(`${SERVER}/api/endpoints`, { headers: { 'x-user-id': user.id } })
+      fetch(`${SERVER}/api/endpoints`, { headers: { ...await getAuthHeaders() } })
         .then(r => r.ok ? r.json() : [])
         .then((eps: Endpoint[]) => { setEndpoints(eps); if (eps.length > 0) setSelectedPath(eps[0].path) })
         .catch(() => {})

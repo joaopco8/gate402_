@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../../lib/supabase/client'
+import { getAuthHeaders } from '../lib/api'
 import DashboardLayout from '../components/DashboardLayout'
 import PageContainer from '../components/PageContainer'
 import PageHeader from '../components/PageHeader'
@@ -112,7 +113,7 @@ export default function SettingsPage() {
       const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
       const res = await fetch(`${SERVER_URL}/api/users/network`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+        headers: { 'Content-Type': 'application/json', ...await getAuthHeaders() },
         body: JSON.stringify({ network }),
       })
       const data = await res.json()
@@ -142,7 +143,7 @@ export default function SettingsPage() {
       const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
       const res = await fetch(`${SERVER_URL}/api/users/email-alerts`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+        headers: { 'Content-Type': 'application/json', ...await getAuthHeaders() },
         body: JSON.stringify({ enabled: next }),
       })
       if (!res.ok) setEmailAlerts(!next) // revert on error
@@ -163,7 +164,7 @@ export default function SettingsPage() {
       const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
       await fetch(`${SERVER_URL}/api/users/wallet`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+        headers: { 'Content-Type': 'application/json', ...await getAuthHeaders() },
         body: JSON.stringify({ walletAddress: walletInput.trim() }),
       })
       window.location.reload()
@@ -183,7 +184,7 @@ export default function SettingsPage() {
       const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
       await fetch(`${SERVER_URL}/api/users/rotate-key`, {
         method: 'POST',
-        headers: { 'x-user-id': user.id },
+        headers: { ...await getAuthHeaders() },
       })
       window.location.reload()
     } catch (err) {
@@ -201,7 +202,7 @@ export default function SettingsPage() {
     if (!user) { setSaving(false); return }
     const res = await fetch(`${SERVER_URL}/api/users/webhook`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+      headers: { 'Content-Type': 'application/json', ...await getAuthHeaders() },
       body: JSON.stringify({ webhookUrl: webhookUrl || null, webhookSecret: webhookSecret || null }),
     })
     const status = res.ok ? 'success' : 'error'
@@ -219,7 +220,7 @@ export default function SettingsPage() {
     if (!user) { setTesting(false); return }
     const res = await fetch(`${SERVER_URL}/api/users/webhook/test`, {
       method: 'POST',
-      headers: { 'x-user-id': user.id },
+      headers: { ...await getAuthHeaders() },
     })
     setTestStatus(res.ok ? 'success' : 'error')
     setTesting(false)

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext'
 import { createClient } from '../../../lib/supabase/client'
+import { getAuthHeaders } from '../lib/api'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
 
@@ -128,7 +129,7 @@ export default function OnboardingPage() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': user.id,
+          ...await getAuthHeaders(),
         },
         body: JSON.stringify({ walletAddress: trimmed }),
       })
