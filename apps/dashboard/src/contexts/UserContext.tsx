@@ -185,15 +185,23 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         let initSession = (await supabase.auth.getSession()).data.session
         console.log('[UserContext] getSession:', !!initSession)
 
-        // Fallback: getUser() makes a network call to validate — handles edge cases
-        // where localStorage session isn't hydrated yet
+        // Fallback: try refreshSession() to get a new token (handles expired tokens)
         if (!initSession) {
-          const { data: { user: sbUserFallback } } = await supabase.auth.getUser()
-          console.log('[UserContext] getUser fallback:', !!sbUserFallback)
-          if (!sbUserFallback) { setLoading(false); return }
-          // Re-fetch session after getUser() — it may have refreshed tokens
-          initSession = (await supabase.auth.getSession()).data.session
-          if (!initSession) { setLoading(false); return }
+          console.log('[UserContext] getSession null — trying refreshSession()')
+          const { data: { session: refreshed } } = await supabase.auth.refreshSession()
+          console.log('[UserContext] refreshSession:', !!refreshed)
+          if (refreshed) {
+            initSession = refreshed
+          } else {
+            // Final fallback: check if user exists at all
+            const { data: { user: sbUserFallback } } = await supabase.auth.getUser()
+            console.log('[UserContext] getUser fallback:', !!sbUserFallback)
+            if (!sbUserFallback) { setLoading(false); return }
+            // User exists but can't get a token — set minimal state, onAuthStateChange will take over
+            setSupabaseUser(sbUserFallback)
+            setLoading(false)
+            return
+          }
         }
 
         const sbUser = initSession.user
