@@ -83,6 +83,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const loadUser = useCallback(async (token: string, sbUser: any) => {
     try {
+      // Ensure user record exists (creates if first login)
+      fetch(`${SERVER_URL}/api/users/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ supabaseId: sbUser.id, email: sbUser.email }),
+      }).catch(() => {})
+
       const res = await fetch(`${SERVER_URL}/api/users/me`, {
         headers: { 'Authorization': `Bearer ${token}` },
       })
