@@ -108,20 +108,32 @@ export function useDashboardData(userId: string | null, isPro?: boolean, days = 
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!userId) return
-
     let cancelled = false
 
     async function fetchAll() {
       try {
+        const supabase = createClient()
+
+        // Get session — try refresh if expired
+        let { data: { session } } = await supabase.auth.getSession()
+        if (!session) {
+          const { data } = await supabase.auth.refreshSession()
+          session = data.session
+        }
+
+        // Not logged in — don't fetch
+        if (!session) {
+          if (!cancelled) setLoading(false)
+          return
+        }
+
         const chartDays = isPro ? 30 : 7
         const effectiveDays = Math.min(days, chartDays)
         const url = `${SERVER_URL}/api/dashboard?days=${effectiveDays}`
 
-        const { data: { session } } = await createClient().auth.getSession()
-        const authHeaders: Record<string, string> = session
-          ? { 'Authorization': `Bearer ${session.access_token}` }
-          : {}
+        const authHeaders: Record<string, string> = { 'Authorization': `Bearer ${session.access_token}` }
+        console.log('[useDashboardData] fetching', url, 'token:', session.access_token.slice(0, 20))
+
         const json = await fetchWithCache(url, authHeaders, (stale) => {
           if (!cancelled) { setData(parseJson(stale)); setLoading(false) }
         })
@@ -130,7 +142,7 @@ export function useDashboardData(userId: string | null, isPro?: boolean, days = 
         setData(parseJson(json))
         setLoading(false)
       } catch (e: any) {
-        if (!cancelled) setError(e.message)
+        if (!cancelled) { setError(e.message); setLoading(false) }
       }
     }
 
