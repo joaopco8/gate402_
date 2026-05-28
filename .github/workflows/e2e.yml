@@ -32,6 +32,8 @@ jobs:
 
       - name: Test SDK Agent
         working-directory: packages/sdk-agent
+        env:
+          TEST_PRO_API_KEY: ${{ secrets.TEST_PRO_API_KEY }}
         run: npm install --ignore-scripts && npm test
 
   e2e:

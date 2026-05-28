@@ -147,7 +147,7 @@ describe('Gate402Agent — policy engine', () => {
 
 describe('Gate402Agent — demoFetch live (devnet)', () => {
   it('demoFetch returns 200 from api.gate402.dev/api/weather', async () => {
-    const PRO_API_KEY = 'be9eb223-d6b8-44c4-8719-cfded77b10b6'
+    const PRO_API_KEY = process.env.TEST_PRO_API_KEY || 'be9eb223-d6b8-44c4-8719-cfded77b10b6'
     const agent = new Gate402Agent(TEST_CONFIG)
 
     const res = await agent.demoFetch(
