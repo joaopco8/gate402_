@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '../../lib/supabase/client'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
@@ -79,9 +79,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [supabaseUser, setSupabaseUser] = useState<any>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const fetchingRef = useRef(false)
+  const loadedRef = useRef(false)
   const supabase = createClient()
 
-  const loadUser = useCallback(async (token: string, sbUser: any) => {
+  const loadUser = useCallback(async (token: string, sbUser: any, force = false) => {
+    // Prevent concurrent fetches and skip if already loaded (unless forced)
+    if (fetchingRef.current) return
+    if (loadedRef.current && !force) return
+    fetchingRef.current = true
     try {
       // Ensure user record exists (creates if first login)
       fetch(`${SERVER_URL}/api/users/sync`, {
@@ -99,6 +105,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setUserData(data)
         setSupabaseUser(sbUser)
         setAccessToken(token)
+        loadedRef.current = true
         console.log('[UserContext] user loaded:', data.plan, sbUser.id.slice(0, 8))
       } else {
         console.error('[UserContext] /api/users/me failed:', res.status)
@@ -108,13 +115,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       console.error('[UserContext] fetch error:', e)
       setUserData(null)
     } finally {
+      fetchingRef.current = false
       setLoading(false)
     }
   }, [])
 
   const refresh = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession()
-    if (session?.access_token) await loadUser(session.access_token, session.user)
+    if (session?.access_token) await loadUser(session.access_token, session.user, true)
   }, [supabase, loadUser])
 
   const clearUserCache = useCallback(() => {
@@ -131,8 +139,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setUserData(null)
           setSupabaseUser(null)
           setAccessToken(null)
+          loadedRef.current = false
           setLoading(false)
           return
+        }
+        if (event === 'SIGNED_IN') {
+          // Fresh login — force reload user data
+          loadedRef.current = false
         }
         if (session?.access_token) {
           await loadUser(session.access_token, session.user)
