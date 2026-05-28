@@ -1,20 +1,11 @@
 'use client'
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-  useRef,
-} from 'react'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { createClient } from '../../lib/supabase/client'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
-const CACHE_KEY = 'gate402_user_v2'
-const CACHE_TTL = 60_000
 
-// ── Types (keep backward-compat with old useUser hook) ───────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface PlanLimits {
   maxEndpoints: number
@@ -57,26 +48,6 @@ function buildLimits(plan: UserData['plan']): PlanLimits {
   }
 }
 
-// ── Cache helpers ─────────────────────────────────────────────────────────────
-
-function readCache(): UserData | null {
-  try {
-    const raw = sessionStorage.getItem(CACHE_KEY)
-    if (!raw) return null
-    const { data, ts } = JSON.parse(raw)
-    if (Date.now() - ts > CACHE_TTL) { sessionStorage.removeItem(CACHE_KEY); return null }
-    return data as UserData
-  } catch { return null }
-}
-
-function writeCache(data: UserData) {
-  try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() })) } catch {}
-}
-
-function clearCache() {
-  try { sessionStorage.removeItem(CACHE_KEY) } catch {}
-}
-
 // ── Context ───────────────────────────────────────────────────────────────────
 
 interface UserContextValue {
@@ -104,150 +75,67 @@ const UserContext = createContext<UserContextValue>({
 // ── Provider ──────────────────────────────────────────────────────────────────
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const initialCache = typeof window !== 'undefined' ? readCache() : null
-  const [userData, setUserData] = useState<UserData | null>(initialCache)
+  const [userData, setUserData] = useState<UserData | null>(null)
   const [supabaseUser, setSupabaseUser] = useState<any>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
-  const [loading, setLoading] = useState(!initialCache)
-  const fetchedRef = useRef(false)
+  const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
-  const fetchDbUser = useCallback(async (userId: string) => {
-    const { data: { session } } = await supabase.auth.getSession()
-    const authH: Record<string, string> = session
-      ? { 'Authorization': `Bearer ${session.access_token}` }
-      : {}
+  const loadUser = useCallback(async (token: string, sbUser: any) => {
     try {
-      // Fire-and-forget sync
-      fetch(`${SERVER_URL}/api/users/sync`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ supabaseId: userId }),
-      }).catch(() => {})
-
-      const res = await fetch(`${SERVER_URL}/api/users/me`, { headers: authH })
+      const res = await fetch(`${SERVER_URL}/api/users/me`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      })
       if (res.ok) {
         const data = await res.json()
-        // Ensure limits exist
         if (!data.limits) data.limits = buildLimits(data.plan ?? 'free')
         setUserData(data)
-        writeCache(data)
-        return data
+        setSupabaseUser(sbUser)
+        setAccessToken(token)
+        console.log('[UserContext] user loaded:', data.plan, sbUser.id.slice(0, 8))
+      } else {
+        console.error('[UserContext] /api/users/me failed:', res.status)
+        setUserData(null)
       }
-    } catch {}
-
-    // Fallback: Supabase direct
-    try {
-      const { data: row } = await supabase
-        .from('User')
-        .select('plan, walletAddress, network, apiKey, emailAlerts, createdAt')
-        .eq('supabaseId', userId)
-        .single()
-      if (row) {
-        const fallback: UserData = {
-          id: userId,
-          apiKey: row.apiKey ?? '',
-          walletAddress: row.walletAddress ?? null,
-          plan: row.plan ?? 'free',
-          network: row.network ?? 'devnet',
-          totalCalls: 0,
-          totalEndpoints: 0,
-          emailAlerts: row.emailAlerts ?? false,
-          limits: buildLimits(row.plan ?? 'free'),
-          createdAt: row.createdAt ?? '',
-        }
-        setUserData(fallback)
-        return fallback
-      }
-    } catch {}
-    return null
-  }, [supabase])
+    } catch (e) {
+      console.error('[UserContext] fetch error:', e)
+      setUserData(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   const refresh = useCallback(async () => {
-    if (!supabaseUser) return
-    clearCache()
-    await fetchDbUser(supabaseUser.id)
-  }, [supabaseUser, fetchDbUser])
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.access_token) await loadUser(session.access_token, session.user)
+  }, [supabase, loadUser])
 
   const clearUserCache = useCallback(() => {
-    clearCache()
     setUserData(null)
-    fetchedRef.current = false
   }, [])
 
   useEffect(() => {
-    // Only fetch once per session
-    if (fetchedRef.current) return
-    fetchedRef.current = true
-
-    async function init() {
-      try {
-        let initSession = (await supabase.auth.getSession()).data.session
-        console.log('[UserContext] getSession:', !!initSession)
-
-        // Fallback: try refreshSession() to get a new token (handles expired tokens)
-        if (!initSession) {
-          console.log('[UserContext] getSession null — trying refreshSession()')
-          const { data: { session: refreshed } } = await supabase.auth.refreshSession()
-          console.log('[UserContext] refreshSession:', !!refreshed)
-          if (refreshed) {
-            initSession = refreshed
-          } else {
-            // Final fallback: check if user exists at all
-            const { data: { user: sbUserFallback } } = await supabase.auth.getUser()
-            console.log('[UserContext] getUser fallback:', !!sbUserFallback)
-            if (!sbUserFallback) { setLoading(false); return }
-            // User exists but can't get a token — set minimal state, onAuthStateChange will take over
-            setSupabaseUser(sbUserFallback)
-            setLoading(false)
-            return
-          }
-        }
-
-        const sbUser = initSession.user
-        setSupabaseUser(sbUser)
-        setAccessToken(initSession.access_token ?? null)
-        console.log('[UserContext] token:', initSession.access_token?.slice(0, 20))
-
-        const cached = readCache()
-        if (cached) {
-          setUserData(cached)
-          setLoading(false)
-          fetchDbUser(sbUser.id)
-          return
-        }
-
-        await fetchDbUser(sbUser.id)
-      } catch (e) {
-        console.error('[UserContext] init error:', e)
-      } finally {
+    // Check initial session (reads from localStorage — works on reload)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('[UserContext] getSession:', !!session)
+      if (session?.access_token) {
+        loadUser(session.access_token, session.user)
+      } else {
         setLoading(false)
       }
-    }
+    })
 
-    init()
-
+    // Listen for auth changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('[UserContext] onAuthStateChange:', event, !!session)
-
-        if (event === 'SIGNED_OUT') {
-          setSupabaseUser(null)
+        console.log('[UserContext] auth event:', event, !!session)
+        if (session?.access_token) {
+          await loadUser(session.access_token, session.user)
+        } else if (event === 'SIGNED_OUT') {
           setUserData(null)
+          setSupabaseUser(null)
           setAccessToken(null)
-          clearCache()
-          fetchedRef.current = false
-        }
-
-        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
-          setSupabaseUser(session.user)
-          setAccessToken(session.access_token ?? null)
-          // Only fetch DB data if not already loaded
-          if (event === 'SIGNED_IN' || !userData) {
-            fetchedRef.current = false
-            if (event === 'SIGNED_IN') clearCache()
-            await fetchDbUser(session.user.id)
-          }
+          setLoading(false)
         }
       }
     )
@@ -273,13 +161,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-// ── Hook (backward-compatible with old useUser) ───────────────────────────────
+// ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useUser() {
   return useContext(UserContext)
 }
 
-// Keep old named export for post-login page
-export function clearUserCacheCompat() {
-  clearCache()
-}
+// Backward-compat export for post-login page
+export function clearUserCacheCompat() {}
