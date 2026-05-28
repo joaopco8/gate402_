@@ -98,7 +98,7 @@ export default function PlaygroundPage() {
     let apiKey = ''
     if (paid && supabaseId) {
       try {
-        const meRes = await fetch(`${SERVER}/api/users/me`, { headers: { 'x-user-id': supabaseId } })
+        const meRes = await fetch(`${SERVER}/api/users/me`, { headers: { ...await getAuthHeaders() } })
         if (meRes.ok) { const me = await meRes.json(); apiKey = me.apiKey ?? '' }
       } catch { /* ignore */ }
     }

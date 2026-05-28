@@ -49,8 +49,6 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) return { 'Authorization': `Bearer ${session.access_token}` };
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user?.id) { console.warn('[api] getAuthHeaders: x-user-id fallback'); return { 'x-user-id': user.id }; }
     return {};
   } catch (e) { console.error('[api] getAuthHeaders error:', e); return {}; }
 }

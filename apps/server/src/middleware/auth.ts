@@ -46,10 +46,17 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   // Method 2: API key — plan middleware handles identity lookup
   if (apiKey) return next()
 
-  // Method 3: Legacy x-user-id (accepted during migration period)
+  // Method 3: Legacy x-user-id — dev only, rejected in production
   if (legacyUserId) {
-    console.warn(`[auth] DEPRECATED: x-user-id used without JWT — ${req.method} ${req.path}`)
-    return next()
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[auth] DEPRECATED: x-user-id used without JWT — ${req.method} ${req.path}`)
+      return next()
+    }
+    return res.status(401).json({
+      error: 'Unauthorized',
+      code: 'MISSING_TOKEN',
+      message: 'Use Authorization: Bearer <token>',
+    })
   }
 
   // No auth headers — pass through (plan middleware rejects unauthenticated protected routes)
