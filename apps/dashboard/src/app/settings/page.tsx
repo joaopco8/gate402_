@@ -228,9 +228,11 @@ export default function SettingsPage() {
   }
 
   async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/auth/login')
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+    } catch {}
+    window.location.href = '/auth/login'
   }
 
   const skeletonBox = (

@@ -372,9 +372,11 @@ function AvatarMenu({ avatarUrl, firstName, initial, email, isPro }: {
   }, [open])
 
   async function handleLogout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/auth/login')
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+    } catch {}
+    window.location.href = '/auth/login'
   }
 
   const menuItems = [
