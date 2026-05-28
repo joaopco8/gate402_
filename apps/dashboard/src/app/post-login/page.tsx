@@ -48,7 +48,6 @@ export default function PostLoginPage() {
             },
           })
           const data = await res.json()
-          console.log('[post-login] checkout response:', res.status, data)
           if (res.ok && data.url) {
             window.location.href = data.url
             return

@@ -24,8 +24,6 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       : undefined;
     const toolPath = mcpToolName ? `/tools/${mcpToolName}` : undefined;
 
-    console.log('[x402] path:', endpointPath, '| shortPath:', shortPath, '| apiKey:', apiKey?.slice(0, 8));
-
     // ── STEP 1: Resolve endpoint + owner ────────────────────────────────────
     let currentUser: (typeof import('@prisma/client').PrismaClient extends { user: infer U } ? U : any) | null = null;
     let currentEndpoint: any = null;
@@ -42,7 +40,6 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
           },
         },
       });
-      console.log('[x402] user by apiKey:', !!user, user?.id?.slice(0, 8), '| endpoints:', user?.endpoints?.map(e => e.path));
       if (!user) {
         res.status(402).json({
           error: 'Invalid API key',
@@ -78,9 +75,6 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         if (!currentUser) currentUser = (ep as any).user ?? null;
       }
     }
-
-    console.log('[x402] endpoint:', currentEndpoint?.id?.slice(0, 8) ?? 'NOT FOUND', '| path stored:', currentEndpoint?.path);
-    console.log('[x402] owner:', (currentUser as any)?.id?.slice(0, 8) ?? 'none');
 
     // No registered endpoint — pass through
     if (!currentEndpoint) {
@@ -171,10 +165,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       });
       return;
     }
-    console.log(`[x402] demo mode: ${isDemoMode}, network: ${userNetwork}`);
-
     // ── STEP 4: Anti-replay ──────────────────────────────────────────────────
-    console.log('[idempotency] checking:', txHashProvider);
     const { isDuplicate } = await checkIdempotency(txHashProvider, 'payment');
     if (isDuplicate) {
       res.status(402).json({ error: 'Payment already used', details: 'This tx hash has already been used.' });
@@ -189,7 +180,6 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
     if (isDemoMode) {
       txHashToLog = `demo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       payerWallet = 'demo_wallet';
-      console.log('[x402] demo mode — skipping blockchain verify');
     } else {
       const providerResult = await verifyPayment({
         txHash: txHashProvider,
@@ -218,14 +208,12 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         amount: price,
         timestamp: new Date().toISOString(),
       });
-      console.log('[idempotency] marked used:', txHashProvider);
     } catch (e) {
       console.error('[idempotency] markUsed failed:', (e as Error).message);
     }
 
     // ── STEP 7: Create ApiCall ───────────────────────────────────────────────
     const resolvedUserId = (currentUser as any)?.id ?? null;
-    console.log('[x402] creating ApiCall — endpointId:', currentEndpoint.id?.slice(0, 8), '| userId:', resolvedUserId?.slice(0, 8));
     try {
       const apiCall = await prisma.apiCall.create({
         data: {
@@ -237,7 +225,6 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
           status: isDemoMode ? 'demo' : 'confirmed',
         },
       });
-      console.log('[x402] ApiCall created:', apiCall.id, '| userId:', apiCall.userId);
     } catch (e: any) {
       console.error('[x402] ApiCall create FAILED:', e.message, '| code:', e.code);
     }
@@ -268,7 +255,6 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
             },
           },
         });
-        console.log('[transaction] created:', transaction.id);
       } catch (e: any) {
         console.error('[transaction] create failed:', e.message, '| code:', e.code);
       }
@@ -315,13 +301,11 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
           where: { txHash: txHashToLog, latencyMs: null },
           data: { latencyMs },
         });
-        console.log(`[x402] latency recorded: ${latencyMs}ms for ${endpointPath}`);
       } catch (e: any) {
         console.error('[x402] failed to record latency:', e.message);
       }
     });
 
-    console.log('[x402] payment verified — calling next()');
     return next();
 
   } catch (error) {

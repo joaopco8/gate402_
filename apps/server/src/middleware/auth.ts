@@ -26,7 +26,6 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         console.warn('[auth] Invalid JWT:', error?.message)
         return res.status(401).json({ error: 'Unauthorized', code: 'INVALID_TOKEN', message: 'Invalid or expired token' })
       }
-      console.log('[auth] JWT valid — user:', user.id.slice(0, 8))
       req.headers['x-user-id'] = user.id
       return next()
     } catch (e: any) {

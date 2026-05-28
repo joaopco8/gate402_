@@ -65,20 +65,11 @@ export async function verifyPayment({
     const usdcMint = network === 'mainnet' ? USDC_MAINNET_MINT : USDC_DEVNET_MINT;
     const connection = new Connection(rpcUrl, 'confirmed');
 
-    console.log('[solana] network:', network);
-    console.log('[solana] fetching tx:', txHash.slice(0, 20));
-    console.log('[solana] connection url:', connection.rpcEndpoint.slice(0, 50));
-
     const tx = await getTransactionWithRetry(connection, txHash);
 
     if (!tx) {
-      console.log('[solana] tx NOT FOUND on chain');
       return { valid: false, reason: 'Transaction not found' };
     }
-
-    console.log('[solana] tx found, blockTime:', tx.blockTime);
-    console.log('[solana] meta:', JSON.stringify(tx.meta?.postTokenBalances?.slice(0, 3)));
-    console.log('[solana] preTokenBalances:', JSON.stringify(tx.meta?.preTokenBalances?.slice(0, 3)));
 
     // Verify recency — max 15 minutes
     if (tx.blockTime) {
@@ -90,7 +81,6 @@ export async function verifyPayment({
           reason: `Transaction is too old (${Math.floor(txAgeSeconds / 60)} minutes). Max allowed: 15 minutes.`,
         };
       }
-      console.log(`[solana] tx age: ${txAgeSeconds}s ✓`);
     }
 
     const accountKeys = tx.transaction.message.accountKeys;
@@ -114,10 +104,6 @@ export async function verifyPayment({
     const postAmount = Number(recipientPost.uiTokenAmount.uiAmount ?? 0);
     const preAmount = Number(recipientPre?.uiTokenAmount.uiAmount ?? 0);
     const received = postAmount - preAmount;
-
-    console.log('[solana] recipient:', recipientAddress);
-    console.log('[solana] received amount:', received);
-    console.log('[solana] expected amount:', expectedAmountUsdc);
 
     if (received < expectedAmountUsdc) {
       return { valid: false, reason: `insufficient amount: received ${received}, expected ${expectedAmountUsdc}` };

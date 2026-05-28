@@ -111,7 +111,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setSupabaseUser(sbUser)
         setAccessToken(token)
         loadedRef.current = true
-        console.log('[UserContext] user loaded:', data.plan, sbUser.id.slice(0, 8))
       } else {
         console.error('[UserContext] /api/users/me failed:', res.status)
         setUserData(null)
@@ -139,7 +138,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     // — no need to also call getSession() separately (avoids double loadUser call)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('[UserContext] auth event:', event, !!session)
         if (event === 'SIGNED_OUT') {
           setUserData(null)
           setSupabaseUser(null)

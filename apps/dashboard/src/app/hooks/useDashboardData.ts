@@ -135,8 +135,6 @@ export function useDashboardData(userId: string | null, isPro?: boolean, days = 
         const url = `${SERVER_URL}/api/dashboard?days=${effectiveDays}`
 
         const authHeaders: Record<string, string> = { 'Authorization': `Bearer ${session.access_token}` }
-        console.log('[useDashboardData] fetching', url, 'token:', session.access_token.slice(0, 20))
-
         const json = await fetchWithCache(url, authHeaders, (stale) => {
           if (!cancelled) { setData(parseJson(stale)); setLoading(false) }
         })

@@ -1,6 +1,6 @@
 {
   "name": "gate402-agent",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Agent-side SDK for Gate402 — automatic x402 payment handling",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -103,12 +103,6 @@ export class SolanaWallet {
       toPublicKey
     )
 
-    console.log('[wallet] sender:', keypair.publicKey.toBase58())
-    console.log('[wallet] recipient:', toPublicKey.toBase58())
-    console.log('[wallet] fromATA:', fromTokenAccount.address.toBase58())
-    console.log('[wallet] toATA:', toTokenAccount.address.toBase58())
-    console.log('[wallet] fromATA === toATA:', fromTokenAccount.address.toBase58() === toTokenAccount.address.toBase58())
-
     const transaction = new Transaction().add(
       createTransferInstruction(
         fromTokenAccount.address,
