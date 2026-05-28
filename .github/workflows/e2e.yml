@@ -21,6 +21,9 @@ jobs:
 
       - name: Test server
         working-directory: apps/server
+        env:
+          TEST_PRO_API_KEY: ${{ secrets.TEST_PRO_API_KEY }}
+          TEST_FREE_API_KEY: ${{ secrets.TEST_FREE_API_KEY }}
         run: npm install --ignore-scripts && npm test
 
       - name: Test SDK
