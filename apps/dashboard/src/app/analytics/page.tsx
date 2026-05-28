@@ -145,7 +145,7 @@ function StatusBadge({ status }: { status: string }) {
 type Period = '7d' | '30d' | '90d'
 
 export default function AnalyticsPage() {
-  const { isPro, supabaseUserId } = useUser()
+  const { isPro, supabaseUserId, loading: userLoading } = useUser()
   const [period, setPeriod] = useState<Period>('7d')
   const [revenue, setRevenue] = useState<any>(null)
   const [successRate, setSuccessRate] = useState<any>(null)
@@ -153,42 +153,53 @@ export default function AnalyticsPage() {
   const [latency, setLatency] = useState<any[]>([])
   const [failed, setFailed] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [userChecked, setUserChecked] = useState(false)
 
   useEffect(() => {
-    if (!supabaseUserId) return
+    // Wait for UserContext to finish loading, then check isPro
+    if (userLoading) return
+    if (!supabaseUserId || !isPro) { setLoading(false); return }
+
+    let cancelled = false
+    let isFetching = false
 
     async function loadAll() {
-      setLoading(true)
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { setUserChecked(true); setLoading(false); return }
+      if (isFetching) return
+      isFetching = true
+      try {
+        setLoading(true)
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session || cancelled) { setLoading(false); return }
 
-      const headers = { 'Authorization': `Bearer ${session.access_token}` }
+        const headers = { 'Authorization': `Bearer ${session.access_token}` }
 
-      const [revRes, srRes, agRes, latRes, failRes] = await Promise.allSettled([
-        fetch(`${SERVER_URL}/api/analytics/revenue?period=${period}`, { headers }),
-        fetch(`${SERVER_URL}/api/analytics/success-rate`, { headers }),
-        fetch(`${SERVER_URL}/api/analytics/top-agents`, { headers }),
-        fetch(`${SERVER_URL}/api/analytics/latency`, { headers }),
-        fetch(`${SERVER_URL}/api/analytics/failed`, { headers }),
-      ])
+        const [revRes, srRes, agRes, latRes, failRes] = await Promise.allSettled([
+          fetch(`${SERVER_URL}/api/analytics/revenue?period=${period}`, { headers }),
+          fetch(`${SERVER_URL}/api/analytics/success-rate`, { headers }),
+          fetch(`${SERVER_URL}/api/analytics/top-agents`, { headers }),
+          fetch(`${SERVER_URL}/api/analytics/latency`, { headers }),
+          fetch(`${SERVER_URL}/api/analytics/failed`, { headers }),
+        ])
 
-      if (revRes.status === 'fulfilled' && revRes.value.ok)   setRevenue(await revRes.value.json())
-      if (srRes.status === 'fulfilled' && srRes.value.ok)     setSuccessRate(await srRes.value.json())
-      if (agRes.status === 'fulfilled' && agRes.value.ok)     setTopAgents((await agRes.value.json()).agents ?? [])
-      if (latRes.status === 'fulfilled' && latRes.value.ok)   setLatency((await latRes.value.json()).latency ?? [])
-      if (failRes.status === 'fulfilled' && failRes.value.ok) setFailed((await failRes.value.json()).failed ?? [])
+        if (cancelled) return
+        if (revRes.status === 'fulfilled' && revRes.value.ok)   setRevenue(await revRes.value.json())
+        if (srRes.status === 'fulfilled' && srRes.value.ok)     setSuccessRate(await srRes.value.json())
+        if (agRes.status === 'fulfilled' && agRes.value.ok)     setTopAgents((await agRes.value.json()).agents ?? [])
+        if (latRes.status === 'fulfilled' && latRes.value.ok)   setLatency((await latRes.value.json()).latency ?? [])
+        if (failRes.status === 'fulfilled' && failRes.value.ok) setFailed((await failRes.value.json()).failed ?? [])
 
-      setUserChecked(true)
-      setLoading(false)
+        setLoading(false)
+      } finally {
+        isFetching = false
+      }
     }
 
     loadAll()
-  }, [supabaseUserId, period])
+    return () => { cancelled = true }
+  }, [supabaseUserId, isPro, userLoading, period])
 
   // ── Free gate ─────────────────────────────────────────────────────────────
-  if (userChecked && !isPro) {
+  if (!userLoading && !isPro) {
     return (
       <DashboardLayout>
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
