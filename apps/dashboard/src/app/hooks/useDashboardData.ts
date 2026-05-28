@@ -152,7 +152,7 @@ export function useDashboardData(userId: string | null, isPro?: boolean, days = 
     memCache.delete(`${SERVER_URL}/api/dashboard?days=${effectiveDays}`)
     setLoading(true)
     fetchAll()
-    const interval = setInterval(fetchAll, 15_000)
+    const interval = setInterval(fetchAll, 300_000)
     return () => {
       cancelled = true
       clearInterval(interval)
