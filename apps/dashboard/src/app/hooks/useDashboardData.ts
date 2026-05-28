@@ -109,8 +109,11 @@ export function useDashboardData(userId: string | null, isPro?: boolean, days = 
 
   useEffect(() => {
     let cancelled = false
+    let isFetching = false
 
     async function fetchAll() {
+      if (isFetching) return
+      isFetching = true
       try {
         const supabase = createClient()
 
@@ -143,6 +146,8 @@ export function useDashboardData(userId: string | null, isPro?: boolean, days = 
         setLoading(false)
       } catch (e: any) {
         if (!cancelled) { setError(e.message); setLoading(false) }
+      } finally {
+        isFetching = false
       }
     }
 

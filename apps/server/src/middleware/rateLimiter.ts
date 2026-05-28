@@ -21,7 +21,7 @@ export async function globalRateLimit(
       identifier: userId,
       type: 'user',
       window: 'minute',
-      limit: 300,
+      limit: 500,
     })
     if (!userLimit.allowed) {
       return res.status(429).json({ error: 'Too many requests', retryAfter: userLimit.resetIn })
@@ -33,7 +33,7 @@ export async function globalRateLimit(
     identifier: ip,
     type: 'ip',
     window: 'minute',
-    limit: 300,
+    limit: 500,
   })
 
   if (!ipLimit.allowed) {

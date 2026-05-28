@@ -81,6 +81,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const fetchingRef = useRef(false)
   const loadedRef = useRef(false)
+  const lastSyncRef = useRef(0)
   const supabase = createClient()
 
   const loadUser = useCallback(async (token: string, sbUser: any, force = false) => {
@@ -89,12 +90,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     if (loadedRef.current && !force) return
     fetchingRef.current = true
     try {
-      // Ensure user record exists (creates if first login)
-      fetch(`${SERVER_URL}/api/users/sync`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ supabaseId: sbUser.id, email: sbUser.email }),
-      }).catch(() => {})
+      // Ensure user record exists — debounced to 2min to avoid duplicate calls
+      const now = Date.now()
+      if (now - lastSyncRef.current > 120_000) {
+        lastSyncRef.current = now
+        fetch(`${SERVER_URL}/api/users/sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ supabaseId: sbUser.id, email: sbUser.email }),
+        }).catch(() => {})
+      }
 
       const res = await fetch(`${SERVER_URL}/api/users/me`, {
         headers: { 'Authorization': `Bearer ${token}` },
