@@ -30,6 +30,8 @@ export async function requirePro(req: Request, res: Response, next: NextFunction
     })
   }
 
+  // Propagate supabaseId so downstream route handlers that read x-user-id work with API key auth
+  if (apiKey && user) req.headers['x-user-id'] = user.supabaseId
   ;(req as any).gate402User = user
   next()
 }
@@ -71,6 +73,8 @@ export async function requireAccount(req: Request, res: Response, next: NextFunc
     })
   }
 
+  // Propagate supabaseId so downstream route handlers that read x-user-id work with API key auth
+  if (apiKey && user) req.headers['x-user-id'] = user.supabaseId
   ;(req as any).gate402User = user
   next()
 }
