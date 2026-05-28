@@ -73,6 +73,10 @@ app.use('/api/billing/webhook', express.raw({ type: 'application/json' }), billi
 
 app.use(express.json());
 
+// Auth middleware first — validates Bearer JWT and sets x-user-id header
+// Must run BEFORE globalRateLimit so per-user rate limit buckets work correctly
+app.use('/api', requireAuth);
+
 app.use(globalRateLimit);
 app.use(unpaidRateLimit);
 
@@ -91,9 +95,6 @@ app.get('/health', async (_req, res) => {
 
 // Admin routes (protected by ADMIN_SECRET)
 app.use('/api', adminRouter);
-
-// Auth middleware — validates Bearer JWT, logs deprecated x-user-id usage
-app.use('/api', requireAuth);
 
 // Plan enforcement — Pro required for managed server features
 app.use('/api/verify-payment', requirePro);
