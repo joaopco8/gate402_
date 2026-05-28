@@ -122,26 +122,22 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    // Check initial session (reads from localStorage — works on reload)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[UserContext] getSession:', !!session)
-      if (session?.access_token) {
-        loadUser(session.access_token, session.user)
-      } else {
-        setLoading(false)
-      }
-    })
-
-    // Listen for auth changes (login, logout, token refresh)
+    // onAuthStateChange fires INITIAL_SESSION immediately for logged-in users
+    // — no need to also call getSession() separately (avoids double loadUser call)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[UserContext] auth event:', event, !!session)
-        if (session?.access_token) {
-          await loadUser(session.access_token, session.user)
-        } else if (event === 'SIGNED_OUT') {
+        if (event === 'SIGNED_OUT') {
           setUserData(null)
           setSupabaseUser(null)
           setAccessToken(null)
+          setLoading(false)
+          return
+        }
+        if (session?.access_token) {
+          await loadUser(session.access_token, session.user)
+        } else if (event === 'INITIAL_SESSION') {
+          // Not logged in
           setLoading(false)
         }
       }

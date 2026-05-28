@@ -14,11 +14,26 @@ export async function globalRateLimit(
   const ip = req.ip || req.socket.remoteAddress || 'unknown'
   const apiKey = req.headers['x-api-key'] as string
 
+  // Authenticated dashboard requests get higher per-user limit
+  const userId = req.headers['x-user-id'] as string | undefined
+  if (userId && (req.path.startsWith('/api/users') || req.path.startsWith('/api/dashboard') || req.path.startsWith('/api/metrics') || req.path.startsWith('/api/calls') || req.path.startsWith('/api/endpoints') || req.path.startsWith('/api/analytics'))) {
+    const userLimit = await checkRateLimit({
+      identifier: userId,
+      type: 'user',
+      window: 'minute',
+      limit: 300,
+    })
+    if (!userLimit.allowed) {
+      return res.status(429).json({ error: 'Too many requests', retryAfter: userLimit.resetIn })
+    }
+    return next()
+  }
+
   const ipLimit = await checkRateLimit({
     identifier: ip,
     type: 'ip',
     window: 'minute',
-    limit: 100,
+    limit: 300,
   })
 
   if (!ipLimit.allowed) {

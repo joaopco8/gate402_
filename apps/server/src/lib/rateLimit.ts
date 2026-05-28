@@ -3,7 +3,7 @@ import { prisma } from './prisma'
 
 interface RateLimitConfig {
   identifier: string
-  type: 'ip' | 'wallet' | 'apikey'
+  type: 'ip' | 'wallet' | 'apikey' | 'user'
   window: 'minute' | 'hour' | 'day'
   limit: number
 }
