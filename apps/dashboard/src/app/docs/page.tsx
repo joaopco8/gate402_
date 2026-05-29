@@ -1118,51 +1118,60 @@ app.post('/webhook', express.json(), (req, res) => {
             <Terminal title="install" lines={[
               { type: 'command', text: 'npm install gate402-agent' },
             ]} />
-            <H3>Basic usage</H3>
-            <CodeBlock lang="typescript" code={`import { Gate402Agent } from 'gate402-agent'
+            <H3>Complete example</H3>
+            <CodeBlock lang="javascript" code={`// agent.mjs — complete example
+import { Gate402Agent, SpendingLimitError } from 'gate402-agent'
 
 const agent = new Gate402Agent({
   privateKey: process.env.AGENT_WALLET_PRIVATE_KEY,
-  network: 'devnet',
+  network: 'mainnet',  // 'devnet' for testing
   debug: true,
-})
-
-// Pays automatically on HTTP 402 — no extra code needed
-const res = await agent.fetch('https://api.example.com/data')
-const data = await res.json()
-
-console.log(agent.getStats())
-// {
-//   totalCalls: 1,
-//   successfulPayments: 1,
-//   totalSpent: 0.001,
-//   walletAddress: 'DcL4mMaq...'
-// }`} />
-
-            <H2 id="spending-limits">Spending Limits</H2>
-            <P>Protect your agent from unexpected costs.</P>
-            <CodeBlock lang="typescript" code={`const agent = new Gate402Agent({
-  privateKey: process.env.AGENT_WALLET_PRIVATE_KEY,
-  network: 'devnet',
   limits: {
-    maxPerCall:  0.10,   // Max $0.10 per single call
-    maxPerHour:  5.00,   // Max $5.00 per hour
-    maxPerDay:  50.00,   // Max $50.00 per day
+    maxPerCall:  0.01,   // Max $0.01 per single call
+    maxPerHour:  1.00,   // Max $1.00 per hour
+    maxPerDay:  10.00,   // Max $10.00 per day
     blockedEndpoints: ['/api/premium'],
     allowedEndpoints: ['/api/search', '/api/analyze'],
   }
-})`} />
-            <H3>Handling errors</H3>
-            <CodeBlock lang="typescript" code={`import { Gate402Agent, SpendingLimitError } from 'gate402-agent'
+})
 
 try {
-  const res = await agent.fetch('https://api.example.com/expensive')
+  // Detects 402, pays automatically, retries — zero extra code
+  const res = await agent.fetch('https://your-api.dev/api/data')
+  const data = await res.json()
+
+  console.log('Response:', data)
+  console.log('Stats:', agent.getStats())
+  // {
+  //   totalCalls: 1,
+  //   successfulPayments: 1,
+  //   totalSpent: 0.001,
+  //   walletAddress: 'DcL4mMaq...'
+  // }
+
 } catch (e) {
   if (e instanceof SpendingLimitError) {
-    console.log('Blocked:', e.message)
-    console.log('Code:', e.code)  // SPENDING_LIMIT_EXCEEDED
+    console.log('Limit exceeded:', e.message)
+    console.log('Code:', e.code) // SPENDING_LIMIT_EXCEEDED
   }
 }`} />
+
+            <H2 id="spending-limits">Breaking it down</H2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, margin: '16px 0' }}>
+              {[
+                { label: 'privateKey', desc: 'Your Solana wallet private key — this wallet holds USDC and signs payments.' },
+                { label: 'network', desc: "'devnet' for testing (free USDC from faucet), 'mainnet' for production (real USDC)." },
+                { label: 'limits', desc: 'Protect your agent from unexpected costs. Set per-call, per-hour, and per-day caps, plus endpoint allow/block lists.' },
+                { label: 'agent.fetch()', desc: "Drop-in replacement for fetch(). Detects HTTP 402, pays automatically, retries the request — no extra code needed." },
+                { label: 'getStats()', desc: 'Returns how much your agent spent, total calls, successful payments, and the wallet address.' },
+                { label: 'SpendingLimitError', desc: 'Thrown when a limit is exceeded. Check e.code for SPENDING_LIMIT_EXCEEDED.' },
+              ].map(({ label, desc }) => (
+                <div key={label} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <code style={{ fontFamily: T.mono, fontSize: 12, color: T.green, background: T.card, border: `1px solid ${T.border}`, borderRadius: 5, padding: '2px 8px', flexShrink: 0, marginTop: 2 }}>{label}</code>
+                  <span style={{ fontSize: 14, color: T.textSecondary, lineHeight: 1.7, fontFamily: T.font }}>{desc}</span>
+                </div>
+              ))}
+            </div>
 
             <H2 id="demo-fetch">Demo Fetch</H2>
             <P>Test your integration without real USDC.</P>
