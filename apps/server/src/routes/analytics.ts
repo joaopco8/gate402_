@@ -103,7 +103,7 @@ router.get('/calls/per-day', async (req, res) => {
   }
 });
 
-// GET /api/calls/recent?limit=10
+// GET /api/calls/recent?limit=10&cursor=<id>
 router.get('/calls/recent', async (req, res) => {
   try {
     const supabaseId = req.headers['x-user-id'] as string;
@@ -114,20 +114,39 @@ router.get('/calls/recent', async (req, res) => {
 
     const planLimit = user.plan === 'pro' ? 50 : 5;
     const limit = Math.max(1, Math.min(planLimit, parseInt(req.query.limit as string) || planLimit));
+    const cursor = req.query.cursor as string | undefined;
 
+    // Only cache first page (no cursor)
     const cacheKey = `recent:${user.id}:l${limit}`;
-    const cached = await fromCache(cacheKey);
-    if (cached) return res.json(cached);
+    if (!cursor) {
+      const cached = await fromCache(cacheKey);
+      if (cached) return res.json(cached);
+    }
 
     const calls = await prisma.apiCall.findMany({
-      where: { userId: user.id },
-      take: limit,
+      where: {
+        userId: user.id,
+        ...(cursor ? { id: { lt: cursor } } : {}),
+      },
+      select: {
+        id: true,
+        status: true,
+        amountUsdc: true,
+        txHash: true,
+        payerWallet: true,
+        latencyMs: true,
+        createdAt: true,
+        endpoint: { select: { path: true } },
+      },
       orderBy: { createdAt: 'desc' },
-      include: { endpoint: { select: { path: true } } },
+      take: limit,
     });
 
-    toCache(cacheKey, calls, 15);
-    return res.json(calls);
+    const nextCursor = calls.length === limit ? calls[calls.length - 1].id : null;
+    const payload = { calls, nextCursor };
+
+    if (!cursor) toCache(cacheKey, payload, 15);
+    return res.json(payload);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -168,7 +187,7 @@ router.get('/endpoints/revenue', async (req, res) => {
   }
 });
 
-// GET /api/transactions
+// GET /api/transactions?cursor=<id>
 router.get('/transactions', async (req, res) => {
   try {
     const supabaseId = req.headers['x-user-id'] as string | undefined;
@@ -177,14 +196,31 @@ router.get('/transactions', async (req, res) => {
     const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found', supabaseId });
 
+    const cursor = req.query.cursor as string | undefined;
+
     const cacheKey = `txns:${user.id}`;
-    const cached = await fromCache(cacheKey);
-    if (cached) return res.json(cached);
+    if (!cursor) {
+      const cached = await fromCache(cacheKey);
+      if (cached) return res.json(cached);
+    }
 
     const [transactions, stats] = await Promise.all([
       prisma.transaction.findMany({
-        where: { userId: user.id },
-        include: { splits: true, endpoint: { select: { path: true } } },
+        where: {
+          userId: user.id,
+          ...(cursor ? { id: { lt: cursor } } : {}),
+        },
+        select: {
+          id: true,
+          totalAmount: true,
+          providerAmount: true,
+          platformFee: true,
+          status: true,
+          txHashProvider: true,
+          network: true,
+          createdAt: true,
+          endpoint: { select: { path: true } },
+        },
         orderBy: { createdAt: 'desc' },
         take: 50,
       }),
@@ -194,6 +230,8 @@ router.get('/transactions', async (req, res) => {
         _count: { id: true },
       }),
     ]);
+
+    const nextCursor = transactions.length === 50 ? transactions[transactions.length - 1].id : null;
 
     const payload = {
       transactions: transactions.map(t => ({
@@ -213,9 +251,10 @@ router.get('/transactions', async (req, res) => {
         totalFeesPaid: stats._sum.platformFee ?? 0,
         transactionCount: stats._count.id,
       },
+      nextCursor,
     };
 
-    toCache(cacheKey, payload, 30);
+    if (!cursor) toCache(cacheKey, payload, 30);
     return res.json(payload);
   } catch (err) {
     console.error('[transactions] error:', err);
@@ -358,7 +397,7 @@ router.get('/analytics/latency', async (req, res) => {
 
     const calls = await prisma.apiCall.findMany({
       where: { userId: user.id, latencyMs: { not: null } },
-      include: { endpoint: { select: { path: true } } },
+      select: { latencyMs: true, endpoint: { select: { path: true } } },
       orderBy: { createdAt: 'desc' },
       take: 1000,
     });

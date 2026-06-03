@@ -7,7 +7,8 @@ import helmet from 'helmet';
 import { x402Middleware } from './middleware/x402';
 import { requireAuth } from './middleware/auth';
 import { requirePro, requireAccount } from './middleware/plan';
-import { globalRateLimit, unpaidRateLimit } from './middleware/rateLimiter';
+import { globalRateLimit, unpaidRateLimit } from './middleware/rateLimiter'
+import { requestMetrics } from './middleware/metrics';
 import { redis } from './lib/redis';
 import demoRoutes from './routes/demo';
 import analyticsRoutes from './routes/analytics';
@@ -72,6 +73,7 @@ app.use(cors({
 app.use('/api/billing/webhook', express.raw({ type: 'application/json' }), billingRouter);
 
 app.use(express.json());
+app.use(requestMetrics);
 
 // Auth middleware first — validates Bearer JWT and sets x-user-id header
 // Must run BEFORE globalRateLimit so per-user rate limit buckets work correctly

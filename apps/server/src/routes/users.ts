@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
 import { sendWebhook } from '../lib/webhook'
+import { invalidateApiKey } from '../lib/apiKeyCache'
 
 const router = Router()
 
@@ -143,10 +144,20 @@ router.post('/users/rotate-key', async (req, res) => {
 
     const { v4: uuidv4 } = await import('uuid')
 
+    const existing = await prisma.user.findUnique({
+      where: { supabaseId },
+      select: { apiKey: true },
+    })
+
     const user = await prisma.user.update({
       where: { supabaseId },
       data: { apiKey: uuidv4() },
     })
+
+    // Invalidate old API key from Redis cache
+    if (existing?.apiKey) {
+      invalidateApiKey(existing.apiKey).catch(() => {})
+    }
 
     return res.json({
       apiKey: user.apiKey,

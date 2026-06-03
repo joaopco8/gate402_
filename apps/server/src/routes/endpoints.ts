@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
+import { getUserByApiKey } from '../lib/apiKeyCache'
 
 const router = Router()
 
@@ -54,8 +55,11 @@ router.get('/endpoints/pricing', async (req, res) => {
   const apiKey = req.headers['x-api-key'] as string
   if (!apiKey) return res.status(401).json({ error: 'x-api-key required' })
 
+  const cachedUser = await getUserByApiKey(apiKey)
+  if (!cachedUser) return res.status(401).json({ error: 'Invalid API key' })
+
   const user = await prisma.user.findUnique({
-    where: { apiKey },
+    where: { id: cachedUser.id },
     include: { endpoints: { where: { active: true } } },
   })
 

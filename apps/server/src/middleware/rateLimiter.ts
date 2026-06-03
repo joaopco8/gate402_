@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { checkRateLimit } from '../lib/rateLimit'
+import { checkRateLimit, slidingWindowRateLimit } from '../lib/rateLimit'
 
 export async function globalRateLimit(
   req: Request,
@@ -45,19 +45,20 @@ export async function globalRateLimit(
   }
 
   if (apiKey) {
-    const keyLimit = await checkRateLimit({
-      identifier: apiKey,
-      type: 'apikey',
-      window: 'minute',
-      limit: 200,
-    })
+    const keyLimit = await slidingWindowRateLimit(
+      `apikey:${apiKey}`,
+      60 * 1000, // 1 minute sliding window
+      500
+    )
 
     if (!keyLimit.allowed) {
       return res.status(429).json({
         error: 'API key rate limit exceeded',
-        retryAfter: keyLimit.resetIn,
+        retryAfter: 60,
       })
     }
+
+    res.setHeader('X-RateLimit-Remaining', keyLimit.remaining)
   }
 
   res.setHeader('X-RateLimit-Remaining', ipLimit.remaining)

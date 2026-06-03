@@ -6,6 +6,7 @@ import { sendPaymentAlert } from '../lib/email';
 import { sendWebhook } from '../lib/webhook';
 import { checkIdempotency, markUsed } from '../lib/idempotency';
 import { logRevenue } from '../lib/revenueLog';
+import { invalidateDashboardCache } from '../lib/cacheInvalidation';
 
 const PLATFORM_WALLET = process.env.GATE402_PLATFORM_WALLET || '7UQctUWgfH87jjz9xjnCCKVY6Q1tMWZ8i1ZB3Whx939D';
 
@@ -260,6 +261,11 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       }
     } else {
       console.warn('[transaction] skipped — no userId resolved for endpoint:', endpointPath);
+    }
+
+    // ── STEP 9.5: Invalidate dashboard cache ────────────────────────────────
+    if (resolvedUserId) {
+      invalidateDashboardCache(resolvedUserId).catch(() => {});
     }
 
     // ── STEP 10: Email + Webhook (fire-and-forget) ───────────────────────────
