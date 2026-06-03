@@ -20,6 +20,7 @@ import adminRouter from './routes/admin';
 import billingRouter from './routes/billing'
 import meteringRouter from './routes/metering';
 import dashboardRouter from './routes/dashboard';
+import agentWalletsRouter from './routes/agentWallets';
 import { walletAddress } from './solana/wallet';
 
 const app = express();
@@ -115,6 +116,7 @@ app.use('/api/wallet/withdraw', requirePro);
 app.use('/api/users/webhook', requirePro);
 
 // Account required for dashboard routes (/api/users/sync is exempt — it creates new accounts)
+app.use('/api/agent-wallets', requireAccount);
 app.use('/api/dashboard', requireAccount);
 app.use('/api/metrics', requireAccount);
 app.use('/api/calls', requireAccount);
@@ -124,6 +126,9 @@ app.use('/api/users', (req, res, next) => {
   return requireAccount(req, res, next)
 });
 app.use('/api/endpoints', requireAccount);
+
+// Agent wallets CRUD
+app.use('/api/agent-wallets', agentWalletsRouter);
 
 // Aggregated dashboard route (single request)
 app.use('/api', dashboardRouter);

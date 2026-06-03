@@ -1,0 +1,347 @@
+import { Router } from 'express'
+import { prisma } from '../lib/prisma'
+import { redis } from '../lib/redis'
+
+const router = Router()
+
+const SOLANA_ADDRESS_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/
+
+function getUser(req: any) {
+  return req.gate402User as { id: string; supabaseId: string; plan: string; apiKey: string } | undefined
+}
+
+// ─── LIST ────────────────────────────────────────────────────────────────────
+// GET /api/agent-wallets
+router.get('/', async (req, res) => {
+  try {
+    const user = getUser(req)
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+
+    const wallets = await prisma.agentWallet.findMany({
+      where: { userId: user.id, isActive: true },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        walletAddress: true,
+        network: true,
+        maxPerCall: true,
+        maxPerHour: true,
+        maxPerDay: true,
+        maxPerMonth: true,
+        allowedEndpoints: true,
+        blockedEndpoints: true,
+        totalCalls: true,
+        totalSpent: true,
+        lastCallAt: true,
+        agentKey: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return res.json({ wallets })
+  } catch (err) {
+    console.error('[agent-wallets] list error:', err)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// ─── CREATE ──────────────────────────────────────────────────────────────────
+// POST /api/agent-wallets
+router.post('/', async (req, res) => {
+  try {
+    const user = getUser(req)
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+
+    const {
+      name,
+      description,
+      walletAddress,
+      network = 'mainnet',
+      maxPerCall,
+      maxPerHour,
+      maxPerDay,
+      maxPerMonth,
+      allowedEndpoints = [],
+      blockedEndpoints = [],
+    } = req.body
+
+    if (!name || !walletAddress) {
+      return res.status(400).json({
+        error: 'name and walletAddress are required',
+        code: 'MISSING_FIELDS',
+      })
+    }
+
+    if (!SOLANA_ADDRESS_RE.test(walletAddress)) {
+      return res.status(400).json({
+        error: 'Invalid Solana wallet address',
+        code: 'INVALID_WALLET_ADDRESS',
+      })
+    }
+
+    if (!['mainnet', 'devnet'].includes(network)) {
+      return res.status(400).json({
+        error: 'network must be mainnet or devnet',
+        code: 'INVALID_NETWORK',
+      })
+    }
+
+    const count = await prisma.agentWallet.count({
+      where: { userId: user.id, isActive: true },
+    })
+
+    if (count >= 10) {
+      return res.status(400).json({
+        error: 'Maximum 10 agent wallets per account',
+        code: 'MAX_WALLETS_REACHED',
+      })
+    }
+
+    const wallet = await prisma.agentWallet.create({
+      data: {
+        userId: user.id,
+        name,
+        description: description ?? null,
+        walletAddress,
+        network,
+        maxPerCall: maxPerCall ?? null,
+        maxPerHour: maxPerHour ?? null,
+        maxPerDay: maxPerDay ?? null,
+        maxPerMonth: maxPerMonth ?? null,
+        allowedEndpoints,
+        blockedEndpoints,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        walletAddress: true,
+        network: true,
+        maxPerCall: true,
+        maxPerHour: true,
+        maxPerDay: true,
+        maxPerMonth: true,
+        allowedEndpoints: true,
+        blockedEndpoints: true,
+        totalCalls: true,
+        totalSpent: true,
+        agentKey: true,
+        createdAt: true,
+      },
+    })
+
+    return res.status(201).json({ wallet })
+  } catch (err) {
+    console.error('[agent-wallets] create error:', err)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// ─── GET ONE ─────────────────────────────────────────────────────────────────
+// GET /api/agent-wallets/:id
+router.get('/:id', async (req, res) => {
+  try {
+    const user = getUser(req)
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+
+    const { id } = req.params
+
+    const wallet = await prisma.agentWallet.findFirst({
+      where: { id, userId: user.id },
+      include: {
+        calls: {
+          select: {
+            id: true,
+            endpoint: true,
+            amount: true,
+            status: true,
+            txHash: true,
+            blockReason: true,
+            latencyMs: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+        },
+      },
+    })
+
+    if (!wallet) {
+      return res.status(404).json({ error: 'Agent wallet not found', code: 'NOT_FOUND' })
+    }
+
+    return res.json({ wallet })
+  } catch (err) {
+    console.error('[agent-wallets] get error:', err)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// ─── UPDATE ──────────────────────────────────────────────────────────────────
+// PATCH /api/agent-wallets/:id
+router.patch('/:id', async (req, res) => {
+  try {
+    const user = getUser(req)
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+
+    const { id } = req.params
+    const {
+      name,
+      description,
+      maxPerCall,
+      maxPerHour,
+      maxPerDay,
+      maxPerMonth,
+      allowedEndpoints,
+      blockedEndpoints,
+      isActive,
+    } = req.body
+
+    const existing = await prisma.agentWallet.findFirst({ where: { id, userId: user.id } })
+    if (!existing) {
+      return res.status(404).json({ error: 'Agent wallet not found', code: 'NOT_FOUND' })
+    }
+
+    const wallet = await prisma.agentWallet.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+        ...(maxPerCall !== undefined && { maxPerCall }),
+        ...(maxPerHour !== undefined && { maxPerHour }),
+        ...(maxPerDay !== undefined && { maxPerDay }),
+        ...(maxPerMonth !== undefined && { maxPerMonth }),
+        ...(allowedEndpoints !== undefined && { allowedEndpoints }),
+        ...(blockedEndpoints !== undefined && { blockedEndpoints }),
+        ...(isActive !== undefined && { isActive }),
+      },
+      select: {
+        id: true,
+        name: true,
+        maxPerCall: true,
+        maxPerHour: true,
+        maxPerDay: true,
+        maxPerMonth: true,
+        allowedEndpoints: true,
+        blockedEndpoints: true,
+        isActive: true,
+        updatedAt: true,
+      },
+    })
+
+    if (redis) redis.del(`agent:${id}:stats`).catch(() => {})
+
+    return res.json({ wallet })
+  } catch (err) {
+    console.error('[agent-wallets] update error:', err)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// ─── DELETE (soft) ───────────────────────────────────────────────────────────
+// DELETE /api/agent-wallets/:id
+router.delete('/:id', async (req, res) => {
+  try {
+    const user = getUser(req)
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+
+    const { id } = req.params
+
+    const existing = await prisma.agentWallet.findFirst({ where: { id, userId: user.id } })
+    if (!existing) {
+      return res.status(404).json({ error: 'Agent wallet not found', code: 'NOT_FOUND' })
+    }
+
+    await prisma.agentWallet.update({ where: { id }, data: { isActive: false } })
+
+    if (redis) redis.del(`agent:${id}:stats`).catch(() => {})
+
+    return res.json({ success: true })
+  } catch (err) {
+    console.error('[agent-wallets] delete error:', err)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// ─── STATS ───────────────────────────────────────────────────────────────────
+// GET /api/agent-wallets/:id/stats
+router.get('/:id/stats', async (req, res) => {
+  try {
+    const user = getUser(req)
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+
+    const { id } = req.params
+    const cacheKey = `agent:${id}:stats`
+
+    if (redis) {
+      const cached = await redis.get(cacheKey).catch(() => null)
+      if (cached) return res.json(JSON.parse(cached))
+    }
+
+    const wallet = await prisma.agentWallet.findFirst({ where: { id, userId: user.id } })
+    if (!wallet) {
+      return res.status(404).json({ error: 'Agent wallet not found', code: 'NOT_FOUND' })
+    }
+
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0)
+    const startOfHour = new Date(Date.now() - 60 * 60 * 1000)
+
+    const [callsByStatus, topEndpoints, spentToday, spentThisHour] = await Promise.all([
+      prisma.agentCall.groupBy({
+        by: ['status'],
+        where: { agentWalletId: id },
+        _count: true,
+      }),
+      prisma.agentCall.groupBy({
+        by: ['endpoint'],
+        where: { agentWalletId: id, status: 'verified' },
+        _sum: { amount: true },
+        _count: true,
+        orderBy: { _sum: { amount: 'desc' } },
+        take: 5,
+      }),
+      prisma.agentCall.aggregate({
+        where: { agentWalletId: id, status: 'verified', createdAt: { gte: startOfDay } },
+        _sum: { amount: true },
+      }),
+      prisma.agentCall.aggregate({
+        where: { agentWalletId: id, status: 'verified', createdAt: { gte: startOfHour } },
+        _sum: { amount: true },
+      }),
+    ])
+
+    const todayAmt = spentToday._sum.amount ?? 0
+    const hourAmt = spentThisHour._sum.amount ?? 0
+
+    const stats = {
+      totalCalls: wallet.totalCalls,
+      totalSpent: wallet.totalSpent,
+      spentToday: todayAmt,
+      spentThisHour: hourAmt,
+      callsByStatus,
+      topEndpoints,
+      limits: {
+        maxPerCall: wallet.maxPerCall,
+        maxPerHour: wallet.maxPerHour,
+        maxPerDay: wallet.maxPerDay,
+        maxPerMonth: wallet.maxPerMonth,
+      },
+      utilization: {
+        hour: wallet.maxPerHour ? (hourAmt / wallet.maxPerHour) * 100 : null,
+        day: wallet.maxPerDay ? (todayAmt / wallet.maxPerDay) * 100 : null,
+      },
+    }
+
+    if (redis) redis.setex(cacheKey, 60, JSON.stringify(stats)).catch(() => {})
+
+    return res.json(stats)
+  } catch (err) {
+    console.error('[agent-wallets] stats error:', err)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+export default router

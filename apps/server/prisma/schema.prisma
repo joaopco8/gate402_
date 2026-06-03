@@ -26,6 +26,63 @@ model User {
   endpoints     Endpoint[]
   apiCalls      ApiCall[]
   transactions  Transaction[]
+  agentWallets  AgentWallet[]
+}
+
+model AgentWallet {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  name        String
+  description String?
+
+  walletAddress String
+  network       String  @default("mainnet")
+
+  maxPerCall    Float?
+  maxPerHour    Float?
+  maxPerDay     Float?
+  maxPerMonth   Float?
+
+  allowedEndpoints String[] @default([])
+  blockedEndpoints String[] @default([])
+
+  isActive    Boolean  @default(true)
+
+  totalCalls  Int      @default(0)
+  totalSpent  Float    @default(0)
+  lastCallAt  DateTime?
+
+  agentKey    String   @unique @default(uuid())
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  calls       AgentCall[]
+
+  @@index([userId])
+  @@index([agentKey])
+  @@index([walletAddress])
+}
+
+model AgentCall {
+  id            String      @id @default(uuid())
+  agentWalletId String
+  agentWallet   AgentWallet @relation(fields: [agentWalletId], references: [id])
+
+  endpoint    String
+  amount      Float
+  status      String
+  txHash      String?
+  blockReason String?
+  latencyMs   Int?
+
+  createdAt   DateTime @default(now())
+
+  @@index([agentWalletId])
+  @@index([createdAt])
+  @@index([agentWalletId, createdAt])
 }
 
 model Endpoint {
