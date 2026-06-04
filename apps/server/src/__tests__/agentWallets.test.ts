@@ -4,9 +4,8 @@ jest.mock('../lib/privy', () => ({
   privy: {
     walletApi: {
       create: jest.fn().mockResolvedValue({
-        id: 'privy_wallet_test_123',
-        address: 'DcL4mMaqX4FAHg4Cp1SstvMSMWytoXo93ktWycgGYABE',
-        chainType: 'solana',
+        id: 'privy_test_id',
+        address: 'GMqk45ztzLiHoKfwChKuYKo3NYyXFPaZSczgnxdQ9KHT',
       }),
     },
   },
