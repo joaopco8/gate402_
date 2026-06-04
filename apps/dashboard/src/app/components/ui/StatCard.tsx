@@ -20,8 +20,8 @@ export function StatCard({
         fontSize: 'var(--text-xs)',
         fontFamily: 'var(--font-mono)',
         color: 'var(--text-muted)',
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
+        letterSpacing: '0.04em',
+        fontWeight: 500,
         marginBottom: 8,
       }}>
         {label}

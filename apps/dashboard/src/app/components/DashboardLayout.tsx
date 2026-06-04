@@ -5,6 +5,14 @@ import { createClient } from '../../../lib/supabase/client'
 import Link from 'next/link'
 import { useUser } from '@/contexts/UserContext'
 import { motion, AnimatePresence } from 'framer-motion'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Settings, CreditCard, LogOut, LayoutDashboard, BookOpen } from 'lucide-react'
 
 // ─── Docs search index ────────────────────────────────────────────────────────
 
@@ -94,16 +102,25 @@ const IconSettings = () => (
     <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 )
+const IconAgents = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="10" rx="2"/>
+    <circle cx="12" cy="5" r="2"/>
+    <path d="M12 7v4"/>
+    <path d="M8 15h.01M12 15h.01M16 15h.01"/>
+  </svg>
+)
 
 const NAV_ITEMS = [
-  { label: 'Overview',   href: '/dashboard',  Icon: IconOverview },
-  { label: 'Analytics',  href: '/analytics',  Icon: IconAnalytics, pro: true },
-  { label: 'Wallet',     href: '/wallet',     Icon: IconWallet },
-  { label: 'Endpoints',  href: '/endpoints',  Icon: IconEndpoints },
-  { label: 'Playground', href: '/playground', Icon: IconPlayground },
-  { label: 'Docs',       href: '/docs',       Icon: IconDocs },
-  { label: 'Billing',    href: '/billing',    Icon: IconBilling },
-  { label: 'Settings',   href: '/settings',   Icon: IconSettings },
+  { label: 'Overview',      href: '/dashboard',  Icon: IconOverview },
+  { label: 'Analytics',     href: '/analytics',  Icon: IconAnalytics, pro: true },
+  { label: 'Wallet',        href: '/wallet',     Icon: IconWallet },
+  { label: 'Endpoints',     href: '/endpoints',  Icon: IconEndpoints },
+  { label: 'Agent Wallets', href: '/agents',     Icon: IconAgents },
+  { label: 'Playground',    href: '/playground', Icon: IconPlayground },
+  { label: 'Docs',          href: '/docs',       Icon: IconDocs },
+  { label: 'Billing',       href: '/billing',    Icon: IconBilling },
+  { label: 'Settings',      href: '/settings',   Icon: IconSettings },
 ]
 
 // ─── Framer variants ──────────────────────────────────────────────────────────
@@ -150,8 +167,8 @@ function NavItem({ label, href, Icon, active, pro, isPro, collapsed }: {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0, width: 30, height: 30,
         borderRadius: 'var(--radius-md)',
-        background: lit ? '#313131' : 'transparent',
-        color: lit ? '#fff' : 'var(--text-muted)',
+        background: active ? 'rgba(122,242,121,0.1)' : hovered ? 'rgba(255,255,255,0.05)' : 'transparent',
+        color: active ? '#7AF279' : lit ? 'var(--text-primary)' : 'var(--text-muted)',
         transition: 'background 120ms, color 120ms',
       }}>
         <Icon />
@@ -159,12 +176,10 @@ function NavItem({ label, href, Icon, active, pro, isPro, collapsed }: {
       <motion.span variants={labelVariants} style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
         {label}
         {pro && !isPro && (
-          <span style={{
-            fontSize: 9, fontWeight: 600,
-            color: 'var(--brand-primary)', background: 'var(--brand-muted)',
-            border: '1px solid var(--brand-border)', borderRadius: 6,
-            padding: '1px 4px', letterSpacing: '0.08em', lineHeight: 1.4,
-          }}>PRO</span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+            <rect x="2" y="5" width="8" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
+            <path d="M4 5V3.5a2 2 0 014 0V5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+          </svg>
         )}
       </motion.span>
     </Link>
@@ -352,6 +367,9 @@ function DocsSearch() {
 
 // ─── AvatarMenu ───────────────────────────────────────────────────────────────
 
+const MONO = "'JetBrains Mono', monospace"
+const SANS = "'Inter', sans-serif"
+
 function AvatarMenu({ avatarUrl, firstName, initial, email, isPro }: {
   avatarUrl: string | null
   firstName: string
@@ -359,18 +377,6 @@ function AvatarMenu({ avatarUrl, firstName, initial, email, isPro }: {
   email: string | null
   isPro: boolean
 }) {
-  const router = useRouter()
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    if (open) document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
-  }, [open])
-
   async function handleLogout() {
     try {
       const supabase = createClient()
@@ -379,148 +385,217 @@ function AvatarMenu({ avatarUrl, firstName, initial, email, isPro }: {
     window.location.href = '/auth/login'
   }
 
-  const menuItems = [
-    {
-      label: isPro ? 'Manage subscription' : 'Upgrade to Pro',
-      href: '/billing',
-      icon: (
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <rect x="1" y="2.5" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
-          <path d="M1 6h12" stroke="currentColor" strokeWidth="1.3"/>
-        </svg>
-      ),
-      accent: !isPro,
-    },
-    {
-      label: 'Settings',
-      href: '/settings',
-      icon: (
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <circle cx="7" cy="7" r="2" stroke="currentColor" strokeWidth="1.3"/>
-          <path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.7 2.7l1.06 1.06M10.24 10.24l1.06 1.06M2.7 11.3l1.06-1.06M10.24 3.76l1.06-1.06" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-        </svg>
-      ),
-    },
-  ]
-
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      {/* Avatar trigger */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          width: 30, height: 30, borderRadius: '50%',
-          overflow: 'hidden', flexShrink: 0,
-          border: `1px solid ${open ? 'var(--border-strong)' : 'var(--border-default)'}`,
-          background: 'none', padding: 0, cursor: 'pointer',
-          transition: 'border-color 150ms',
-        }}
-      >
-        {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={firstName}
-            referrerPolicy="no-referrer"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          />
-        ) : (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '6px 10px 6px 8px',
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid #2A2E2A',
+            borderRadius: 10,
+            cursor: 'pointer',
+            transition: 'border-color 150ms, background 150ms',
+            outline: 'none',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = '#333733'
+            e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = '#2A2E2A'
+            e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+          }}
+        >
+          {/* Avatar */}
           <div style={{
-            width: '100%', height: '100%',
-            background: 'var(--brand-bg)',
+            width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+            overflow: 'hidden',
+            background: 'rgba(122,242,121,0.15)',
+            border: '1.5px solid rgba(122,242,121,0.3)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 11, fontWeight: 600,
-            color: 'var(--brand-primary)', fontFamily: 'var(--font-mono)',
           }}>
-            {initial}
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={firstName}
+                referrerPolicy="no-referrer"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            ) : (
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#7AF279', fontFamily: MONO }}>
+                {initial}
+              </span>
+            )}
           </div>
-        )}
-      </button>
 
-      {/* Dropdown */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.97 }}
-            transition={{ duration: 0.13 }}
-            style={{
-              position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-              width: 220,
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-default)',
-              borderRadius: 6,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-              zIndex: 100,
-              overflow: 'hidden',
-            }}
-          >
-            {/* User info */}
+          {/* Name + plan */}
+          <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
+            <div style={{ fontSize: 12, fontWeight: 500, color: '#E8F4EE', fontFamily: SANS, whiteSpace: 'nowrap' }}>
+              {firstName}
+            </div>
+            <div style={{ fontSize: 10, color: isPro ? '#7AF279' : '#4A5549', fontFamily: MONO, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              {isPro ? 'Pro' : 'Free'}
+            </div>
+          </div>
+
+          {/* Chevron */}
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: '#4A5549', flexShrink: 0 }}>
+            <path d="M2 4l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        align="end"
+        sideOffset={6}
+        style={{
+          width: 240,
+          padding: 6,
+          background: 'rgba(27,30,27,0.98)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid #2A2E2A',
+          borderRadius: 12,
+          boxShadow: '0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03)',
+          zIndex: 200,
+        }}
+        className="!bg-[#1B1E1B] !border-[#2A2E2A] !shadow-none !rounded-xl !p-0"
+      >
+        {/* User header */}
+        <div style={{
+          padding: '10px 12px 12px',
+          marginBottom: 4,
+          borderBottom: '1px solid #2A2E2A',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
-              padding: '12px 14px',
-              borderBottom: '1px solid var(--border-default)',
+              width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+              overflow: 'hidden',
+              background: 'rgba(122,242,121,0.1)',
+              border: '1.5px solid rgba(122,242,121,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2 }}>
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={firstName}
+                  referrerPolicy="no-referrer"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              ) : (
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#7AF279', fontFamily: MONO }}>
+                  {initial}
+                </span>
+              )}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: '#E8F4EE', fontFamily: SANS, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {firstName}
               </div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: 11, color: '#4A5549', fontFamily: MONO, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {email}
               </div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-                {isPro ? 'PLAN PRO' : 'PLAN FREE'}
-              </div>
             </div>
+            {isPro && (
+              <span style={{
+                flexShrink: 0, marginLeft: 'auto',
+                fontSize: 9, fontFamily: MONO, letterSpacing: '0.08em',
+                color: '#7AF279', border: '1px solid rgba(122,242,121,0.3)',
+                borderRadius: 4, padding: '2px 6px', textTransform: 'uppercase',
+              }}>
+                Pro
+              </span>
+            )}
+          </div>
+        </div>
 
-            {/* Menu items */}
-            <div style={{ padding: '4px 0' }}>
-              {menuItems.map(item => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '8px 14px', textDecoration: 'none',
-                    fontSize: 'var(--text-sm)',
-                    color: item.accent ? 'var(--brand-primary)' : 'var(--text-secondary)',
-                    transition: 'background 100ms',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-overlay)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <span style={{ color: item.accent ? 'var(--brand-primary)' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
-                    {item.icon}
-                  </span>
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-
-            {/* Logout */}
-            <div style={{ borderTop: '1px solid var(--border-default)', padding: '4px 0' }}>
-              <button
-                onClick={handleLogout}
+        {/* Menu items */}
+        <div style={{ padding: '2px 0', display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {[
+            { label: 'Dashboard', href: '/dashboard', Icon: LayoutDashboard },
+            { label: 'Settings', href: '/settings', Icon: Settings },
+            { label: isPro ? 'Manage plan' : 'Upgrade to Pro', href: '/billing', Icon: CreditCard, accent: !isPro },
+            { label: 'Documentation', href: '/v2/docs', Icon: BookOpen },
+          ].map(({ label, href, Icon, accent }) => (
+            <DropdownMenuItem key={href} asChild>
+              <Link
+                href={href}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  width: '100%', padding: '8px 14px',
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  fontSize: 'var(--text-sm)', color: 'var(--text-muted)',
-                  fontFamily: 'var(--font-sans)', textAlign: 'left',
-                  transition: 'background 100ms, color 100ms',
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  textDecoration: 'none',
+                  fontSize: 13, fontFamily: SANS,
+                  color: accent ? '#7AF279' : '#7A8C79',
+                  background: 'transparent',
+                  border: '1px solid transparent',
+                  cursor: 'pointer',
+                  transition: 'background 150ms, border-color 150ms, color 150ms',
+                  outline: 'none',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--error-bg)'; e.currentTarget.style.color = 'var(--error)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                  e.currentTarget.style.borderColor = '#2A2E2A'
+                  e.currentTarget.style.color = accent ? '#7AF279' : '#E8F4EE'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.borderColor = 'transparent'
+                  e.currentTarget.style.color = accent ? '#7AF279' : '#7A8C79'
+                }}
               >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M5 1H2a1 1 0 00-1 1v10a1 1 0 001 1h3M9 10l4-3-4-3M13 7H5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Log out
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+                <Icon size={14} style={{ flexShrink: 0 }} />
+                <span style={{ flex: 1 }}>{label}</span>
+                {accent && (
+                  <span style={{
+                    fontSize: 9, fontFamily: MONO, letterSpacing: '0.06em',
+                    color: '#7AF279', border: '1px solid rgba(122,242,121,0.3)',
+                    borderRadius: 3, padding: '1px 5px', textTransform: 'uppercase',
+                  }}>
+                    Upgrade
+                  </span>
+                )}
+              </Link>
+            </DropdownMenuItem>
+          ))}
+        </div>
+
+        {/* Separator */}
+        <div style={{ margin: '6px 0', height: 1, background: '#2A2E2A' }} />
+
+        {/* Sign out */}
+        <DropdownMenuItem asChild>
+          <button
+            onClick={handleLogout}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              width: '100%', padding: '8px 10px',
+              borderRadius: 8,
+              background: 'rgba(239,68,68,0.06)',
+              border: '1px solid transparent',
+              cursor: 'pointer',
+              fontSize: 13, fontFamily: SANS,
+              color: '#ef4444',
+              transition: 'background 150ms, border-color 150ms',
+              outline: 'none',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(239,68,68,0.12)'
+              e.currentTarget.style.borderColor = 'rgba(239,68,68,0.25)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(239,68,68,0.06)'
+              e.currentTarget.style.borderColor = 'transparent'
+            }}
+          >
+            <LogOut size={14} style={{ flexShrink: 0 }} />
+            Sign out
+          </button>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
@@ -595,7 +670,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         padding: '0 24px', zIndex: 100,
       }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <img src="/icon-logo.png" alt="Gate402" style={{ height: 22, width: 'auto', display: 'block' }} />
+            <img src="/logos/favicon-metera-white.png" alt="Metera" style={{ height: 22, width: 'auto', display: 'block' }} />
             <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
               Hi, <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{firstName}</span>
             </div>

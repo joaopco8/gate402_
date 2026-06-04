@@ -216,30 +216,29 @@ export default function AgentsPage() {
                     </div>
                   </div>
 
-                  {/* Wallet address */}
                   {/* Wallet address — auto-managed by Privy */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#111311', border: '1px solid #2A2E2A', borderRadius: 8, padding: '8px 12px', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(0,0,0,0.22)', border: '1px solid #222522', borderRadius: 8, padding: '8px 12px', marginBottom: 6 }}>
                     <span style={{ fontSize: 11, color: '#4A5549', fontFamily: 'var(--font-code)', flexShrink: 0 }}>wallet:</span>
                     <span style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: '#7A8C79', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {selected.walletAddress}
                     </span>
-                    <span style={{ fontSize: 10, color: '#4A5549', fontFamily: 'var(--font-code)', flexShrink: 0 }}>auto</span>
-                    <button onClick={() => copy(selected.walletAddress, 'walletAddress')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4A5549', flexShrink: 0 }}>
+                    <span style={{ fontSize: 10, color: '#4A5549', fontFamily: 'var(--font-code)', background: 'rgba(74,85,73,0.15)', border: '1px solid #2A2E2A', borderRadius: 4, padding: '1px 6px', flexShrink: 0 }}>auto</span>
+                    <button onClick={() => copy(selected.walletAddress, 'walletAddress')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied === 'walletAddress' ? '#7AF279' : '#4A5549', flexShrink: 0, transition: 'color 150ms' }}>
                       {copied === 'walletAddress'
-                        ? <span style={{ fontSize: 11, color: '#7AF279', fontFamily: 'var(--font-code)' }}>✓</span>
+                        ? <span style={{ fontSize: 11, fontFamily: 'var(--font-code)' }}>✓</span>
                         : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
                       }
                     </button>
                   </div>
                   {/* Agent key */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#111311', border: '1px solid #2A2E2A', borderRadius: 8, padding: '8px 12px', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(188,134,255,0.04)', border: '1px solid rgba(188,134,255,0.12)', borderRadius: 8, padding: '8px 12px', marginBottom: 6 }}>
                     <span style={{ fontSize: 11, color: '#4A5549', fontFamily: 'var(--font-code)', flexShrink: 0 }}>agentKey:</span>
                     <span style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: '#BC86FF', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {selected.agentKey}
                     </span>
-                    <button onClick={() => copy(selected.agentKey, 'agentKey')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4A5549', flexShrink: 0 }}>
+                    <button onClick={() => copy(selected.agentKey, 'agentKey')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied === 'agentKey' ? '#7AF279' : '#4A5549', flexShrink: 0, transition: 'color 150ms' }}>
                       {copied === 'agentKey'
-                        ? <span style={{ fontSize: 11, color: '#7AF279', fontFamily: 'var(--font-code)' }}>✓</span>
+                        ? <span style={{ fontSize: 11, fontFamily: 'var(--font-code)' }}>✓</span>
                         : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
                       }
                     </button>
@@ -299,18 +298,32 @@ export default function AgentsPage() {
                 )}
 
                 {/* Code snippet */}
-                <div style={{ padding: 20, borderRadius: 10, border: '1px solid #2A2E2A', background: '#111311' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                    <div style={{ fontSize: 11, color: '#4A5549', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-code)' }}>
-                      Use in code
+                <div style={{ borderRadius: 10, border: '1px solid #2A2E2A', background: '#1A1D1A', overflow: 'hidden' }}>
+                  {/* header bar */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid #222522', background: '#1F221F' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {/* traffic lights */}
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#2A2E2A', display: 'inline-block' }} />
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#2A2E2A', display: 'inline-block' }} />
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#2A2E2A', display: 'inline-block' }} />
+                      <span style={{ fontSize: 11, color: '#4A5549', fontFamily: 'var(--font-code)', marginLeft: 6, letterSpacing: '0.04em' }}>agent.ts</span>
                     </div>
-                    <button onClick={() => copy(`const agent = new Gate402Agent({\n  walletAddress: '${selected.walletAddress}',\n  network: '${selected.network}',\n})`, 'snippet')} style={{ fontSize: 11, color: '#4A5549', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-code)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      {copied === 'snippet' ? '✓ copied' : '⎘ copy'}
+                    <button
+                      onClick={() => copy(`import { Gate402Agent } from 'gate402-agent'\n\nconst agent = new Gate402Agent({\n  walletAddress: '${selected.walletAddress}',\n  network: '${selected.network}',\n  limits: {\n    maxPerCall: ${selected.maxPerCall ?? null},\n    maxPerDay:  ${selected.maxPerDay ?? null},\n  }\n})`, 'snippet')}
+                      style={{ fontSize: 11, fontFamily: 'var(--font-code)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: copied === 'snippet' ? '#7AF279' : '#4A5549', transition: 'color 150ms' }}
+                    >
+                      {copied === 'snippet'
+                        ? <><span>✓</span><span>copied</span></>
+                        : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg><span>copy</span></>
+                      }
                     </button>
                   </div>
-                  <pre style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: '#7A8C79', lineHeight: 1.7, margin: 0 }}>
-{`import { Gate402Agent } from 'gate402-agent'\n\nconst agent = new Gate402Agent({\n  walletAddress: '`}<span style={{ color: '#BC86FF' }}>{selected.walletAddress.slice(0, 12)}...</span>{`',\n  network: '`}<span style={{ color: '#7AF279' }}>{selected.network}</span>{`',\n  limits: {\n    maxPerCall: `}<span style={{ color: '#BC86FF' }}>{String(selected.maxPerCall ?? 'null')}</span>{`,\n    maxPerDay:  `}<span style={{ color: '#BC86FF' }}>{String(selected.maxPerDay ?? 'null')}</span>{`,\n  }\n})`}
-                  </pre>
+                  {/* code body */}
+                  <div style={{ padding: '16px 20px' }}>
+                    <pre style={{ fontSize: 12, fontFamily: 'var(--font-code)', lineHeight: 1.8, margin: 0, whiteSpace: 'pre-wrap' }}>
+                      <span style={{ color: '#4A5549' }}>import</span>{' { '}<span style={{ color: '#E8F4EE' }}>Gate402Agent</span>{' } '}<span style={{ color: '#4A5549' }}>from</span>{' '}<span style={{ color: '#7AF279' }}>'gate402-agent'</span>{'\n\n'}<span style={{ color: '#4A5549' }}>const</span>{' '}<span style={{ color: '#E8F4EE' }}>agent</span>{' = '}<span style={{ color: '#4A5549' }}>new</span>{' '}<span style={{ color: '#BC86FF' }}>Gate402Agent</span>{'({\n  walletAddress: '}<span style={{ color: '#7AF279' }}>'{`${selected.walletAddress.slice(0,12)}...`}'</span>{',\n  network: '}<span style={{ color: '#7AF279' }}>'{selected.network}'</span>{',\n  limits: {\n    maxPerCall: '}<span style={{ color: '#BC86FF' }}>{String(selected.maxPerCall ?? 'null')}</span>{',\n    maxPerDay:  '}<span style={{ color: '#BC86FF' }}>{String(selected.maxPerDay ?? 'null')}</span>{',\n  }\n})'}
+                    </pre>
+                  </div>
                 </div>
               </div>
             )}

@@ -70,6 +70,9 @@ app.use(cors({
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   optionsSuccessStatus: 200,
 }));
+// Preflight — must run before requireAuth so OPTIONS never hits auth middleware
+app.options('*', cors());
+
 // Stripe webhook needs raw body — must be BEFORE express.json()
 app.use('/api/billing/webhook', express.raw({ type: 'application/json' }), billingRouter);
 

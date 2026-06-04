@@ -238,7 +238,7 @@ router.patch('/:id', async (req, res) => {
   }
 })
 
-// ─── DELETE (soft) ───────────────────────────────────────────────────────────
+// ─── DELETE ──────────────────────────────────────────────────────────────────
 // DELETE /api/agent-wallets/:id
 router.delete('/:id', async (req, res) => {
   try {
@@ -247,16 +247,39 @@ router.delete('/:id', async (req, res) => {
 
     const { id } = req.params
 
-    const existing = await prisma.agentWallet.findFirst({ where: { id, userId: user.id } })
+    const existing = await prisma.agentWallet.findFirst({
+      where: { id, userId: user.id },
+      select: { id: true, privyWalletId: true, name: true },
+    })
     if (!existing) {
       return res.status(404).json({ error: 'Agent wallet not found', code: 'NOT_FOUND' })
     }
 
+    // 1. Delete from Privy first
+    if (existing.privyWalletId) {
+      try {
+        await (privy.walletApi as any).delete(existing.privyWalletId)
+        console.log(`[privy] Wallet deleted: ${existing.privyWalletId}`)
+      } catch (privyError: any) {
+        if (privyError?.status === 404 || privyError?.code === 404) {
+          console.warn(`[privy] Wallet already deleted: ${existing.privyWalletId}`)
+        } else {
+          console.error('[privy] Delete failed:', privyError?.message)
+          return res.status(500).json({ error: 'Failed to delete wallet from Privy', code: 'PRIVY_DELETE_FAILED' })
+        }
+      }
+    }
+
+    // 2. Soft delete in DB
     await prisma.agentWallet.update({ where: { id }, data: { isActive: false } })
 
-    if (redis) redis.del(`agent:${id}:stats`).catch(() => {})
+    // 3. Invalidate cache
+    if (redis) {
+      redis.del(`agent:${id}:limits`).catch(() => {})
+      redis.del(`agent:${id}:stats`).catch(() => {})
+    }
 
-    return res.json({ success: true })
+    return res.json({ success: true, message: `Agent wallet "${existing.name}" deleted successfully` })
   } catch (err) {
     console.error('[agent-wallets] delete error:', err)
     return res.status(500).json({ error: 'Internal server error' })

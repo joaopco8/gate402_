@@ -7,6 +7,7 @@ jest.mock('../lib/privy', () => ({
         id: 'privy_test_id',
         address: 'GMqk45ztzLiHoKfwChKuYKo3NYyXFPaZSczgnxdQ9KHT',
       }),
+      delete: jest.fn().mockResolvedValue({ success: true }),
     },
   },
 }))
