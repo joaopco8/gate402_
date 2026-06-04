@@ -1,10 +1,9 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
 import { redis } from '../lib/redis'
+import { privy } from '../lib/privy'
 
 const router = Router()
-
-const SOLANA_ADDRESS_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/
 
 function getUser(req: any) {
   return req.gate402User as { id: string; supabaseId: string; plan: string; apiKey: string } | undefined
@@ -57,7 +56,6 @@ router.post('/', async (req, res) => {
     const {
       name,
       description,
-      walletAddress,
       network = 'mainnet',
       maxPerCall,
       maxPerHour,
@@ -67,24 +65,10 @@ router.post('/', async (req, res) => {
       blockedEndpoints = [],
     } = req.body
 
-    if (!name || !walletAddress) {
+    if (!name) {
       return res.status(400).json({
-        error: 'name and walletAddress are required',
+        error: 'name is required',
         code: 'MISSING_FIELDS',
-      })
-    }
-
-    if (!SOLANA_ADDRESS_RE.test(walletAddress)) {
-      return res.status(400).json({
-        error: 'Invalid Solana wallet address',
-        code: 'INVALID_WALLET_ADDRESS',
-      })
-    }
-
-    if (!['mainnet', 'devnet'].includes(network)) {
-      return res.status(400).json({
-        error: 'network must be mainnet or devnet',
-        code: 'INVALID_NETWORK',
       })
     }
 
@@ -99,12 +83,25 @@ router.post('/', async (req, res) => {
       })
     }
 
+    // Create managed Solana wallet via Privy
+    let privyWallet: { id: string; address: string }
+    try {
+      privyWallet = await privy.walletApi.create({ chainType: 'solana' }) as { id: string; address: string }
+    } catch (privyError) {
+      console.error('[agent-wallets] Privy wallet creation failed:', privyError)
+      return res.status(500).json({
+        error: 'Failed to create wallet',
+        code: 'WALLET_CREATION_FAILED',
+      })
+    }
+
     const wallet = await prisma.agentWallet.create({
       data: {
         userId: user.id,
         name,
         description: description ?? null,
-        walletAddress,
+        privyWalletId: privyWallet.id,
+        walletAddress: privyWallet.address,
         network,
         maxPerCall: maxPerCall ?? null,
         maxPerHour: maxPerHour ?? null,

@@ -37,6 +37,7 @@ model AgentWallet {
   name        String
   description String?
 
+  privyWalletId String   @unique
   walletAddress String
   network       String  @default("mainnet")
 
@@ -64,6 +65,7 @@ model AgentWallet {
   @@index([userId])
   @@index([agentKey])
   @@index([walletAddress])
+  @@index([privyWalletId])
 }
 
 model AgentCall {

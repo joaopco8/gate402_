@@ -76,15 +76,25 @@ const IconAnalytics = () => (
   </svg>
 )
 
+const IconBot = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="10" rx="2"/>
+    <circle cx="12" cy="5" r="2"/>
+    <path d="M12 7v4"/>
+    <path d="M8 15h.01M12 15h.01M16 15h.01"/>
+  </svg>
+)
+
 const NAV_ITEMS = [
-  { label: 'Overview',   href: '/dashboard',  Icon: IconOverview },
-  { label: 'Analytics',  href: '/analytics',  Icon: IconAnalytics },
-  { label: 'Wallet',     href: '/wallet',     Icon: IconWallet },
-  { label: 'Endpoints',  href: '/endpoints',  Icon: IconEndpoints },
-  { label: 'Playground', href: '/playground', Icon: IconPlayground },
-  { label: 'Docs',       href: '/docs',       Icon: IconDocs },
-  { label: 'Billing',    href: '/billing',    Icon: IconBilling },
-  { label: 'Settings',   href: '/settings',   Icon: IconSettings },
+  { label: 'Overview',      href: '/dashboard',  Icon: IconOverview },
+  { label: 'Analytics',     href: '/analytics',  Icon: IconAnalytics },
+  { label: 'Wallet',        href: '/wallet',     Icon: IconWallet },
+  { label: 'Endpoints',     href: '/endpoints',  Icon: IconEndpoints },
+  { label: 'Agent Wallets', href: '/agents',     Icon: IconBot },
+  { label: 'Playground',    href: '/playground', Icon: IconPlayground },
+  { label: 'Docs',          href: '/docs',       Icon: IconDocs },
+  { label: 'Billing',       href: '/billing',    Icon: IconBilling },
+  { label: 'Settings',      href: '/settings',   Icon: IconSettings },
 ]
 
 // ─── Framer-motion variants ───────────────────────────────────────────────────
@@ -154,8 +164,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
         position: 'fixed',
         top: 0,
         left: 0,
-        background: '#0A0A0A',
-        borderRight: '1px solid #1a1a1a',
+        background: '#1B1E1B',
+        borderRight: '1px solid #2A2E2A',
         display: 'flex',
         flexDirection: 'column',
         zIndex: 50,
@@ -169,7 +179,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
         display: 'flex',
         alignItems: 'center',
         minHeight: 64,
-        borderBottom: '1px solid #1a1a1a',
+        borderBottom: '1px solid #2A2E2A',
         gap: 10,
         overflow: 'hidden',
       }}>
@@ -199,9 +209,9 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 fontSize: 14,
                 fontFamily: 'var(--font-display)',
                 fontWeight: 400,
-                color: active ? '#fff' : '#666',
-                background: active ? '#111' : 'transparent',
-                borderLeft: active ? '2px solid #00bc7d' : '2px solid transparent',
+                color: active ? '#E8F4EE' : '#4A5549',
+                background: active ? 'rgba(122,242,121,0.06)' : 'transparent',
+                borderLeft: active ? '2px solid #7AF279' : '2px solid transparent',
                 borderRadius: 6,
                 transition: 'color 150ms ease, background 150ms ease, border-color 150ms ease',
                 cursor: 'pointer',
@@ -211,18 +221,18 @@ export default function Sidebar({ onClose }: SidebarProps) {
               }}
               onMouseEnter={e => {
                 if (!active) {
-                  e.currentTarget.style.color = '#fff'
-                  e.currentTarget.style.background = '#111'
+                  e.currentTarget.style.color = '#E8F4EE'
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
                 }
               }}
               onMouseLeave={e => {
                 if (!active) {
-                  e.currentTarget.style.color = '#666'
+                  e.currentTarget.style.color = '#4A5549'
                   e.currentTarget.style.background = 'transparent'
                 }
               }}
             >
-              <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: active ? '#00bc7d' : 'inherit' }}>
+              <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: active ? '#7AF279' : 'inherit' }}>
                 <Icon />
               </span>
               <motion.span variants={labelVariants} style={{ overflow: 'hidden' }}>
@@ -234,7 +244,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
       </nav>
 
       {/* Bottom user section */}
-      <div style={{ borderTop: '1px solid #1a1a1a', padding: '12px 8px', position: 'relative' }}>
+      <div style={{ borderTop: '1px solid #2A2E2A', padding: '12px 8px', position: 'relative' }}>
 
         {/* User popup menu */}
         {menuOpen && !collapsed && (
@@ -242,21 +252,21 @@ export default function Sidebar({ onClose }: SidebarProps) {
             <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 49 }} />
             <div style={{
               position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, right: 0,
-              background: '#0A0A0A', border: '1px solid #1a1a1a', borderRadius: 6,
+              background: '#1B1E1B', border: '1px solid #2A2E2A', borderRadius: 6,
               zIndex: 50, overflow: 'hidden',
             }}>
               {/* Account header */}
-              <div style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid #2A2E2A', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ position: 'relative', flexShrink: 0 }}>
-                  <Avatar className="size-7 ring-2 ring-[#00bc7d] ring-offset-2 ring-offset-black">
-                    <AvatarFallback className="bg-[#111] text-[#888] text-[11px] font-mono">
+                  <Avatar className="size-7 ring-2 ring-[#7AF279] ring-offset-2 ring-offset-[#1B1E1B]">
+                    <AvatarFallback className="bg-[#1F221F] text-[#4A5549] text-[11px] font-mono">
                       {initial}
                     </AvatarFallback>
                   </Avatar>
                   <span style={{
                     position: 'absolute', bottom: -3, right: -3,
                     width: 14, height: 14, borderRadius: '50%',
-                    background: '#00bc7d',
+                    background: '#7AF279',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     <CheckIcon size={9} color="#000" strokeWidth={3} />
@@ -273,8 +283,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
                   {isPro ? (
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', gap: 5,
-                      background: 'rgba(0,188,125,0.08)', color: '#00bc7d',
-                      border: '1px solid rgba(0,188,125,0.2)', borderRadius: 6,
+                      background: 'rgba(122,242,121,0.08)', color: '#7AF279',
+                      border: '1px solid rgba(122,242,121,0.2)', borderRadius: 6,
                       padding: '2px 8px', fontSize: 10,
                       fontFamily: 'var(--font-code)',
                     }}>✦ Pro</span>
@@ -291,10 +301,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '9px 12px', margin: '1px 8px', borderRadius: 6,
                     fontSize: 14, fontFamily: 'var(--font-display)', fontWeight: 400,
-                    color: '#00bc7d', textDecoration: 'none',
+                    color: '#7AF279', textDecoration: 'none',
                     borderLeft: '2px solid transparent', transition: 'all 150ms ease',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.borderLeftColor = '#00bc7d' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(122,242,121,0.06)'; e.currentTarget.style.borderLeftColor = '#7AF279' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderLeftColor = 'transparent' }}
                   >
                     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -311,7 +321,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
                     color: '#888', textDecoration: 'none',
                     borderLeft: '2px solid transparent', transition: 'all 150ms ease',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.color = '#fff' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#E8F4EE' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888' }}
                   >
                     <IconBilling />
@@ -325,7 +335,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
                   color: '#888', textDecoration: 'none',
                   borderLeft: '2px solid transparent', transition: 'all 150ms ease',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.color = '#fff' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#E8F4EE' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888' }}
                 >
                   <IconSettings />
@@ -334,7 +344,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
               </div>
 
               {/* Sign out */}
-              <div style={{ borderTop: '1px solid #1a1a1a', padding: '4px 0' }}>
+              <div style={{ borderTop: '1px solid #2A2E2A', padding: '4px 0' }}>
                 <button onClick={() => { setMenuOpen(false); handleLogout() }} style={{
                   display: 'flex', alignItems: 'center', gap: 10, width: '100%',
                   padding: '9px 12px', margin: '1px 8px', borderRadius: 6,
@@ -365,15 +375,15 @@ export default function Sidebar({ onClose }: SidebarProps) {
             cursor: 'pointer',
             borderRadius: 6, padding: '6px 6px',
             transition: 'background 150ms',
-            background: menuOpen ? '#111' : 'transparent',
+            background: menuOpen ? 'rgba(255,255,255,0.04)' : 'transparent',
             overflow: 'hidden',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#111' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
           onMouseLeave={e => { if (!menuOpen) e.currentTarget.style.background = 'transparent' }}
         >
           <div style={{ position: 'relative', flexShrink: 0 }} title={collapsed ? (email ?? undefined) : undefined}>
-            <Avatar className="size-7 ring-2 ring-[#00bc7d] ring-offset-2 ring-offset-black">
-              <AvatarFallback className="bg-[#111] text-[#888] text-[11px] font-mono">
+            <Avatar className="size-7 ring-2 ring-[#7AF279] ring-offset-2 ring-offset-[#1B1E1B]">
+              <AvatarFallback className="bg-[#1F221F] text-[#4A5549] text-[11px] font-mono">
                 {initial}
               </AvatarFallback>
             </Avatar>
