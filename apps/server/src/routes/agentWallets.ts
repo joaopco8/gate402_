@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
 import { redis } from '../lib/redis'
-import { privy } from '../lib/privy'
+import { getPrivy } from '../lib/privy'
 
 const router = Router()
 
@@ -86,7 +86,7 @@ router.post('/', async (req, res) => {
     // Create managed Solana wallet via Privy
     let privyWallet: { id: string; address: string }
     try {
-      privyWallet = await privy.walletApi.create({ chainType: 'solana' }) as { id: string; address: string }
+      privyWallet = await getPrivy().walletApi.create({ chainType: 'solana' }) as { id: string; address: string }
     } catch (privyError) {
       console.error('[agent-wallets] Privy wallet creation failed:', privyError)
       return res.status(500).json({
