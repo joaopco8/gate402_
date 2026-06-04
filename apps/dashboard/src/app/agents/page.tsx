@@ -42,9 +42,11 @@ interface AgentStats {
   totalSpent: number
   spentToday: number
   spentThisHour: number
+  realtime: { spentThisHour: number; spentToday: number; spentThisMonth: number }
   topEndpoints: { endpoint: string; _count: number; _sum: { amount: number } }[]
   limits: { maxPerCall?: number; maxPerHour?: number; maxPerDay?: number; maxPerMonth?: number }
-  utilization: { hour: number | null; day: number | null }
+  utilization: { hour: number | null; day: number | null; month: number | null }
+  lastCallAt?: string
 }
 
 export default function AgentsPage() {
@@ -58,7 +60,12 @@ export default function AgentsPage() {
   const [copied, setCopied]             = useState('')
 
   useEffect(() => { fetchWallets() }, [])
-  useEffect(() => { if (selected) fetchStats(selected.id) }, [selected?.id])
+  useEffect(() => {
+    if (!selected) return
+    fetchStats(selected.id)
+    const interval = setInterval(() => fetchStats(selected.id), 30000)
+    return () => clearInterval(interval)
+  }, [selected?.id])
 
   async function fetchWallets() {
     try {
@@ -249,15 +256,27 @@ export default function AgentsPage() {
                   />
                 </div>
 
-                {/* Spending limits */}
+                {/* Spending limits — real-time */}
                 {hasLimits && stats && (
                   <div style={{ padding: 20, borderRadius: 10, border: '1px solid #2A2E2A', background: '#1F221F', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <div style={{ fontSize: 11, color: '#4A5549', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-code)' }}>
-                      Spending Limits
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ fontSize: 11, color: '#4A5549', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-code)' }}>
+                        Spending Limits
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#7AF279', animation: 'pulse 2s infinite' }} />
+                        <span style={{ fontSize: 10, color: '#4A5549', fontFamily: 'var(--font-code)' }}>live</span>
+                      </div>
                     </div>
-                    {selected.maxPerDay && <SpendingProgress label="Today" spent={stats.spentToday ?? 0} limit={selected.maxPerDay} />}
-                    {selected.maxPerHour && <SpendingProgress label="Last hour" spent={stats.spentThisHour ?? 0} limit={selected.maxPerHour} />}
-                    {selected.maxPerMonth && <SpendingProgress label="This month" spent={selected.totalSpent} limit={selected.maxPerMonth} />}
+                    {selected.maxPerCall && (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, borderBottom: '1px solid #2A2E2A' }}>
+                        <span style={{ fontSize: 11, color: '#4A5549', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-code)' }}>Per call limit</span>
+                        <span style={{ fontSize: 12, fontFamily: 'var(--font-code)', color: '#7AF279' }}>max ${selected.maxPerCall}</span>
+                      </div>
+                    )}
+                    {selected.maxPerHour && <SpendingProgress label="This hour" spent={stats.realtime?.spentThisHour ?? stats.spentThisHour ?? 0} limit={selected.maxPerHour} />}
+                    {selected.maxPerDay && <SpendingProgress label="Today" spent={stats.realtime?.spentToday ?? stats.spentToday ?? 0} limit={selected.maxPerDay} />}
+                    {selected.maxPerMonth && <SpendingProgress label="This month" spent={stats.realtime?.spentThisMonth ?? selected.totalSpent} limit={selected.maxPerMonth} />}
                   </div>
                 )}
 
@@ -298,7 +317,7 @@ export default function AgentsPage() {
           </div>
         )}
 
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+        <style>{`@keyframes spin { to { transform: rotate(360deg) } } @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
       </PageContainer>
 
       <CreateAgentWalletModal

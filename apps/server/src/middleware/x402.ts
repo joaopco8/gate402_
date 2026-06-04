@@ -7,6 +7,12 @@ import { sendWebhook } from '../lib/webhook';
 import { checkIdempotency, markUsed } from '../lib/idempotency';
 import { logRevenue } from '../lib/revenueLog';
 import { invalidateDashboardCache } from '../lib/cacheInvalidation';
+import {
+  resolveAgentWalletId,
+  checkEndpointAccess,
+  checkSpendingLimits,
+  recordSpending,
+} from '../services/spendingLimits';
 
 const PLATFORM_WALLET = process.env.GATE402_PLATFORM_WALLET || '7UQctUWgfH87jjz9xjnCCKVY6Q1tMWZ8i1ZB3Whx939D';
 
@@ -166,6 +172,37 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       });
       return;
     }
+    // ── STEP 3.5: Agent wallet spending limits ───────────────────────────────
+    let agentWalletDbId: string | null = null;
+    if (agentWallet) {
+      agentWalletDbId = await resolveAgentWalletId(agentWallet).catch(() => null);
+
+      if (agentWalletDbId) {
+        const endpointCheck = await checkEndpointAccess(agentWalletDbId, endpointPath);
+        if (!endpointCheck.allowed) {
+          prisma.agentCall.create({
+            data: { agentWalletId: agentWalletDbId, endpoint: endpointPath, amount: price, status: 'blocked', blockReason: (endpointCheck as any).code },
+          }).catch(() => {});
+          res.status(402).json({ error: (endpointCheck as any).reason, code: (endpointCheck as any).code });
+          return;
+        }
+
+        const limitCheck = await checkSpendingLimits(agentWalletDbId, price);
+        if (!limitCheck.allowed) {
+          prisma.agentCall.create({
+            data: { agentWalletId: agentWalletDbId, endpoint: endpointPath, amount: price, status: 'blocked', blockReason: (limitCheck as any).code },
+          }).catch(() => {});
+          res.status(402).json({
+            error: (limitCheck as any).reason,
+            code: (limitCheck as any).code,
+            limit: (limitCheck as any).limit,
+            current: (limitCheck as any).current,
+          });
+          return;
+        }
+      }
+    }
+
     // ── STEP 4: Anti-replay ──────────────────────────────────────────────────
     const { isDuplicate } = await checkIdempotency(txHashProvider, 'payment');
     if (isDuplicate) {
@@ -228,6 +265,20 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
       });
     } catch (e: any) {
       console.error('[x402] ApiCall create FAILED:', e.message, '| code:', e.code);
+    }
+
+    // ── STEP 7.5: Agent wallet — record spending + log call ─────────────────
+    if (agentWalletDbId) {
+      recordSpending(agentWalletDbId, confirmedAmount).catch(() => {});
+      prisma.agentCall.create({
+        data: {
+          agentWalletId: agentWalletDbId,
+          endpoint: endpointPath,
+          amount: confirmedAmount,
+          status: isDemoMode ? 'demo' : 'verified',
+          txHash: txHashToLog,
+        },
+      }).catch(() => {});
     }
 
     // ── STEP 8: Revenue log ──────────────────────────────────────────────────

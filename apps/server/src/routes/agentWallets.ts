@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { prisma } from '../lib/prisma'
 import { redis } from '../lib/redis'
 import { getPrivy } from '../lib/privy'
+import { getHourBucket, getDayBucket, getMonthBucket } from '../services/spendingLimits'
 
 const router = Router()
 
@@ -282,11 +283,7 @@ router.get('/:id/stats', async (req, res) => {
       return res.status(404).json({ error: 'Agent wallet not found', code: 'NOT_FOUND' })
     }
 
-    const startOfDay = new Date()
-    startOfDay.setHours(0, 0, 0, 0)
-    const startOfHour = new Date(Date.now() - 60 * 60 * 1000)
-
-    const [callsByStatus, topEndpoints, spentToday, spentThisHour] = await Promise.all([
+    const [callsByStatus, topEndpoints, rtHour, rtDay, rtMonth] = await Promise.all([
       prisma.agentCall.groupBy({
         by: ['status'],
         where: { agentWalletId: id },
@@ -300,24 +297,21 @@ router.get('/:id/stats', async (req, res) => {
         orderBy: { _sum: { amount: 'desc' } },
         take: 5,
       }),
-      prisma.agentCall.aggregate({
-        where: { agentWalletId: id, status: 'verified', createdAt: { gte: startOfDay } },
-        _sum: { amount: true },
-      }),
-      prisma.agentCall.aggregate({
-        where: { agentWalletId: id, status: 'verified', createdAt: { gte: startOfHour } },
-        _sum: { amount: true },
-      }),
+      redis ? redis.get(`agent:${id}:spent:hour:${getHourBucket()}`).catch(() => null) : Promise.resolve(null),
+      redis ? redis.get(`agent:${id}:spent:day:${getDayBucket()}`).catch(() => null) : Promise.resolve(null),
+      redis ? redis.get(`agent:${id}:spent:month:${getMonthBucket()}`).catch(() => null) : Promise.resolve(null),
     ])
 
-    const todayAmt = spentToday._sum.amount ?? 0
-    const hourAmt = spentThisHour._sum.amount ?? 0
+    const spentThisHour  = parseFloat(rtHour  || '0')
+    const spentToday     = parseFloat(rtDay   || '0')
+    const spentThisMonth = parseFloat(rtMonth || '0')
 
     const stats = {
       totalCalls: wallet.totalCalls,
       totalSpent: wallet.totalSpent,
-      spentToday: todayAmt,
-      spentThisHour: hourAmt,
+      spentToday,
+      spentThisHour,
+      realtime: { spentThisHour, spentToday, spentThisMonth },
       callsByStatus,
       topEndpoints,
       limits: {
@@ -327,9 +321,11 @@ router.get('/:id/stats', async (req, res) => {
         maxPerMonth: wallet.maxPerMonth,
       },
       utilization: {
-        hour: wallet.maxPerHour ? (hourAmt / wallet.maxPerHour) * 100 : null,
-        day: wallet.maxPerDay ? (todayAmt / wallet.maxPerDay) * 100 : null,
+        hour:  wallet.maxPerHour  ? (spentThisHour  / wallet.maxPerHour)  * 100 : null,
+        day:   wallet.maxPerDay   ? (spentToday     / wallet.maxPerDay)   * 100 : null,
+        month: wallet.maxPerMonth ? (spentThisMonth / wallet.maxPerMonth) * 100 : null,
       },
+      lastCallAt: wallet.lastCallAt,
     }
 
     if (redis) redis.setex(cacheKey, 60, JSON.stringify(stats)).catch(() => {})
