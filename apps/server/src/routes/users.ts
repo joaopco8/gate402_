@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { prisma } from '../lib/prisma'
 import { sendWebhook } from '../lib/webhook'
 import { invalidateApiKey } from '../lib/apiKeyCache'
+import { redisGet, redisSet, redisDel } from '../lib/redis'
 
 const router = Router()
 
@@ -280,6 +281,147 @@ router.post('/users/webhook/test', async (req, res) => {
     return res.json({ message: 'Test webhook sent', url: user.webhookUrl })
   } catch (error) {
     console.error('[users/webhook/test] Error:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// PATCH /api/users/profile — update public profile
+router.patch('/users/profile', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' })
+
+    const {
+      username, displayName, bio, avatarEmoji, avatarColor, avatarImage,
+      githubUrl, websiteUrl, twitterUrl, isPublicProfile,
+    } = req.body
+
+    if (avatarImage !== undefined && avatarImage !== null) {
+      if (!avatarImage.startsWith('data:image/')) {
+        return res.status(400).json({ error: 'avatarImage must be a valid image data URL' })
+      }
+      if (avatarImage.length > 716800) {
+        return res.status(400).json({ error: 'Image too large. Max 512KB.' })
+      }
+    }
+
+    if (username !== undefined && username !== null && username !== '') {
+      const usernameRegex = /^[a-z0-9_-]{3,30}$/
+      if (!usernameRegex.test(username)) {
+        return res.status(400).json({
+          error: 'Username must be 3–30 chars: lowercase letters, numbers, - and _ only',
+          code: 'INVALID_USERNAME',
+        })
+      }
+      const existing = await prisma.user.findFirst({
+        where: { username, NOT: { supabaseId } },
+      })
+      if (existing) return res.status(400).json({ error: 'Username already taken', code: 'USERNAME_TAKEN' })
+    }
+
+    const user = await prisma.user.update({
+      where: { supabaseId },
+      data: {
+        ...(username !== undefined     && { username: username || null }),
+        ...(displayName !== undefined  && { displayName: displayName || null }),
+        ...(bio !== undefined          && { bio: bio ? bio.slice(0, 160) : null }),
+        ...(avatarEmoji !== undefined  && { avatarEmoji }),
+        ...(avatarColor !== undefined  && { avatarColor }),
+        ...(avatarImage !== undefined  && { avatarImage: avatarImage || null }),
+        ...(githubUrl !== undefined    && { githubUrl: githubUrl || null }),
+        ...(websiteUrl !== undefined   && { websiteUrl: websiteUrl || null }),
+        ...(twitterUrl !== undefined   && { twitterUrl: twitterUrl || null }),
+        ...(isPublicProfile !== undefined && { isPublicProfile }),
+      },
+      select: {
+        username: true, displayName: true, bio: true,
+        avatarEmoji: true, avatarColor: true, avatarImage: true,
+        githubUrl: true, websiteUrl: true, twitterUrl: true,
+        isPublicProfile: true,
+      },
+    })
+
+    // Bust provider cache
+    if (user.username) await redisDel(`provider:${user.username}`)
+
+    return res.json({ user })
+  } catch (error) {
+    console.error('[users/profile] Error:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// GET /api/users/profile — get own profile fields
+router.get('/users/profile', async (req, res) => {
+  try {
+    const supabaseId = req.headers['x-user-id'] as string
+    if (!supabaseId) return res.status(401).json({ error: 'Unauthorized' })
+
+    const user = await prisma.user.findUnique({
+      where: { supabaseId },
+      select: {
+        username: true, displayName: true, bio: true,
+        avatarEmoji: true, avatarColor: true, avatarImage: true,
+        githubUrl: true, websiteUrl: true, twitterUrl: true,
+        isPublicProfile: true,
+      },
+    })
+
+    if (!user) return res.status(404).json({ error: 'User not found' })
+    return res.json({ user })
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// GET /api/provider/:username — public provider profile
+router.get('/provider/:username', async (req, res) => {
+  try {
+    const { username } = req.params
+    const cacheKey = `provider:${username}`
+
+    const cached = await redisGet(cacheKey)
+    if (cached) {
+      res.setHeader('Cache-Control', 'public, max-age=300')
+      return res.json(JSON.parse(cached))
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { username, isPublicProfile: true },
+      select: {
+        username: true, displayName: true, bio: true,
+        avatarEmoji: true, avatarColor: true, avatarImage: true,
+        githubUrl: true, websiteUrl: true, twitterUrl: true,
+        proxyEndpoints: {
+          where: { isPublic: true, isActive: true },
+          select: {
+            id: true, slug: true, name: true, description: true,
+            category: true, pricePerCall: true,
+            totalCalls: true, totalEarned: true,
+            uptimePercent: true, avgLatencyMs: true,
+            avatarEmoji: true, avatarColor: true, tags: true, methods: true,
+          },
+          orderBy: { totalCalls: 'desc' },
+        },
+      },
+    })
+
+    if (!user) return res.status(404).json({ error: 'Provider not found', code: 'NOT_FOUND' })
+
+    const totalCalls  = user.proxyEndpoints.reduce((s, e) => s + e.totalCalls, 0)
+    const totalEarned = user.proxyEndpoints.reduce((s, e) => s + e.totalEarned, 0)
+
+    const result = {
+      ...user,
+      stats: { totalApis: user.proxyEndpoints.length, totalCalls, totalEarned },
+    }
+
+    await redisSet(cacheKey, JSON.stringify(result), 300)
+    res.setHeader('Cache-Control', 'public, max-age=300')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    return res.json(result)
+  } catch (error) {
+    console.error('[provider] Error:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 })

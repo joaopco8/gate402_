@@ -15,8 +15,8 @@ import { useUser } from '@/contexts/UserContext'
 import { ProGate } from '../components/ProGate'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
-const MONO = 'var(--font-code)'
-const SANS = 'var(--font-display)'
+const MONO = 'var(--font-label)'
+const SANS = 'var(--font-label)'
 
 interface TxRow {
   id: string
@@ -173,7 +173,7 @@ function StatusBadge({ status }: { status: string }) {
   const s = cfg[status] ?? cfg.demo
   return (
     <span style={{
-      fontFamily: MONO, fontSize: 11, color: s.color,
+      fontFamily: MONO, fontSize: 12, color: s.color,
       background: s.bg, border: `1px solid ${s.border}`,
       borderRadius: 6, padding: '2px 7px', whiteSpace: 'nowrap',
     }}>
@@ -232,7 +232,13 @@ export default function WalletPage() {
   const grossSpark = buildSpark(txns, 'totalAmount')
   const netSpark   = buildSpark(txns, 'providerAmount')
 
+  const totalRevenue = gross
+  const netRevenue = net
+
   const displayedTxns = isPro ? txns : txns.slice(0, 5)
+
+  const isDemoTx = (hash?: string) =>
+    !!hash && (hash.startsWith('demo_') || hash.startsWith('mock_') || hash.startsWith('sim_'))
 
   async function handleExport() {
     const supabase = createClient()
@@ -260,79 +266,115 @@ export default function WalletPage() {
 
   return (
     <DashboardLayout>
+      <div style={{ fontFamily: 'var(--font-label)' }}>
       <PageContainer>
         <PageHeader title="Wallet" />
 
-        {/* ── Stat cards ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
-          <AreaStatCard title="Total Revenue" period="All time" value={`$${gross.toFixed(4)}`}
-            sparkData={grossSpark} color="#00bc7d" gradientId="walletGross"
-            icon={<IconDollar color="#00bc7d" />} loading={loading} />
-          <AreaStatCard title="Net Revenue (99%)" period="Goes to your wallet" value={`$${net.toFixed(5)}`}
-            sparkData={netSpark} color="#3b82f6" gradientId="walletNet"
-            icon={<IconTrendUp color="#3b82f6" />} loading={loading} />
-          <Card>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <IconActivity color="#8b5cf6" />
-                <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>Platform Fee</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ fontSize: 30, fontWeight: 700, color: '#8b5cf6', letterSpacing: '-0.5px', lineHeight: 1.1 }}>Free</div>
-                <div style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: SANS }}>No fees charged right now</div>
-              </div>
+        {/* ── Devnet banner ── */}
+        {network === 'devnet' && (
+          <div style={{
+            background: '#F59E0B10', border: '1px solid #F59E0B30',
+            borderLeft: '3px solid #F59E0B', borderRadius: 8,
+            padding: '14px 20px', marginBottom: 24,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div>
+              <p style={{ fontSize: 13, color: '#F59E0B', fontWeight: 500, marginBottom: 2 }}>
+                ⚠ You are on Devnet
+              </p>
+              <p style={{ fontSize: 12, color: '#7A8C79' }}>
+                Payments are simulated. Switch to Mainnet to receive real USDC.
+              </p>
             </div>
-          </Card>
+            <a href="/settings" style={{
+              fontSize: 12, color: '#F59E0B', textDecoration: 'none',
+              border: '1px solid #F59E0B40', borderRadius: 6,
+              padding: '6px 14px', whiteSpace: 'nowrap',
+            }}>
+              Switch to Mainnet →
+            </a>
+          </div>
+        )}
+
+        {/* ── Stat cards ── */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '1px', background: '#2A2E2A',
+          border: '1px solid #2A2E2A', borderRadius: 12,
+          overflow: 'hidden', marginBottom: 24,
+        }}>
+          <div style={{ background: '#1F221F', padding: '28px 24px' }}>
+            <p style={{ fontSize: 10, color: '#4A5549', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 12 }}>
+              Total Revenue
+            </p>
+            <p style={{ fontSize: 32, fontWeight: 300, color: '#7AF279', fontFamily: 'monospace', letterSpacing: '-0.02em', marginBottom: 4 }}>
+              {loading ? '—' : `$${totalRevenue.toFixed(4)}`}
+            </p>
+            <p style={{ fontSize: 11, color: '#4A5549' }}>All time · USDC</p>
+          </div>
+          <div style={{ background: '#1F221F', padding: '28px 24px' }}>
+            <p style={{ fontSize: 10, color: '#4A5549', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 12 }}>
+              Net Revenue
+            </p>
+            <p style={{ fontSize: 32, fontWeight: 300, color: '#FFFFFF', fontFamily: 'monospace', letterSpacing: '-0.02em', marginBottom: 4 }}>
+              {loading ? '—' : `$${netRevenue.toFixed(4)}`}
+            </p>
+            <p style={{ fontSize: 11, color: '#4A5549' }}>99% goes to your wallet</p>
+          </div>
+          <div style={{ background: '#1F221F', padding: '28px 24px' }}>
+            <p style={{ fontSize: 10, color: '#4A5549', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 12 }}>
+              Platform Fee
+            </p>
+            <p style={{ fontSize: 32, fontWeight: 300, color: '#FFFFFF', fontFamily: 'monospace', letterSpacing: '-0.02em', marginBottom: 4 }}>
+              Free
+            </p>
+            <p style={{ fontSize: 11, color: '#7AF279' }}>No fees charged right now</p>
+          </div>
         </div>
 
         {/* ── Receiving Wallet ── */}
-        <Card style={{ marginBottom: 'var(--space-md)' }}>
-          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 16 }}>
-            Receiving Wallet
+        <div style={{ background: '#1F221F', border: '1px solid #2A2E2A', borderRadius: 12, padding: 24, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <p style={{ fontSize: 10, color: '#4A5549', letterSpacing: '0.10em', textTransform: 'uppercase' }}>
+              Receiving Wallet
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: network === 'mainnet' ? '#7AF279' : '#F59E0B',
+                boxShadow: network === 'mainnet' ? '0 0 6px #7AF279' : '0 0 6px #F59E0B',
+              }} />
+              <span style={{ fontSize: 11, color: network === 'mainnet' ? '#7AF279' : '#F59E0B', textTransform: 'capitalize' }}>
+                Solana {network}
+              </span>
+            </div>
           </div>
-
-          {!walletAddr ? (
-            <div>
-              <div style={{ padding: 14, background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 6, marginBottom: 14 }}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#f59e0b', marginBottom: 4, fontFamily: SANS }}>No wallet configured</div>
-                <div style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: SANS }}>Add your Solana wallet in Settings to receive payments.</div>
-              </div>
-              <a href="/settings"
-                style={{ fontSize: 13, color: 'var(--green)', fontFamily: SANS, textDecoration: 'none' }}
-                onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
-                onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
-                Go to Settings →
+          {walletAddr ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#111311', border: '1px solid #2A2E2A', borderRadius: 8, padding: '12px 16px' }}>
+              <span style={{ fontSize: 13, fontFamily: 'monospace', color: '#E8F4EE', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {walletAddr}
+              </span>
+              <button onClick={handleCopy} style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? '#7AF279' : '#4A5549', padding: 0, display: 'flex', transition: 'color 150ms' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+              <a href={`https://explorer.solana.com/address/${walletAddr}${network === 'devnet' ? '?cluster=devnet' : ''}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{ color: '#4A5549', display: 'flex', textDecoration: 'none' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
               </a>
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-              <div>
-                <div style={{ fontSize: 13, fontFamily: MONO, color: 'var(--text-primary)', marginBottom: 4 }}>
-                  {walletAddr.slice(0, 12)}...{walletAddr.slice(-8)}
-                </div>
-                <span style={{ fontSize: 11, fontFamily: MONO, color: 'var(--green)' }}>
-                  Solana {network === 'mainnet' ? 'Mainnet' : 'Devnet'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={handleCopy}
-                  style={{ padding: '7px 14px', background: '#242424', border: '0.5px solid #363636', borderRadius: 6, fontSize: 12, color: '#fff', cursor: 'pointer', fontFamily: SANS }}>
-                  {copied ? 'Copied ✓' : 'Copy'}
-                </button>
-                <a href={`https://explorer.solana.com/address/${walletAddr}?cluster=${network}`}
-                  target="_blank" rel="noopener noreferrer"
-                  style={{ padding: '7px 14px', background: '#006239', border: '0.5px solid #128353', borderRadius: 6, fontSize: 12, color: '#fff', textDecoration: 'none', fontFamily: SANS }}>
-                  View on Solana Explorer →
-                </a>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#111311', border: '1px solid #2A2E2A', borderRadius: 8, padding: '14px 16px' }}>
+              <p style={{ fontSize: 13, color: '#4A5549' }}>No wallet configured</p>
+              <a href="/settings" style={{ fontSize: 12, color: '#7AF279', textDecoration: 'none' }}>Add in Settings →</a>
             </div>
           )}
-        </Card>
+        </div>
 
         {/* ── Revenue by Endpoint ── */}
         <Card style={{ marginBottom: 'var(--space-md)', padding: 0 }}>
           <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
-            <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+            <span style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
               Revenue by Endpoint
             </span>
           </div>
@@ -347,7 +389,7 @@ export default function WalletPage() {
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 70px 100px 110px 90px', padding: '10px 24px', borderBottom: '1px solid var(--border)' }}>
                 {['Endpoint', 'Calls', 'Gross', 'Net (99%)', 'Price/call'].map(h => (
-                  <span key={h} style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{h}</span>
+                  <span key={h} style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{h}</span>
                 ))}
               </div>
               {endpoints.map((ep, i) => (
@@ -367,14 +409,14 @@ export default function WalletPage() {
         {/* ── Recent Transactions ── */}
         <Card style={{ marginBottom: 'var(--space-md)', padding: 0 }}>
           <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+            <span style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
               Recent Transactions
             </span>
             <ProGate isPro={isPro} feature="CSV Export">
               <button onClick={handleExport}
-                style={{ padding: '6px 14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: SANS }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'var(--green)'; e.currentTarget.style.borderColor = 'rgba(0,188,125,0.3)' }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)' }}>
+                style={{ padding: '6px 14px', background: 'transparent', border: '1px solid #2A2E2A', fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-label)', textTransform: 'uppercase', fontWeight: 500 }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#7AF279'; e.currentTarget.style.borderColor = 'rgba(122,242,121,0.3)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = '#2A2E2A' }}>
                 Export CSV →
               </button>
             </ProGate>
@@ -390,37 +432,39 @@ export default function WalletPage() {
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr 80px 80px 65px 80px 110px', padding: '10px 24px', borderBottom: '1px solid var(--border)' }}>
                 {['Date', 'Endpoint', 'Gross', 'Net', 'Fee', 'Status', 'Tx Hash'].map(h => (
-                  <span key={h} style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{h}</span>
+                  <span key={h} style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{h}</span>
                 ))}
               </div>
               {displayedTxns.map((tx, i) => {
                 const explorerCluster = (tx.network ?? network) === 'mainnet' ? '' : '?cluster=devnet'
-                const isDemo = tx.txHashProvider?.startsWith('demo_') || tx.txHashProvider?.startsWith('sim_')
-                const shortHash = isDemo
-                  ? tx.txHashProvider
-                  : tx.txHashProvider
-                    ? `${tx.txHashProvider.slice(0, 6)}...${tx.txHashProvider.slice(-4)}`
-                    : '—'
+                const isDemo = isDemoTx(tx.txHashProvider)
+                const endpointDisplay = tx.endpoint && tx.endpoint !== 'unknown' ? tx.endpoint : null
                 return (
                   <div key={tx.id}
                     style={{ display: 'grid', gridTemplateColumns: '90px 1fr 80px 80px 65px 80px 110px', padding: '12px 24px', borderBottom: i < displayedTxns.length - 1 ? '1px solid var(--border)' : 'none', alignItems: 'center' }}>
-                    <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)' }}>{timeAgo(tx.createdAt)}</span>
-                    <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>{tx.endpoint}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)' }}>{timeAgo(tx.createdAt)}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 12, color: endpointDisplay ? 'var(--text-primary)' : '#4A5549', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>
+                      {endpointDisplay ?? '—'}
+                    </span>
                     <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-secondary)' }}>${tx.totalAmount?.toFixed(4)}</span>
                     <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--green)' }}>${tx.providerAmount?.toFixed(4)}</span>
-                    <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)' }}>${tx.platformFee?.toFixed(4)}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)' }}>${tx.platformFee?.toFixed(4)}</span>
                     <div><StatusBadge status={tx.status} /></div>
                     <div>
-                      {!isDemo && tx.txHashProvider ? (
+                      {isDemo ? (
+                        <span style={{ fontSize: 11, color: '#4A5549', background: '#222522', border: '1px solid #2A2E2A', borderRadius: 4, padding: '2px 8px', fontFamily: 'monospace' }}>
+                          simulated
+                        </span>
+                      ) : tx.txHashProvider ? (
                         <a href={`https://explorer.solana.com/tx/${tx.txHashProvider}${explorerCluster}`}
                           target="_blank" rel="noopener noreferrer"
-                          style={{ fontFamily: MONO, fontSize: 11, color: 'var(--green)', textDecoration: 'none' }}
+                          style={{ fontFamily: MONO, fontSize: 12, color: 'var(--green)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}
                           onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
                           onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
-                          {shortHash} ↗
+                          {tx.txHashProvider.slice(0, 6)}...{tx.txHashProvider.slice(-4)} ↗
                         </a>
                       ) : (
-                        <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)' }}>{shortHash}</span>
+                        <span style={{ fontFamily: MONO, fontSize: 12, color: '#4A5549' }}>—</span>
                       )}
                     </div>
                   </div>
@@ -429,11 +473,11 @@ export default function WalletPage() {
 
               {!isPro && txns.length > 5 && (
                 <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-                  <span style={{ fontFamily: SANS, fontSize: 12, color: 'var(--text-muted)' }}>
+                  <span style={{ fontFamily: 'var(--font-label)', fontSize: 12, color: 'var(--text-muted)' }}>
                     Showing last 5 transactions.
                   </span>
                   <a href="/billing"
-                    style={{ fontFamily: SANS, fontSize: 12, color: 'var(--green)', textDecoration: 'none' }}
+                    style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: '#7AF279', textDecoration: 'none', textTransform: 'uppercase' }}
                     onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
                     onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
                     Upgrade to Pro for complete history →
@@ -445,47 +489,32 @@ export default function WalletPage() {
         </Card>
 
         {/* ── Network Info ── */}
-        <Card>
-          <style>{`@keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(0,188,125,0.4)} 50%{box-shadow:0 0 0 5px rgba(0,188,125,0)} }`}</style>
-          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 16 }}>
-            Network Info
+        <div style={{ background: '#1F221F', border: '1px solid #2A2E2A', borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid #2A2E2A' }}>
+            <p style={{ fontSize: 10, color: '#4A5549', letterSpacing: '0.10em', textTransform: 'uppercase' }}>Network Info</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 24px', marginBottom: 20 }}>
-            <div>
-              <div style={{ fontSize: 11, fontFamily: MONO, color: 'var(--text-muted)', marginBottom: 4 }}>Network</div>
-              <div style={{ fontSize: 13, fontFamily: MONO, color: 'var(--text-primary)' }}>Solana {network === 'mainnet' ? 'Mainnet' : 'Devnet'}</div>
+          {[
+            { label: 'Network', value: `Solana ${network}`, color: network === 'mainnet' ? '#7AF279' : '#F59E0B' },
+            { label: 'Status', value: 'Online', color: '#7AF279' },
+            { label: 'Settlement', value: '~400ms', color: '#E8F4EE' },
+            { label: 'Tx fee', value: '~$0.001 SOL', color: '#E8F4EE' },
+          ].map((item, i, arr) => (
+            <div key={item.label} style={{ padding: '14px 24px', borderBottom: i < arr.length - 1 ? '1px solid #2A2E2A' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 12, color: '#4A5549' }}>{item.label}</span>
+              <span style={{ fontSize: 12, fontFamily: 'monospace', color: item.color }}>{item.value}</span>
             </div>
-            <div>
-              <div style={{ fontSize: 11, fontFamily: MONO, color: 'var(--text-muted)', marginBottom: 4 }}>Status</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)', display: 'inline-block', animation: 'pulse-dot 2s infinite' }} />
-                <span style={{ fontSize: 13, fontFamily: MONO, color: 'var(--green)' }}>Online</span>
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: 11, fontFamily: MONO, color: 'var(--text-muted)', marginBottom: 4 }}>Settlement time</div>
-              <div style={{ fontSize: 13, fontFamily: MONO, color: 'var(--text-primary)' }}>~400ms</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 11, fontFamily: MONO, color: 'var(--text-muted)', marginBottom: 4 }}>Transaction fee</div>
-              <div style={{ fontSize: 13, fontFamily: MONO, color: 'var(--text-primary)' }}>~$0.001 SOL</div>
-            </div>
-          </div>
-
-          {network !== 'mainnet' && (
-            <div style={{ display: 'flex', gap: 8 }}>
-              <a href="/settings"
-                style={{ display: 'inline-block', padding: '8px 16px', background: '#006239', border: '0.5px solid #128353', borderRadius: 6, fontSize: 13, fontFamily: SANS, color: '#fff', textDecoration: 'none', fontWeight: 500 }}>
+          ))}
+          {network === 'devnet' && (
+            <div style={{ padding: '12px 24px', borderTop: '1px solid #2A2E2A', background: '#F59E0B08' }}>
+              <a href="/settings" style={{ fontSize: 12, color: '#F59E0B', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
                 Switch to Mainnet →
               </a>
-              <span style={{ display: 'inline-flex', alignItems: 'center', padding: '8px 14px', background: '#242424', border: '0.5px solid #363636', borderRadius: 6, fontSize: 12, fontFamily: MONO, color: 'var(--text-muted)' }}>
-                Currently on Devnet
-              </span>
             </div>
           )}
-        </Card>
+        </div>
 
       </PageContainer>
+      </div>
     </DashboardLayout>
   )
 }
