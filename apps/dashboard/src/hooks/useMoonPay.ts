@@ -41,16 +41,18 @@ export function useMoonPay() {
       return
     }
 
-    const params = new URLSearchParams({
+    // Build params — must match exactly what the SDK sends to MoonPay for signature verification
+    const sdkParams: Record<string, string> = {
       apiKey,
       currencyCode: 'usdc_sol',
       walletAddress,
       baseCurrencyAmount: amount,
-      colorCode: '%237AF279',
       theme: 'dark',
-    })
+      colorCode: '#7AF279',
+      showAllCurrencies: 'true',
+    }
 
-    const baseUrl = `https://buy-sandbox.moonpay.com?${params.toString()}`
+    const baseUrl = `https://buy-sandbox.moonpay.com?${new URLSearchParams(sdkParams).toString()}`
 
     let signature = ''
     try {
@@ -71,14 +73,9 @@ export function useMoonPay() {
       environment: 'sandbox',
       variant: 'overlay',
       params: {
-        apiKey,
-        currencyCode: 'usdc_sol',
-        walletAddress,
-        baseCurrencyAmount: amount,
-        signature,
-        theme: 'dark',
-        colorCode: '#7AF279',
+        ...sdkParams,
         showAllCurrencies: true,
+        signature,
       },
       handlers: {
         onTransactionCompleted: (transaction: any) => {
