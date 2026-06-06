@@ -136,32 +136,34 @@ export default function V2Page() {
             alignItems: 'center',
             flexWrap: 'wrap',
           }}>
-            <button style={{
+            <a href="/auth/login" style={{
+              display: 'inline-block',
               background: '#7AF279',
               color: '#1B1E1B',
-              border: 'none',
               borderRadius: '8px',
               padding: '14px 28px',
               fontSize: '15px',
               fontWeight: 500,
               fontFamily: "'Geist Mono', monospace",
               cursor: 'pointer',
+              textDecoration: 'none',
             }}>
               Get started free
-            </button>
-            <button style={{
+            </a>
+            <a href="/v2/docs" style={{
+              display: 'inline-block',
               background: '#BC86FF',
               color: '#1B1E1B',
-              border: 'none',
               borderRadius: '8px',
               padding: '14px 28px',
               fontSize: '15px',
               fontFamily: "'Geist Mono', monospace",
               fontWeight: 500,
               cursor: 'pointer',
+              textDecoration: 'none',
             }}>
               Read docs →
-            </button>
+            </a>
           </div>
 
 
