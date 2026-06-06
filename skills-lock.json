@@ -42,6 +42,11 @@
       "sourceType": "github",
       "skillPath": "skills/caveman-stats/SKILL.md",
       "computedHash": "331f720e2fa97b68cacdae44384878071e8cac6013479edea68f4c8eca308852"
+    },
+    "privy": {
+      "source": "docs.privy.io",
+      "sourceType": "well-known",
+      "computedHash": "2709b124bb54290ebbe5a95fd52a760082e43a881d42e7fad2bcc9a79f69644a"
     }
   }
 }

@@ -26,64 +26,60 @@ interface TabItem {
 
 const items: TabItem[] = [
   {
-    title: 'Agent pays automatically',
-    desc: 'No credit card. No human. Agent signs and settles in USDC.',
+    title: 'Wallet included',
+    desc: 'Your agent gets a Solana wallet instantly. Deposit via Pix or card — no seed phrases, no crypto setup.',
     diff: {
-      fileTag: 'agent.ts',
-      added: 5,
-      lines: [
-        { ln: null, text: '', kind: 'gap' },
-        { ln: 1,    text: "import { MeteraClient } from 'metera'", kind: 'normal' },
-        { ln: 2,    text: '', kind: 'gap' },
-        { ln: 3,    text: "const res = await fetch('/api/data')", kind: 'normal' },
-        { ln: 4,    text: '// → 402 Payment Required', kind: 'comment' },
-        { ln: 5,    text: 'const price = res.headers.get(\'x-price\')', kind: 'added' },
-        { ln: 6,    text: 'const sig   = await wallet.sign(price)', kind: 'added' },
-        { ln: 7,    text: "const paid  = await fetch('/api/data', {", kind: 'added' },
-        { ln: 8,    text: "  headers: { 'x-payment': sig },", kind: 'added' },
-        { ln: 9,    text: '})', kind: 'added' },
-        { ln: 10,   text: '// → 200 OK  •  ~400ms', kind: 'comment' },
-        { ln: null, text: '', kind: 'gap' },
-      ],
-    },
-  },
-  {
-    title: 'Revenue hits instantly',
-    desc: 'Every call settles on-chain. No invoices, no net-30.',
-    diff: {
-      fileTag: 'wallet.balance',
+      fileTag: 'dashboard → agents',
       added: 3,
       lines: [
         { ln: null, text: '', kind: 'gap' },
-        { ln: null, text: 'USDC · SOLANA · MAINNET', kind: 'comment' },
+        { ln: null, text: '// metera.dev/agents', kind: 'comment' },
         { ln: null, text: '', kind: 'gap' },
-        { ln: null, text: '$1,247.83  ↑', kind: 'added' },
+        { ln: 1,    text: 'Create agent wallet   →  done in 2s', kind: 'added' },
+        { ln: 2,    text: 'Deposit USDC          →  Pix or card', kind: 'added' },
+        { ln: 3,    text: 'Wallet address        →  4guriz...xmPQ', kind: 'added' },
         { ln: null, text: '', kind: 'gap' },
-        { ln: null, text: '14:32:01   7xKp…3mNq   +$0.001', kind: 'added' },
-        { ln: null, text: '14:32:00   9bRt…8vLw   +$0.001', kind: 'added' },
-        { ln: null, text: '14:31:59   2mNk…4pXc   +$0.001', kind: 'added' },
-        { ln: null, text: '', kind: 'gap' },
-        { ln: null, text: '4,219 calls today  ·  $0.001 / call', kind: 'comment' },
+        { ln: null, text: '// no seed phrase. no private key.', kind: 'comment' },
+        { ln: null, text: '// no crypto knowledge required.', kind: 'comment' },
         { ln: null, text: '', kind: 'gap' },
       ],
     },
   },
   {
-    title: 'Three lines of config',
-    desc: 'Drop Metera into any Express or Next.js app. That is it.',
+    title: 'Spending limits built-in',
+    desc: 'Set caps per call, per day, per month. Agent stops automatically when the limit is hit.',
     diff: {
-      fileTag: 'server.ts',
-      added: 5,
+      fileTag: 'dashboard → agents → limits',
+      added: 4,
       lines: [
         { ln: null, text: '', kind: 'gap' },
-        { ln: 1,    text: "import metera from 'metera'", kind: 'added' },
-        { ln: 2,    text: '', kind: 'gap' },
-        { ln: 3,    text: 'app.use(metera({', kind: 'added' },
-        { ln: 4,    text: "  apiKey:    process.env.METERA_KEY,", kind: 'added' },
-        { ln: 5,    text: "  endpoints: { '/api/data': 0.001 },", kind: 'added' },
-        { ln: 6,    text: '}))', kind: 'added' },
-        { ln: 7,    text: '', kind: 'gap' },
-        { ln: 8,    text: '// agents pay you in USDC. done.', kind: 'comment' },
+        { ln: null, text: '// metera.dev/agents → your wallet', kind: 'comment' },
+        { ln: null, text: '', kind: 'gap' },
+        { ln: 1,    text: 'max per call   →  $0.01 USDC', kind: 'added' },
+        { ln: 2,    text: 'max per hour   →  $0.50 USDC', kind: 'added' },
+        { ln: 3,    text: 'max per day    →  $2.00 USDC', kind: 'added' },
+        { ln: 4,    text: 'max per month  →  $20.00 USDC', kind: 'added' },
+        { ln: null, text: '', kind: 'gap' },
+        { ln: null, text: '// agent blocked instantly if exceeded', kind: 'comment' },
+        { ln: null, text: '', kind: 'gap' },
+      ],
+    },
+  },
+  {
+    title: 'Every marketplace API, ready',
+    desc: 'One line connects your agent to Metera. It gets a wallet, limits, and every listed API — instantly.',
+    diff: {
+      fileTag: 'claude / cursor / any MCP client',
+      added: 2,
+      lines: [
+        { ln: null, text: '', kind: 'gap' },
+        { ln: 1,    text: 'Read https://metera.dev/skill/your-key', kind: 'added' },
+        { ln: 2,    text: 'and follow the instructions', kind: 'added' },
+        { ln: null, text: '', kind: 'gap' },
+        { ln: null, text: '// agent now knows:', kind: 'comment' },
+        { ln: null, text: '//   → which wallet to use', kind: 'comment' },
+        { ln: null, text: '//   → how to pay x402 APIs', kind: 'comment' },
+        { ln: null, text: '//   → what the spending limits are', kind: 'comment' },
         { ln: null, text: '', kind: 'gap' },
       ],
     },
@@ -130,9 +126,9 @@ function CodePanel({ diff }: { diff: DiffBlock }) {
         <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#28C840' }} />
         <span style={{
           marginLeft: 10,
-          fontSize: 11,
+          fontSize: 12,
           color: '#7A8C79',
-          fontFamily: "'JetBrains Mono', monospace",
+          fontFamily: "'Geist Mono', monospace",
         }}>
           {diff.fileTag}
         </span>
@@ -146,7 +142,7 @@ function CodePanel({ diff }: { diff: DiffBlock }) {
           <span style={{
             fontSize: 10,
             color: '#7AF279',
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: "'Geist Mono', monospace",
           }}>+{diff.added}</span>
         </div>
       </div>
@@ -161,7 +157,7 @@ function CodePanel({ diff }: { diff: DiffBlock }) {
           display: 'grid',
           gridTemplateColumns: '36px 1fr',
           padding: '12px 0',
-          fontFamily: "'JetBrains Mono', monospace",
+          fontFamily: "'Geist Mono', monospace",
           fontSize: 13,
           lineHeight: 1.9,
         }}
@@ -175,7 +171,7 @@ function CodePanel({ diff }: { diff: DiffBlock }) {
                 textAlign: 'right',
                 color: '#2E3530',
                 userSelect: 'none',
-                fontSize: 11,
+                fontSize: 12,
                 ...(l.kind === 'gap' ? { height: 8, opacity: 0 } : {}),
               }}
             >
@@ -203,8 +199,8 @@ function CodePanel({ diff }: { diff: DiffBlock }) {
         justifyContent: 'space-between',
         borderTop: '1px solid #2A2E2A',
         padding: '10px 16px',
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: 11,
+        fontFamily: "'Geist Mono', monospace",
+        fontSize: 12,
         color: '#3A4039',
       }}>
         <span>metera.dev/docs</span>
@@ -226,23 +222,23 @@ export function MeteraControlSection() {
     <div style={{ borderBottom: LINE }}>
 
       {/* headline row */}
-      <div style={{ padding: '48px 56px', borderBottom: LINE }}>
+      <div className="v2r-control-headline" style={{ padding: '48px 56px', borderBottom: LINE }}>
         <h2 style={{
-          fontSize: 'clamp(2rem, 4vw, 3.5rem)',
+          fontSize: 'clamp(2rem, 3.5vw, 3rem)',
           fontWeight: 300,
           letterSpacing: '-0.03em',
           color: '#FFFFFF',
           margin: 0,
         }}>
-          Your API. Finally making money.
+          One prompt. Your agent<br />is live in seconds.
         </h2>
       </div>
 
       {/* two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr' }}>
+      <div className="v2r-grid-control" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr' }}>
 
         {/* left — tab list */}
-        <div style={{ padding: '56px 48px', borderRight: LINE }}>
+        <div className="v2r-control-left" style={{ padding: '56px 48px', borderRight: LINE }}>
           <ul
             role="tablist"
             aria-label="Metera features"
@@ -281,7 +277,7 @@ export function MeteraControlSection() {
                       padding: '18px 22px',
                       textAlign: 'left',
                       cursor: 'pointer',
-                      fontFamily: "'Inter', sans-serif",
+                      fontFamily: "'Geist Mono', monospace",
                     }}
                   >
                     <div style={{
@@ -310,7 +306,7 @@ export function MeteraControlSection() {
         </div>
 
         {/* right — code panel */}
-        <div style={{ padding: '56px 48px' }}>
+        <div className="v2r-control-right" style={{ padding: '56px 48px' }}>
           <AnimatePresence mode="wait">
             <motion.div
               key={active}

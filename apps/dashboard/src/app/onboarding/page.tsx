@@ -20,7 +20,7 @@ const cardStyle: React.CSSProperties = {
 
 const labelStyle: React.CSSProperties = {
   color: '#00bc7d',
-  fontSize: 11,
+  fontSize: 12,
   textTransform: 'uppercase',
   letterSpacing: '0.1em',
   margin: '0 0 12px',

@@ -1,186 +1,128 @@
 'use client'
 
 import * as React from 'react'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '../../../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import {
-  Card, CardHeader, CardTitle, CardDescription,
-  CardContent
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
+import { DitheringShader } from '../../../components/v2/dithering-shader'
+import '../../../styles/v2/tokens.css'
 
-function GithubIcon({ className }: { className?: string }) {
+// ─── Tokens ───────────────────────────────────────────────────────────────────
+
+const BG    = '#1B1E1B'
+const CARD  = 'rgba(27,30,27,0.82)'
+const LINE  = '1px solid #2A2E2A'
+const TEXT  = '#E8F4EE'
+const MUTED = '#7A8C79'
+const DIM   = '#4A5549'
+const GREEN = '#7AF279'
+const RED   = '#f87171'
+const SANS  = "'Inter', sans-serif"
+const MONO  = "'JetBrains Mono', monospace"
+
+// ─── Input ────────────────────────────────────────────────────────────────────
+
+function Field({
+  id, label, type, placeholder, value, onChange, right, extra,
+}: {
+  id: string; label: string; type: string; placeholder: string
+  value: string; onChange: (v: string) => void
+  right?: React.ReactNode; extra?: React.ReactNode
+}) {
+  const [focused, setFocused] = useState(false)
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <label htmlFor={id} style={{ fontSize: 12, color: MUTED, fontFamily: SANS, fontWeight: 300 }}>{label}</label>
+        {extra}
+      </div>
+      <div style={{ position: 'relative' }}>
+        <input
+          id={id}
+          type={type}
+          placeholder={placeholder}
+          required
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            background: 'rgba(0,0,0,0.35)',
+            border: `1px solid ${focused ? '#4A5549' : '#2A2E2A'}`,
+            borderRadius: 6,
+            padding: right ? '10px 40px 10px 12px' : '10px 12px',
+            fontSize: 14, color: TEXT, fontFamily: SANS, fontWeight: 300,
+            outline: 'none', transition: 'border-color 0.15s',
+          }}
+        />
+        {right && (
+          <div style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
+            {right}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── GitHub icon ──────────────────────────────────────────────────────────────
+
+function GithubIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
     </svg>
   )
 }
 
-interface Dot {
-  x: number; y: number; baseColor: string
-  targetOpacity: number; currentOpacity: number; opacitySpeed: number
-  baseRadius: number; currentRadius: number
+function EyeIcon({ off }: { off?: boolean }) {
+  return off
+    ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+    : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
 }
 
-function InteractiveDots() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const rafRef = useRef<number | null>(null)
-  const dotsRef = useRef<Dot[]>([])
-  const gridRef = useRef<Record<string, number[]>>({})
-  const sizeRef = useRef({ width: 0, height: 0 })
-  const mouseRef = useRef<{ x: number | null; y: number | null }>({ x: null, y: null })
-
-  const DOT_SPACING = 25
-  const BASE_MIN = 0.40; const BASE_MAX = 0.50; const BASE_R = 1
-  const IR = 150; const IR_SQ = IR * IR
-  const GRID_CELL = Math.max(50, Math.floor(IR / 1.5))
-
-  const createDots = useCallback(() => {
-    const { width, height } = sizeRef.current
-    if (!width || !height) return
-    const dots: Dot[] = []; const grid: Record<string, number[]> = {}
-    const cols = Math.ceil(width / DOT_SPACING); const rows = Math.ceil(height / DOT_SPACING)
-    for (let i = 0; i < cols; i++) {
-      for (let j = 0; j < rows; j++) {
-        const x = i * DOT_SPACING + DOT_SPACING / 2
-        const y = j * DOT_SPACING + DOT_SPACING / 2
-        const key = `${Math.floor(x / GRID_CELL)}_${Math.floor(y / GRID_CELL)}`
-        if (!grid[key]) grid[key] = []
-        grid[key].push(dots.length)
-        const op = Math.random() * (BASE_MAX - BASE_MIN) + BASE_MIN
-        dots.push({ x, y, baseColor: `rgba(87,220,205,${BASE_MAX})`, targetOpacity: op, currentOpacity: op, opacitySpeed: Math.random() * 0.005 + 0.002, baseRadius: BASE_R, currentRadius: BASE_R })
-      }
-    }
-    dotsRef.current = dots; gridRef.current = grid
-  }, [DOT_SPACING, GRID_CELL, BASE_MIN, BASE_MAX, BASE_R])
-
-  const handleResize = useCallback(() => {
-    const canvas = canvasRef.current; if (!canvas) return
-    const w = canvas.parentElement?.clientWidth ?? window.innerWidth
-    const h = canvas.parentElement?.clientHeight ?? window.innerHeight
-    canvas.width = w; canvas.height = h
-    sizeRef.current = { width: w, height: h }
-    createDots()
-  }, [createDots])
-
-  const animate = useCallback(() => {
-    const canvas = canvasRef.current; const ctx = canvas?.getContext('2d')
-    const dots = dotsRef.current; const grid = gridRef.current
-    const { width, height } = sizeRef.current; const { x: mx, y: my } = mouseRef.current
-    if (!ctx || !width || !height) { rafRef.current = requestAnimationFrame(animate); return }
-    ctx.clearRect(0, 0, width, height)
-    const active = new Set<number>()
-    if (mx !== null && my !== null) {
-      const cx = Math.floor(mx / GRID_CELL); const cy = Math.floor(my / GRID_CELL)
-      const sr = Math.ceil(IR / GRID_CELL)
-      for (let i = -sr; i <= sr; i++) for (let j = -sr; j <= sr; j++) {
-        const k = `${cx + i}_${cy + j}`; grid[k]?.forEach(idx => active.add(idx))
-      }
-    }
-    dots.forEach((dot, idx) => {
-      dot.currentOpacity += dot.opacitySpeed
-      if (dot.currentOpacity >= dot.targetOpacity || dot.currentOpacity <= BASE_MIN) {
-        dot.opacitySpeed = -dot.opacitySpeed
-        dot.currentOpacity = Math.max(BASE_MIN, Math.min(dot.currentOpacity, BASE_MAX))
-        dot.targetOpacity = Math.random() * (BASE_MAX - BASE_MIN) + BASE_MIN
-      }
-      let factor = 0; dot.currentRadius = dot.baseRadius
-      if (mx !== null && my !== null && active.has(idx)) {
-        const dx = dot.x - mx; const dy = dot.y - my; const dSq = dx * dx + dy * dy
-        if (dSq < IR_SQ) { const d = Math.sqrt(dSq); factor = (1 - d / IR) ** 2 }
-      }
-      const m = dot.baseColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
-      ctx.beginPath()
-      ctx.fillStyle = `rgba(${m?.[1] ?? 87},${m?.[2] ?? 220},${m?.[3] ?? 205},${Math.min(1, dot.currentOpacity + factor * 0.6).toFixed(3)})`
-      ctx.arc(dot.x, dot.y, dot.baseRadius + factor * 2.5, 0, Math.PI * 2)
-      ctx.fill()
-    })
-    rafRef.current = requestAnimationFrame(animate)
-  }, [GRID_CELL, IR, IR_SQ, BASE_MIN, BASE_MAX])
-
-  useEffect(() => {
-    handleResize()
-    const onMove = (e: MouseEvent) => {
-      const canvas = canvasRef.current; if (!canvas) return
-      const r = canvas.getBoundingClientRect()
-      mouseRef.current = { x: e.clientX - r.left, y: e.clientY - r.top }
-    }
-    const onLeave = () => { mouseRef.current = { x: null, y: null } }
-    window.addEventListener('mousemove', onMove, { passive: true })
-    window.addEventListener('resize', handleResize)
-    document.documentElement.addEventListener('mouseleave', onLeave)
-    rafRef.current = requestAnimationFrame(animate)
-    return () => {
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('resize', handleResize)
-      document.documentElement.removeEventListener('mouseleave', onLeave)
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    }
-  }, [handleResize, animate])
-
-  return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.8 }} />
-}
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AuthPage() {
-  const [showPassword, setShowPassword] = useState(false)
+  const [tab,                setTab]                = useState<'login' | 'signup'>('login')
+  const [showPassword,       setShowPassword]       = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const [tab, setTab] = useState<'login' | 'signup'>('login')
+  const [loading,            setLoading]            = useState(false)
+  const [error,              setError]              = useState<string | null>(null)
+  const [success,            setSuccess]            = useState<string | null>(null)
+  const [shaderReady,        setShaderReady]        = useState(true)
 
-  const [loginEmail, setLoginEmail] = useState('')
+  const [loginEmail,    setLoginEmail]    = useState('')
   const [loginPassword, setLoginPassword] = useState('')
 
-  const [signupEmail, setSignupEmail] = useState('')
+  const [signupEmail,    setSignupEmail]    = useState('')
   const [signupPassword, setSignupPassword] = useState('')
-  const [signupConfirm, setSignupConfirm] = useState('')
-  const [signupName, setSignupName] = useState('')
+  const [signupConfirm,  setSignupConfirm]  = useState('')
+  const [signupName,     setSignupName]     = useState('')
 
   const supabase = createClient()
-  const router = useRouter()
+  const router   = useRouter()
 
-  // Persist intent from URL into sessionStorage so it survives async auth flow
   useEffect(() => {
     const intent = new URLSearchParams(window.location.search).get('intent')
     if (intent) sessionStorage.setItem('gate402_intent', intent)
+    return () => {}
   }, [])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
-    })
-
+    setLoading(true); setError(null)
+    const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPassword })
     if (error) {
-      if (error.message.includes('Invalid login credentials')) {
-        setError(
-          'Invalid email or password. ' +
-          'If you just signed up, check your email to confirm your account first.'
-        )
-      } else if (error.message.includes('Email not confirmed')) {
-        setError(
-          'Please confirm your email before signing in. ' +
-          'Check your inbox for a confirmation link.'
-        )
-      } else {
+      if (error.message.includes('Invalid login credentials'))
+        setError('Invalid email or password. If you signed up recently, confirm your email first.')
+      else if (error.message.includes('Email not confirmed'))
+        setError('Please confirm your email before signing in. Check your inbox.')
+      else
         setError(error.message)
-      }
-      setLoading(false)
-      return
+      setLoading(false); return
     }
-
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/sync`, {
@@ -189,7 +131,6 @@ export default function AuthPage() {
         body: JSON.stringify({ supabaseId: user.id, email: user.email })
       })
     }
-
     const intent = sessionStorage.getItem('gate402_intent') || new URLSearchParams(window.location.search).get('intent')
     sessionStorage.removeItem('gate402_intent')
     window.location.href = intent ? `/post-login?intent=${intent}` : '/post-login'
@@ -197,33 +138,14 @@ export default function AuthPage() {
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    if (signupPassword !== signupConfirm) {
-      setError('Passwords do not match')
-      setLoading(false)
-      return
-    }
-
-    if (signupPassword.length < 8) {
-      setError('Password must be at least 8 characters')
-      setLoading(false)
-      return
-    }
-
+    setLoading(true); setError(null)
+    if (signupPassword !== signupConfirm) { setError('Passwords do not match'); setLoading(false); return }
+    if (signupPassword.length < 8) { setError('Password must be at least 8 characters'); setLoading(false); return }
     const { error, data } = await supabase.auth.signUp({
-      email: signupEmail,
-      password: signupPassword,
+      email: signupEmail, password: signupPassword,
       options: { data: { full_name: signupName } }
     })
-
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
-    }
-
+    if (error) { setError(error.message); setLoading(false); return }
     if (data.user) {
       await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/sync`, {
         method: 'POST',
@@ -231,7 +153,6 @@ export default function AuthPage() {
         body: JSON.stringify({ supabaseId: data.user.id, email: data.user.email })
       })
     }
-
     setSuccess('Account created! Check your email to confirm.')
     setLoading(false)
   }
@@ -242,261 +163,229 @@ export default function AuthPage() {
       provider: 'github',
       options: { redirectTo: `${window.location.origin}/auth/callback` }
     })
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-    }
+    if (error) { setError(error.message); setLoading(false) }
   }
 
   return (
-    <section className="fixed inset-0 text-zinc-50" style={{ backgroundColor: '#111111' }}>
-      <style>{`
-        .card-animate{opacity:0;transform:translateY(20px);animation:fadeUp 0.8s cubic-bezier(.22,.61,.36,1) 0.4s forwards}
-        @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
-      `}</style>
+    <div style={{ position: 'fixed', inset: 0, background: BG, fontFamily: SANS, color: TEXT, overflow: 'hidden' }}>
 
-      <InteractiveDots />
+      {/* ── DitheringShader background ── */}
+      <DitheringShader
+        shape="wave"
+        type="8x8"
+        colorBack={BG}
+        colorFront="#BC86FF"
+        pxSize={3}
+        speed={0.6}
+        style={{
+          opacity: shaderReady ? 0.18 : 0,
+          pointerEvents: 'none',
+          transition: 'opacity 0.6s ease',
+          position: 'absolute', inset: 0, zIndex: 0,
+        }}
+        onFirstFrame={() => setShaderReady(true)}
+      />
 
-      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1, background: 'linear-gradient(to bottom, transparent 0%, #111111 90%), radial-gradient(ellipse at center, transparent 40%, #111111 95%)' }} />
+      {/* ── vignette ── */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
+        background: 'radial-gradient(ellipse at center, transparent 40%, rgba(27,30,27,0.85) 100%)',
+      }} />
 
-      <a href="/" style={{ position: 'absolute', top: 20, left: 20, zIndex: 20, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 6, border: '1px solid #2a2a2a', background: 'rgba(17,17,17,0.7)', backdropFilter: 'blur(8px)', color: '#999', fontSize: 13, textDecoration: 'none', transition: 'color 0.15s, border-color 0.15s' }}
-        onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#fff'; (e.currentTarget as HTMLAnchorElement).style.borderColor = '#444' }}
-        onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#999'; (e.currentTarget as HTMLAnchorElement).style.borderColor = '#2a2a2a' }}
+      {/* ── back link ── */}
+      <a href="/v2" style={{
+        position: 'absolute', top: 20, left: 24, zIndex: 10,
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        fontSize: 13, color: MUTED, textDecoration: 'none',
+        fontFamily: SANS, transition: 'color 0.15s',
+      }}
+        onMouseEnter={e => (e.currentTarget.style.color = TEXT)}
+        onMouseLeave={e => (e.currentTarget.style.color = MUTED)}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        <svg width="12" height="12" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M7 1L2 5.5 7 10" />
+        </svg>
         Home
       </a>
 
-      <div className="h-full w-full grid place-items-center px-4" style={{ position: 'relative', zIndex: 10 }}>
-        <Card className="card-animate w-full max-w-sm border-zinc-800 bg-zinc-900/70 backdrop-blur">
+      {/* ── centered card ── */}
+      <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
+        <div style={{
+          width: '100%', maxWidth: 400,
+          background: CARD,
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          border: LINE,
+          borderRadius: 10,
+          overflow: 'hidden',
+          boxShadow: '0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03)',
+        }}>
 
-          <CardHeader className="space-y-1 pb-2">
-<CardTitle className="text-2xl">
+          {/* header */}
+          <div style={{ padding: '28px 28px 20px', borderBottom: LINE }}>
+            <a href="/v2" style={{ display: 'inline-block', marginBottom: 20, textDecoration: 'none' }}>
+              <img src="/logos/metera-logo.png" alt="Metera" style={{ height: 22, width: 'auto', filter: 'brightness(0) invert(1)', display: 'block' }} />
+            </a>
+            <h1 style={{ fontSize: 20, fontWeight: 300, letterSpacing: '-0.03em', color: TEXT, margin: '0 0 4px', fontFamily: SANS }}>
               {tab === 'login' ? 'Welcome back' : 'Create account'}
-            </CardTitle>
-            <CardDescription className="text-zinc-400">
-              {tab === 'login'
-                ? 'Sign in to your Gate402 account'
-                : 'Start monetizing your API in minutes'}
-            </CardDescription>
-          </CardHeader>
+            </h1>
+            <p style={{ fontSize: 13, color: MUTED, margin: 0, fontWeight: 300, fontFamily: SANS }}>
+              {tab === 'login' ? 'Sign in to your Metera account' : 'Start monetizing your API in minutes'}
+            </p>
+          </div>
 
-          <CardContent className="grid gap-4">
-            <Tabs
-              value={tab}
-              onValueChange={(v) => {
-                setTab(v as 'login' | 'signup')
-                setError(null)
-                setSuccess(null)
-              }}
-            >
-              <TabsList className="w-full bg-zinc-950 border border-zinc-800">
-                <TabsTrigger
-                  value="login"
-                  className="flex-1 data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-50"
-                >
-                  Sign in
-                </TabsTrigger>
-                <TabsTrigger
-                  value="signup"
-                  className="flex-1 data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-50"
-                >
-                  Sign up
-                </TabsTrigger>
-              </TabsList>
+          {/* tab switcher */}
+          <div style={{ display: 'flex', borderBottom: LINE }}>
+            {(['login', 'signup'] as const).map(t => (
+              <button key={t} onClick={() => { setTab(t); setError(null); setSuccess(null) }}
+                style={{
+                  flex: 1, background: 'none', border: 'none', cursor: 'pointer',
+                  padding: '10px 0',
+                  fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: tab === t ? GREEN : DIM,
+                  borderBottom: `2px solid ${tab === t ? GREEN : 'transparent'}`,
+                  transition: 'color 0.15s, border-color 0.15s',
+                  marginBottom: -1,
+                }}
+              >
+                {t === 'login' ? 'Sign in' : 'Sign up'}
+              </button>
+            ))}
+          </div>
 
-              <TabsContent value="login">
-                <form onSubmit={handleLogin} className="grid gap-4 mt-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="login-email" className="text-zinc-300">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                      <Input
-                        id="login-email"
-                        type="email"
-                        placeholder="you@example.com"
-                        required
-                        value={loginEmail}
-                        onChange={e => setLoginEmail(e.target.value)}
-                        className="pl-10 bg-zinc-950 border-zinc-800 text-zinc-50 placeholder:text-zinc-600"
-                      />
-                    </div>
-                  </div>
+          {/* form body */}
+          <div style={{ padding: '24px 28px 28px' }}>
 
-                  <div className="grid gap-2">
-                    <div className="flex justify-between items-center">
-                      <Label htmlFor="login-password" className="text-zinc-300">Password</Label>
-                      <a href="/auth/reset" className="text-xs text-zinc-400 hover:text-zinc-200">
-                        Forgot password?
-                      </a>
-                    </div>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                      <Input
-                        id="login-password"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="••••••••"
-                        required
-                        value={loginPassword}
-                        onChange={e => setLoginPassword(e.target.value)}
-                        className="pl-10 pr-10 bg-zinc-950 border-zinc-800 text-zinc-50 placeholder:text-zinc-600"
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-zinc-400 hover:text-zinc-200"
-                        onClick={() => setShowPassword(v => !v)}
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
+            {tab === 'login' ? (
+              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <Field id="login-email" label="Email" type="email" placeholder="you@example.com"
+                  value={loginEmail} onChange={setLoginEmail} />
+                <Field id="login-password" label="Password" type={showPassword ? 'text' : 'password'} placeholder="••••••••"
+                  value={loginPassword} onChange={setLoginPassword}
+                  extra={
+                    <a href="/auth/reset" style={{ fontSize: 12, color: MUTED, textDecoration: 'none', fontFamily: SANS, transition: 'color 0.15s' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = TEXT)}
+                      onMouseLeave={e => (e.currentTarget.style.color = MUTED)}
+                    >
+                      Forgot password?
+                    </a>
+                  }
+                  right={
+                    <button type="button" onClick={() => setShowPassword(v => !v)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, display: 'flex', padding: 0, transition: 'color 0.15s' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = TEXT)}
+                      onMouseLeave={e => (e.currentTarget.style.color = MUTED)}
+                    >
+                      <EyeIcon off={showPassword} />
+                    </button>
+                  }
+                />
 
-                  {error && (
-                    <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-md px-3 py-2">
-                      {error}
-                    </p>
-                  )}
+                {error && <Alert type="error">{error}</Alert>}
 
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full h-10 rounded-lg bg-zinc-50 text-zinc-900 hover:bg-zinc-200 font-medium"
-                  >
-                    {loading ? 'Signing in...' : 'Sign in'}
-                  </Button>
-                </form>
-              </TabsContent>
+                <SubmitBtn loading={loading} label="Sign in" loadingLabel="Signing in..." />
+              </form>
+            ) : (
+              <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <Field id="signup-name" label="Full name" type="text" placeholder="Your name"
+                  value={signupName} onChange={setSignupName} />
+                <Field id="signup-email" label="Email" type="email" placeholder="you@example.com"
+                  value={signupEmail} onChange={setSignupEmail} />
+                <Field id="signup-password" label="Password" type={showPassword ? 'text' : 'password'} placeholder="Min. 8 characters"
+                  value={signupPassword} onChange={setSignupPassword}
+                  right={
+                    <button type="button" onClick={() => setShowPassword(v => !v)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, display: 'flex', padding: 0, transition: 'color 0.15s' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = TEXT)}
+                      onMouseLeave={e => (e.currentTarget.style.color = MUTED)}
+                    >
+                      <EyeIcon off={showPassword} />
+                    </button>
+                  }
+                />
+                <Field id="signup-confirm" label="Confirm password" type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••"
+                  value={signupConfirm} onChange={setSignupConfirm}
+                  right={
+                    <button type="button" onClick={() => setShowConfirmPassword(v => !v)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, display: 'flex', padding: 0, transition: 'color 0.15s' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = TEXT)}
+                      onMouseLeave={e => (e.currentTarget.style.color = MUTED)}
+                    >
+                      <EyeIcon off={showConfirmPassword} />
+                    </button>
+                  }
+                />
 
-              <TabsContent value="signup">
-                <form onSubmit={handleSignup} className="grid gap-4 mt-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="signup-name" className="text-zinc-300">Full name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                      <Input
-                        id="signup-name"
-                        type="text"
-                        placeholder="João Camargo"
-                        value={signupName}
-                        onChange={e => setSignupName(e.target.value)}
-                        className="pl-10 bg-zinc-950 border-zinc-800 text-zinc-50 placeholder:text-zinc-600"
-                      />
-                    </div>
-                  </div>
+                {error   && <Alert type="error">{error}</Alert>}
+                {success && <Alert type="success">{success}</Alert>}
 
-                  <div className="grid gap-2">
-                    <Label htmlFor="signup-email" className="text-zinc-300">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder="you@example.com"
-                        required
-                        value={signupEmail}
-                        onChange={e => setSignupEmail(e.target.value)}
-                        className="pl-10 bg-zinc-950 border-zinc-800 text-zinc-50 placeholder:text-zinc-600"
-                      />
-                    </div>
-                  </div>
+                <SubmitBtn loading={loading} label="Create account" loadingLabel="Creating account..." />
 
-                  <div className="grid gap-2">
-                    <Label htmlFor="signup-password" className="text-zinc-300">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                      <Input
-                        id="signup-password"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Min. 8 characters"
-                        required
-                        value={signupPassword}
-                        onChange={e => setSignupPassword(e.target.value)}
-                        className="pl-10 pr-10 bg-zinc-950 border-zinc-800 text-zinc-50 placeholder:text-zinc-600"
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-zinc-400 hover:text-zinc-200"
-                        onClick={() => setShowPassword(v => !v)}
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
+                <p style={{ fontSize: 12, color: DIM, textAlign: 'center', fontFamily: SANS, margin: 0 }}>
+                  By creating an account you agree to our{' '}
+                  <a href="/v2/terms"   style={{ color: MUTED, textDecoration: 'none' }}>Terms</a>
+                  {' '}and{' '}
+                  <a href="/v2/privacy" style={{ color: MUTED, textDecoration: 'none' }}>Privacy Policy</a>
+                </p>
+              </form>
+            )}
 
-                  <div className="grid gap-2">
-                    <Label htmlFor="signup-confirm" className="text-zinc-300">Confirm password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                      <Input
-                        id="signup-confirm"
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        placeholder="••••••••"
-                        required
-                        value={signupConfirm}
-                        onChange={e => setSignupConfirm(e.target.value)}
-                        className="pl-10 pr-10 bg-zinc-950 border-zinc-800 text-zinc-50 placeholder:text-zinc-600"
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-zinc-400 hover:text-zinc-200"
-                        onClick={() => setShowConfirmPassword(v => !v)}
-                      >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {error && (
-                    <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-md px-3 py-2">
-                      {error}
-                    </p>
-                  )}
-
-                  {success && (
-                    <p className="text-xs text-green-400 bg-green-400/10 border border-green-400/20 rounded-md px-3 py-2">
-                      {success}
-                    </p>
-                  )}
-
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full h-10 rounded-lg bg-zinc-50 text-zinc-900 hover:bg-zinc-200 font-medium"
-                  >
-                    {loading ? 'Creating account...' : 'Create account'}
-                  </Button>
-
-                  <p className="text-xs text-zinc-500 text-center">
-                    By creating an account you agree to our{' '}
-                    <a href="/terms" className="text-zinc-400 hover:text-zinc-200">Terms</a>
-                    {' '}and{' '}
-                    <a href="/privacy" className="text-zinc-400 hover:text-zinc-200">Privacy Policy</a>
-                  </p>
-                </form>
-              </TabsContent>
-            </Tabs>
-
-            <div className="relative">
-              <Separator className="bg-zinc-800" />
-              <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-zinc-900/70 px-2 text-[11px] uppercase tracking-widest text-zinc-500">
-                or
-              </span>
+            {/* divider */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '20px 0' }}>
+              <div style={{ flex: 1, height: 1, background: '#2A2E2A' }} />
+              <span style={{ fontSize: 10, fontFamily: MONO, color: DIM, letterSpacing: '0.1em', textTransform: 'uppercase' }}>or</span>
+              <div style={{ flex: 1, height: 1, background: '#2A2E2A' }} />
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGitHub}
-              disabled={loading}
-              className="w-full h-10 rounded-lg border-zinc-800 bg-zinc-950 text-zinc-50 hover:bg-zinc-900/80"
+            {/* GitHub */}
+            <button type="button" onClick={handleGitHub} disabled={loading}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                background: 'rgba(255,255,255,0.05)', border: LINE, borderRadius: 6,
+                padding: '10px 0', cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: 13, fontFamily: SANS, color: TEXT, fontWeight: 400,
+                transition: 'background 0.15s, border-color 0.15s',
+                opacity: loading ? 0.5 : 1,
+              }}
+              onMouseEnter={e => { if (!loading) { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = '#4A5549' } }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = '#2A2E2A' }}
             >
-              <GithubIcon className="h-4 w-4 mr-2" />
+              <GithubIcon />
               Continue with GitHub
-            </Button>
-          </CardContent>
+            </button>
 
-        </Card>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
+  )
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function Alert({ type, children }: { type: 'error' | 'success'; children: React.ReactNode }) {
+  const color = type === 'error' ? '#f87171' : GREEN
+  return (
+    <div style={{ fontSize: 13, color, background: `${color}12`, border: `1px solid ${color}30`, borderRadius: 6, padding: '9px 12px', fontFamily: 'Inter, sans-serif', fontWeight: 300, lineHeight: 1.5 }}>
+      {children}
+    </div>
+  )
+}
+
+function SubmitBtn({ loading, label, loadingLabel }: { loading: boolean; label: string; loadingLabel: string }) {
+  return (
+    <button type="submit" disabled={loading}
+      style={{
+        width: '100%', background: GREEN, border: 'none', borderRadius: 6,
+        padding: '11px 0', fontSize: 14, fontFamily: 'Inter, sans-serif', fontWeight: 500,
+        color: '#1B1E1B', cursor: loading ? 'not-allowed' : 'pointer',
+        transition: 'opacity 0.15s', opacity: loading ? 0.65 : 1,
+      }}
+      onMouseEnter={e => { if (!loading) e.currentTarget.style.opacity = '0.85' }}
+      onMouseLeave={e => { e.currentTarget.style.opacity = loading ? '0.65' : '1' }}
+    >
+      {loading ? loadingLabel : label}
+    </button>
   )
 }

@@ -74,11 +74,38 @@ const UserContext = createContext<UserContextValue>({
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 
+const CACHE_KEY = 'g402_user'
+const CACHE_TTL = 5 * 60 * 1000 // 5 min
+
+function readCache(): UserData | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY)
+    if (!raw) return null
+    const { data, ts } = JSON.parse(raw)
+    if (Date.now() - ts < CACHE_TTL) return data
+  } catch {}
+  return null
+}
+
+function writeCache(data: UserData) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() })) } catch {}
+}
+
+function clearCache() {
+  try { localStorage.removeItem(CACHE_KEY) } catch {}
+}
+
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [userData, setUserData] = useState<UserData | null>(null)
+  const [userData, setUserData] = useState<UserData | null>(() => {
+    if (typeof window === 'undefined') return null
+    return readCache()
+  })
   const [supabaseUser, setSupabaseUser] = useState<any>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => {
+    if (typeof window === 'undefined') return true
+    return readCache() === null
+  })
   const fetchingRef = useRef(false)
   const loadedRef = useRef(false)
   const lastSyncRef = useRef(0)
@@ -107,6 +134,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const data = await res.json()
         if (!data.limits) data.limits = buildLimits(data.plan ?? 'free')
+        writeCache(data)
         setUserData(data)
         setSupabaseUser(sbUser)
         setAccessToken(token)
@@ -115,8 +143,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         console.error('[UserContext] /api/users/me failed:', res.status)
         setUserData(null)
       }
-    } catch (e) {
-      console.error('[UserContext] fetch error:', e)
+    } catch (e: any) {
+      // "Failed to fetch" = network unreachable (server down / CORS). Fail silently.
+      if (e?.name !== 'TypeError') {
+        console.error('[UserContext] fetch error:', e)
+      }
       setUserData(null)
     } finally {
       fetchingRef.current = false
@@ -139,6 +170,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_OUT') {
+          clearCache()
           setUserData(null)
           setSupabaseUser(null)
           setAccessToken(null)

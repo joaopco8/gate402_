@@ -1,0 +1,270 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #1B1E1B;
+}
+
+:root {
+  /* ─── CORES ─── */
+  --v2-black:       #1B1E1B;
+  --v2-green:       #7AF279;
+  --v2-purple:      #BC86FF;
+  --v2-mint:        #E8F4EE;
+  --v2-white:       #FFFFFF;
+
+  /* Surfaces */
+  --v2-surface-1:   #1F221F;
+  --v2-surface-2:   #242724;
+  --v2-surface-3:   #2A2E2A;
+
+  /* Borders */
+  --v2-border:      #2A2E2A;
+  --v2-border-subtle: #222522;
+
+  /* Text */
+  --v2-text-primary:   #E8F4EE;
+  --v2-text-secondary: #7A8C79;
+  --v2-text-muted:     #4A5549;
+
+  /* Accent transparencies */
+  --v2-green-10:    #7AF27910;
+  --v2-green-20:    #7AF27920;
+  --v2-green-30:    #7AF27930;
+  --v2-purple-10:   #BC86FF10;
+  --v2-purple-20:   #BC86FF20;
+  --v2-purple-30:   #BC86FF30;
+
+  /* ─── TIPOGRAFIA ─── */
+  --v2-font-sans:  'Inter', -apple-system, sans-serif;
+  --v2-font-mono:  'JetBrains Mono', monospace;
+  /* Labels / additional info — Geist Mono uppercase tight */
+  --v2-font-label: 'Geist Mono', monospace;
+  --v2-font-label-transform: uppercase;
+  --v2-font-label-spacing: 0;
+  --v2-font-label-size: 12px;
+  --v2-font-label-weight: 500;
+
+  /* Pesos */
+  --v2-weight-light:    300;
+  --v2-weight-regular:  400;
+  --v2-weight-medium:   500;
+  --v2-weight-semibold: 600;
+  --v2-weight-bold:     700;
+
+  /* Tamanhos */
+  --v2-text-xs:   0.8125rem; /* 13px — labels, badges */
+  --v2-text-sm:   0.9375rem; /* 15px — body secundário */
+  --v2-text-base: 1.0625rem; /* 17px — body */
+  --v2-text-lg:   1.3125rem; /* 21px — subtítulos */
+  --v2-text-xl:   1.75rem;   /* 28px — títulos seção */
+  --v2-text-2xl:  2.5rem;    /* 40px — headlines */
+  --v2-text-3xl:  4rem;      /* 64px — hero */
+  --v2-text-4xl:  6rem;      /* 96px — hero impact */
+
+  /* Letter spacing */
+  --v2-tracking-tighter: -0.04em;
+  --v2-tracking-tight:   -0.02em;
+  --v2-tracking-normal:   0em;
+  --v2-tracking-wide:     0.06em;
+  --v2-tracking-wider:    0.10em;
+
+  /* Line height */
+  --v2-leading-none:    1;
+  --v2-leading-tight:   1.1;
+  --v2-leading-snug:    1.3;
+  --v2-leading-normal:  1.5;
+  --v2-leading-relaxed: 1.7;
+
+  /* ─── ESPAÇAMENTO ─── */
+  --v2-space-1:   0.25rem;  /* 4px */
+  --v2-space-2:   0.5rem;   /* 8px */
+  --v2-space-3:   0.75rem;  /* 12px */
+  --v2-space-4:   1rem;     /* 16px */
+  --v2-space-5:   1.25rem;  /* 20px */
+  --v2-space-6:   1.5rem;   /* 24px */
+  --v2-space-8:   2rem;     /* 32px */
+  --v2-space-10:  2.5rem;   /* 40px */
+  --v2-space-12:  3rem;     /* 48px */
+  --v2-space-16:  4rem;     /* 64px */
+  --v2-space-20:  5rem;     /* 80px */
+  --v2-space-24:  6rem;     /* 96px */
+  --v2-space-32:  8rem;     /* 128px */
+
+  /* ─── LAYOUT ─── */
+  --v2-container:         1200px;
+  --v2-container-padding: 1.5rem;
+  --v2-container-narrow:  800px;
+
+  /* ─── BORDER RADIUS ─── */
+  --v2-radius-sm:   0px;
+  --v2-radius-md:   0px;
+  --v2-radius-lg:   0px;
+  --v2-radius-xl:   0px;
+  --v2-radius-full: 9999px;
+
+  /* ─── SHADOWS ─── */
+  --v2-shadow-sm:  0 1px 2px rgba(0,0,0,0.3);
+  --v2-shadow-md:  0 4px 16px rgba(0,0,0,0.4);
+  --v2-shadow-lg:  0 8px 32px rgba(0,0,0,0.5);
+  --v2-shadow-green: 0 0 24px rgba(122,242,121,0.15);
+  --v2-shadow-purple: 0 0 24px rgba(188,134,255,0.15);
+
+  /* ─── TRANSIÇÕES ─── */
+  --v2-transition-fast:   150ms ease;
+  --v2-transition-normal: 250ms ease;
+  --v2-transition-slow:   400ms ease;
+
+  /* ─── MARQUEE ─── */
+  --v2-marquee-gap: 0.75rem;
+
+  /* ─── Z-INDEX ─── */
+  --v2-z-base:    0;
+  --v2-z-above:   10;
+  --v2-z-modal:   100;
+  --v2-z-toast:   200;
+  --v2-z-overlay: 300;
+
+  /* ─── STRUCTURAL GRID LINES ─── */
+  --v2-line:        1px solid #2A2E2A;
+  --v2-line-subtle: 1px solid #222522;
+  --v2-line-strong: 1px solid #333733;
+
+  /* ─── GRID LINES (background pattern) ─── */
+  --v2-grid-size:    80px;
+  --v2-grid-size-sm: 40px;
+
+  --v2-grid-faint:   rgba(122, 242, 121, 0.03);
+  --v2-grid-subtle:  rgba(122, 242, 121, 0.06);
+  --v2-grid-visible: rgba(122, 242, 121, 0.10);
+  --v2-grid-white:   rgba(255, 255, 255, 0.03);
+
+  /* Grid backgrounds prontos para usar */
+  --v2-grid-bg-hero:
+    linear-gradient(var(--v2-grid-visible) 1px, transparent 1px),
+    linear-gradient(90deg, var(--v2-grid-visible) 1px, transparent 1px);
+
+  --v2-grid-bg-section:
+    linear-gradient(var(--v2-grid-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--v2-grid-subtle) 1px, transparent 1px);
+
+  --v2-grid-bg-faint:
+    linear-gradient(var(--v2-grid-faint) 1px, transparent 1px),
+    linear-gradient(90deg, var(--v2-grid-faint) 1px, transparent 1px);
+}
+
+/* ─── CPU Architecture animation ─────────────────────────────────────── */
+.cpu-architecture {
+  offset-anchor: 10px 0px;
+  animation: animation-path;
+  animation-iteration-count: infinite;
+  animation-timing-function: cubic-bezier(0.75, -0.01, 0, 0.99);
+}
+.cpu-line-1 { offset-path: path("M 10 20 h 79.5 q 5 0 5 5 v 30");                                                                    animation-duration: 5s; animation-delay: 1s; }
+.cpu-line-2 { offset-path: path("M 180 10 h -69.7 q -5 0 -5 5 v 40");                                                                animation-duration: 2s; animation-delay: 6s; }
+.cpu-line-3 { offset-path: path("M 130 20 v 21.8 q 0 5 -5 5 h -25");                                                                 animation-duration: 6s; animation-delay: 4s; }
+.cpu-line-4 { offset-path: path("M 170 80 v -21.8 q 0 -5 -5 -5 h -65");                                                              animation-duration: 3s; animation-delay: 3s; }
+.cpu-line-5 { offset-path: path("M 135 65 h 15 q 5 0 5 5 v 10 q 0 5 -5 5 h -39.8 q -5 0 -5 -5 v -35");                              animation-duration: 4s; animation-delay: 9s; }
+.cpu-line-6 { offset-path: path("M 94.8 95 v -46");                                                                                   animation-duration: 7s; animation-delay: 3s; }
+.cpu-line-7 { offset-path: path("M 88 88 v -15 q 0 -5 -5 -5 h -10 q -5 0 -5 -5 v -5 q 0 -5 5 -5 h 28");                            animation-duration: 4s; animation-delay: 4s; }
+.cpu-line-8 { offset-path: path("M 30 30 h 25 q 5 0 5 5 v 6.5 q 0 5 5 5 h 35");                                                     animation-duration: 3s; animation-delay: 3s; }
+@keyframes animation-path {
+  0%   { offset-distance: 0%; }
+  100% { offset-distance: 100%; }
+}
+
+@keyframes v2-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-50% - var(--v2-marquee-gap) / 2)); }
+}
+
+@keyframes v2-marquee-reverse {
+  from { transform: translateX(calc(-50% - var(--v2-marquee-gap) / 2)); }
+  to   { transform: translateX(0); }
+}
+
+/* ─── RESPONSIVE ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Padding */
+  .v2r-section-head  { padding: 32px 24px !important; }
+  .v2r-section-pad   { padding: 40px 24px !important; }
+  .v2r-hero-pad      { padding: 64px 24px !important; }
+
+  /* Grids → single column */
+  .v2r-grid-3        { grid-template-columns: 1fr !important; }
+  .v2r-grid-2        { grid-template-columns: 1fr !important; }
+  .v2r-grid-control  { grid-template-columns: 1fr !important; }
+
+  /* Clients section */
+  .v2r-clients-grid  { grid-template-columns: 1fr !important; }
+  .v2r-clients-label { border-right: none !important; border-bottom: 1px solid #2A2E2A !important; padding: 32px 24px !important; }
+  .v2r-clients-logos { padding: 32px 24px !important; gap: 24px !important; }
+
+  /* Steps */
+  .v2r-connector     { display: none !important; }
+  .v2r-steps-pad     { padding: 32px 24px !important; }
+
+  /* One-line section */
+  .v2r-oneline-pad   { padding: 56px 24px 40px !important; }
+  .v2r-oneline-grid  { grid-template-columns: 1fr !important; }
+  .v2r-logos-strip   { gap: 28px !important; padding: 28px 24px !important; flex-wrap: wrap !important; }
+
+  /* Control section */
+  .v2r-control-headline { padding: 32px 24px !important; }
+  .v2r-control-left  { padding: 32px 24px !important; border-right: none !important; border-bottom: 1px solid #2A2E2A !important; }
+  .v2r-control-right { padding: 32px 24px !important; }
+
+  /* FAQ */
+  .v2r-faq-group     { padding: 20px 24px !important; }
+  .v2r-faq-items     { padding: 0 24px 8px !important; }
+
+  /* Pricing */
+  .v2r-pricing-head  { padding: 48px 24px 36px !important; }
+  .v2r-pricing-grid  { grid-template-columns: 1fr !important; }
+  .v2r-plan-item     { border-right: none !important; border-bottom: 1px solid #2A2E2A !important; }
+
+  /* Features */
+  .v2r-features-head { padding: 48px 24px 36px !important; }
+
+  /* Marketplace section (landing) */
+  .v2r-market-section { padding: 48px 24px !important; }
+  .v2r-market-grid    { grid-template-columns: 1fr !important; }
+
+  /* Docs CTA */
+  .v2r-docs-head      { padding: 32px 24px !important; }
+  .v2r-docs-grid      { grid-template-columns: 1fr !important; }
+  .v2r-docs-card-col  { border-right: none !important; border-bottom: 1px solid #2A2E2A !important; }
+
+  /* Highlights */
+  .v2r-highlights-head { padding: 32px 24px !important; }
+  .v2r-highlights-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Footer */
+  .v2r-footer-body   { flex-direction: column !important; padding: 40px 24px 32px !important; }
+  .v2r-footer-logo   { width: 100% !important; border-right: none !important; border-bottom: 1px solid #2A2E2A !important; padding-right: 0 !important; margin-right: 0 !important; padding-bottom: 28px !important; margin-bottom: 28px !important; }
+  .v2r-footer-cols   { grid-template-columns: repeat(2, 1fr) !important; }
+  .v2r-footer-bar    { padding: 16px 24px !important; flex-direction: column !important; gap: 12px !important; text-align: center !important; }
+
+  /* Marketplace page */
+  .v2r-mp-hero-inner { padding: 0 20px !important; }
+  .v2r-mp-ctrl-inner { padding: 0 20px !important; flex-direction: column !important; height: auto !important; gap: 0 !important; }
+  .v2r-mp-ctrl-search { border-right: none !important; border-bottom: 1px solid #2A2E2A !important; padding: 10px 0 !important; }
+  .v2r-mp-ctrl-cats  { border-right: none !important; border-bottom: 1px solid #2A2E2A !important; padding: 10px 0 !important; }
+  .v2r-mp-ctrl-sort  { padding: 10px 0 !important; }
+  .v2r-mp-cards      { padding: 20px !important; }
+
+  /* Pricing page container */
+  .v2r-page-border   { border-left: none !important; border-right: none !important; }
+
+  /* Hero subtitle — allow wrap on mobile */
+  .v2r-hero-subtitle { white-space: pre-wrap !important; font-size: 15px !important; }
+
+  /* Highlights — fix border logic on 2-col */
+  .v2r-highlights-grid > div:nth-child(2n) { border-right: none !important; }
+  .v2r-highlights-grid > div:nth-child(n+3) { border-bottom: none !important; }
+}

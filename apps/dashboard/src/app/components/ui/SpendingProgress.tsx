@@ -14,10 +14,10 @@ export function SpendingProgress({ label, spent, limit, unit = 'USDC' }: Spendin
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 11, color: '#4A5549', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-code)' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase', fontFamily: 'var(--font-label)' }}>
           {label}
         </span>
-        <span style={{ fontSize: 11, color: '#7A8C79', fontFamily: 'var(--font-code)' }}>
+        <span style={{ fontSize: 12, color: '#7A8C79', fontFamily: 'var(--font-label)' }}>
           ${spent.toFixed(4)} / ${limit} {unit}
         </span>
       </div>
@@ -31,7 +31,7 @@ export function SpendingProgress({ label, spent, limit, unit = 'USDC' }: Spendin
         }} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <span style={{ fontSize: 11, fontFamily: 'var(--font-code)', color: percent >= 90 ? '#f87171' : percent >= 70 ? '#facc15' : '#4A5549' }}>
+        <span style={{ fontSize: 12, fontFamily: 'var(--font-label)', color: percent >= 90 ? '#f87171' : percent >= 70 ? '#facc15' : '#4A5549' }}>
           {percent.toFixed(0)}% used
         </span>
       </div>

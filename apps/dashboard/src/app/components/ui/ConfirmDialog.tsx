@@ -41,22 +41,22 @@ export function ConfirmDialog({
               <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
           </div>
-          <h3 style={{ fontSize: 14, fontWeight: 500, color: '#fff', fontFamily: 'var(--font-display)' }}>{title}</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 500, color: '#fff', fontFamily: 'var(--font-label)' }}>{title}</h3>
         </div>
-        <p style={{ fontSize: 13, color: '#7A8C79', lineHeight: 1.6, marginBottom: 24, fontFamily: 'var(--font-display)' }}>
+        <p style={{ fontSize: 13, color: '#7A8C79', lineHeight: 1.6, marginBottom: 24, fontFamily: 'var(--font-label)' }}>
           {description}
         </p>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={onCancel} style={{
             flex: 1, padding: '10px 0', fontSize: 13, border: '1px solid #2A2E2A',
             color: '#7A8C79', background: 'transparent', borderRadius: 8, cursor: 'pointer',
-            fontFamily: 'var(--font-display)',
+            fontFamily: 'var(--font-label)',
           }}>
             Cancel
           </button>
           <button onClick={onConfirm} disabled={loading} style={{
             flex: 1, padding: '10px 0', fontSize: 13, fontWeight: 500, borderRadius: 8, cursor: 'pointer',
-            border: 'none', fontFamily: 'var(--font-display)',
+            border: 'none', fontFamily: 'var(--font-label)',
             background: danger ? '#ef4444' : '#7AF279',
             color: danger ? '#fff' : '#1B1E1B',
             opacity: loading ? 0.5 : 1,

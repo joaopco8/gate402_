@@ -75,12 +75,13 @@ export async function checkRateLimit(
     where: { identifier_type_window: { identifier, type, window } }
   })
 
+  const windowExpired = existing && now > existing.resetAt
+
   const entry = await prisma.rateLimitEntry.upsert({
     where: { identifier_type_window: { identifier, type, window } },
-    update: {
-      count: { increment: 1 },
-      resetAt: existing && now > existing.resetAt ? resetAt : undefined,
-    },
+    update: windowExpired
+      ? { count: 1, resetAt }              // window expired — reset counter
+      : { count: { increment: 1 } },       // window active — increment
     create: { identifier, type, window, count: 1, resetAt }
   })
 

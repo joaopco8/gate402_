@@ -2,8 +2,8 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react'
 
-const MONO  = "'JetBrains Mono', monospace"
-const SANS  = "'Inter', sans-serif"
+const MONO  = "'Geist Mono', monospace"
+const SANS  = "'Geist Mono', monospace"
 const GREEN = '#7AF279'
 const MUTED = '#7A8C79'
 const DIM   = '#4A5549'
@@ -21,10 +21,10 @@ const PRODUCT_ITEMS = [
 
 const DEV_ITEMS = [
   { label: 'Documentation', desc: 'Full SDK reference and guides', href: '/v2/docs' },
-  { label: 'Quick Start',   desc: '5 minutes to first paid call',  href: '/v2/docs#quick-start' },
-  { label: 'API Reference', desc: 'All server endpoints',          href: '/v2/docs#api-reference' },
+  { label: 'Quick Start',   desc: '5 minutes to first paid call',  href: '/v2/docs#how-it-works' },
+  { label: 'API Reference', desc: 'All server endpoints',          href: '/v2/docs#x402-flow' },
   { label: 'GitHub',        desc: 'MIT licensed — open source',    href: 'https://github.com/joaopco8/gate402_', external: true },
-  { label: 'Changelog',     desc: "What's new",                    href: '/v2/docs#api-reference' },
+  { label: 'Changelog',     desc: "What's new",                    href: '/v2/docs' },
 ]
 
 type NavItem = { label: string; desc: string; href: string; external?: boolean }
@@ -74,7 +74,7 @@ function DropPanel({ items, visible }: { items: NavItem[]; visible: boolean }) {
             <span style={{ fontSize: 13, fontWeight: 500, color: TEXT, fontFamily: SANS, letterSpacing: '-0.01em' }}>
               {item.label}
             </span>
-            <span style={{ fontSize: 11, color: DIM, fontFamily: SANS, lineHeight: 1.4 }}>
+            <span style={{ fontSize: 12, color: DIM, fontFamily: SANS, lineHeight: 1.4 }}>
               {item.desc}
             </span>
           </a>
@@ -162,26 +162,8 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
       transition: 'opacity 0.2s ease',
       overflowY: 'auto',
     }}>
-      {[
-        { label: 'Product', items: PRODUCT_ITEMS },
-        { label: 'Developers', items: DEV_ITEMS },
-      ].map(group => (
-        <div key={group.label} style={{ borderBottom: LINE, paddingBottom: 16, marginBottom: 16 }}>
-          <div style={{ fontSize: 10, color: DIM, fontFamily: MONO, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
-            {group.label}
-          </div>
-          {group.items.map(item => (
-            <a key={item.label} href={item.href} onClick={onClose}
-              target={item.external ? '_blank' : undefined}
-              rel={item.external ? 'noopener noreferrer' : undefined}
-              style={{ display: 'block', padding: '8px 0', fontSize: 14, color: TEXT, textDecoration: 'none', fontFamily: SANS }}>
-              {item.label}
-            </a>
-          ))}
-        </div>
-      ))}
       <div style={{ borderBottom: LINE, paddingBottom: 16, marginBottom: 24 }}>
-        {[{ label: 'Pricing', href: '/v2/pricing' }, { label: 'Docs', href: '/v2/docs' }].map(item => (
+        {[{ label: 'Marketplace', href: '/marketplace' }, { label: 'Pricing', href: '/v2/pricing' }, { label: 'Docs', href: '/v2/docs' }].map(item => (
           <a key={item.label} href={item.href} onClick={onClose}
             style={{ display: 'block', padding: '8px 0', fontSize: 14, color: TEXT, textDecoration: 'none', fontFamily: SANS }}>
             {item.label}
@@ -258,8 +240,7 @@ export function V2Navbar({ activePage }: { activePage?: string }) {
 
           {/* desktop nav */}
           <nav className="v2nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 28, flex: 1, padding: '0 32px' }}>
-            <NavTrigger label="Product"    items={PRODUCT_ITEMS} />
-            <NavTrigger label="Developers" items={DEV_ITEMS} />
+            <NavLink label="Marketplace" href="/marketplace" active={activePage === 'marketplace'} />
             <NavLink label="Pricing" href="/v2/pricing" active={activePage === 'pricing'} />
             <NavLink label="Docs"    href="/v2/docs" />
           </nav>

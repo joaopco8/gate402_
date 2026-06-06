@@ -1,274 +1,161 @@
 'use client'
 
 import * as React from 'react'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { createClient } from '../../../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import {
-  Card, CardHeader, CardTitle, CardDescription,
-  CardContent
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { Lock } from 'lucide-react'
-import { Eye, EyeOff } from 'lucide-react'
+import { DitheringShader } from '../../../components/v2/dithering-shader'
+import '../../../styles/v2/tokens.css'
 
-interface Dot {
-  x: number; y: number; baseColor: string
-  targetOpacity: number; currentOpacity: number; opacitySpeed: number
-  baseRadius: number; currentRadius: number
+const BG    = '#1B1E1B'
+const CARD  = 'rgba(27,30,27,0.82)'
+const LINE  = '1px solid #2A2E2A'
+const TEXT  = '#E8F4EE'
+const MUTED = '#7A8C79'
+const GREEN = '#7AF279'
+const SANS  = "'Inter', sans-serif"
+
+function EyeIcon({ off }: { off?: boolean }) {
+  return off
+    ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+    : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
 }
 
-function InteractiveDots() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const rafRef = useRef<number | null>(null)
-  const dotsRef = useRef<Dot[]>([])
-  const gridRef = useRef<Record<string, number[]>>({})
-  const sizeRef = useRef({ width: 0, height: 0 })
-  const mouseRef = useRef<{ x: number | null; y: number | null }>({ x: null, y: null })
-
-  const DOT_SPACING = 25
-  const BASE_MIN = 0.40; const BASE_MAX = 0.50; const BASE_R = 1
-  const IR = 150; const IR_SQ = IR * IR
-  const GRID_CELL = Math.max(50, Math.floor(IR / 1.5))
-
-  const createDots = useCallback(() => {
-    const { width, height } = sizeRef.current
-    if (!width || !height) return
-    const dots: Dot[] = []; const grid: Record<string, number[]> = {}
-    const cols = Math.ceil(width / DOT_SPACING); const rows = Math.ceil(height / DOT_SPACING)
-    for (let i = 0; i < cols; i++) {
-      for (let j = 0; j < rows; j++) {
-        const x = i * DOT_SPACING + DOT_SPACING / 2
-        const y = j * DOT_SPACING + DOT_SPACING / 2
-        const key = `${Math.floor(x / GRID_CELL)}_${Math.floor(y / GRID_CELL)}`
-        if (!grid[key]) grid[key] = []
-        grid[key].push(dots.length)
-        const op = Math.random() * (BASE_MAX - BASE_MIN) + BASE_MIN
-        dots.push({ x, y, baseColor: `rgba(87,220,205,${BASE_MAX})`, targetOpacity: op, currentOpacity: op, opacitySpeed: Math.random() * 0.005 + 0.002, baseRadius: BASE_R, currentRadius: BASE_R })
-      }
-    }
-    dotsRef.current = dots; gridRef.current = grid
-  }, [DOT_SPACING, GRID_CELL, BASE_MIN, BASE_MAX, BASE_R])
-
-  const handleResize = useCallback(() => {
-    const canvas = canvasRef.current; if (!canvas) return
-    const w = canvas.parentElement?.clientWidth ?? window.innerWidth
-    const h = canvas.parentElement?.clientHeight ?? window.innerHeight
-    canvas.width = w; canvas.height = h
-    sizeRef.current = { width: w, height: h }
-    createDots()
-  }, [createDots])
-
-  const animate = useCallback(() => {
-    const canvas = canvasRef.current; const ctx = canvas?.getContext('2d')
-    const dots = dotsRef.current; const grid = gridRef.current
-    const { width, height } = sizeRef.current; const { x: mx, y: my } = mouseRef.current
-    if (!ctx || !width || !height) { rafRef.current = requestAnimationFrame(animate); return }
-    ctx.clearRect(0, 0, width, height)
-    const active = new Set<number>()
-    if (mx !== null && my !== null) {
-      const cx = Math.floor(mx / GRID_CELL); const cy = Math.floor(my / GRID_CELL)
-      const sr = Math.ceil(IR / GRID_CELL)
-      for (let i = -sr; i <= sr; i++) for (let j = -sr; j <= sr; j++) {
-        const k = `${cx + i}_${cy + j}`; grid[k]?.forEach(idx => active.add(idx))
-      }
-    }
-    dots.forEach((dot, idx) => {
-      dot.currentOpacity += dot.opacitySpeed
-      if (dot.currentOpacity >= dot.targetOpacity || dot.currentOpacity <= BASE_MIN) {
-        dot.opacitySpeed = -dot.opacitySpeed
-        dot.currentOpacity = Math.max(BASE_MIN, Math.min(dot.currentOpacity, BASE_MAX))
-        dot.targetOpacity = Math.random() * (BASE_MAX - BASE_MIN) + BASE_MIN
-      }
-      let factor = 0; dot.currentRadius = dot.baseRadius
-      if (mx !== null && my !== null && active.has(idx)) {
-        const dx = dot.x - mx; const dy = dot.y - my; const dSq = dx * dx + dy * dy
-        if (dSq < IR_SQ) { const d = Math.sqrt(dSq); factor = (1 - d / IR) ** 2 }
-      }
-      const m = dot.baseColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
-      ctx.beginPath()
-      ctx.fillStyle = `rgba(${m?.[1] ?? 87},${m?.[2] ?? 220},${m?.[3] ?? 205},${Math.min(1, dot.currentOpacity + factor * 0.6).toFixed(3)})`
-      ctx.arc(dot.x, dot.y, dot.baseRadius + factor * 2.5, 0, Math.PI * 2)
-      ctx.fill()
-    })
-    rafRef.current = requestAnimationFrame(animate)
-  }, [GRID_CELL, IR, IR_SQ, BASE_MIN, BASE_MAX])
-
-  useEffect(() => {
-    handleResize()
-    const onMove = (e: MouseEvent) => {
-      const canvas = canvasRef.current; if (!canvas) return
-      const r = canvas.getBoundingClientRect()
-      mouseRef.current = { x: e.clientX - r.left, y: e.clientY - r.top }
-    }
-    const onLeave = () => { mouseRef.current = { x: null, y: null } }
-    window.addEventListener('mousemove', onMove, { passive: true })
-    window.addEventListener('resize', handleResize)
-    document.documentElement.addEventListener('mouseleave', onLeave)
-    rafRef.current = requestAnimationFrame(animate)
-    return () => {
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('resize', handleResize)
-      document.documentElement.removeEventListener('mouseleave', onLeave)
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    }
-  }, [handleResize, animate])
-
-  return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.8 }} />
+function PasswordField({ id, label, show, onToggle, placeholder, value, onChange }: {
+  id: string; label: string; show: boolean; onToggle: () => void
+  placeholder: string; value: string; onChange: (v: string) => void
+}) {
+  const [focused, setFocused] = useState(false)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <label htmlFor={id} style={{ fontSize: 12, color: MUTED, fontFamily: SANS, fontWeight: 300 }}>{label}</label>
+      <div style={{ position: 'relative' }}>
+        <input
+          id={id} type={show ? 'text' : 'password'} placeholder={placeholder} required
+          value={value} onChange={e => onChange(e.target.value)}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            background: 'rgba(0,0,0,0.35)',
+            border: `1px solid ${focused ? '#4A5549' : '#2A2E2A'}`,
+            borderRadius: 6, padding: '10px 40px 10px 12px',
+            fontSize: 14, color: TEXT, fontFamily: SANS, fontWeight: 300,
+            outline: 'none', transition: 'border-color 0.15s',
+          }}
+        />
+        <button type="button" onClick={onToggle}
+          style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: MUTED, display: 'flex', padding: 0, transition: 'color 0.15s' }}
+          onMouseEnter={e => (e.currentTarget.style.color = TEXT)}
+          onMouseLeave={e => (e.currentTarget.style.color = MUTED)}
+        >
+          <EyeIcon off={show} />
+        </button>
+      </div>
+    </div>
+  )
 }
 
 export default function UpdatePasswordPage() {
-  const [password, setPassword] = useState('')
-  const [confirm, setConfirm] = useState('')
+  const [password,     setPassword]     = useState('')
+  const [confirm,      setConfirm]      = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const router = useRouter()
+  const [showConfirm,  setShowConfirm]  = useState(false)
+  const [loading,      setLoading]      = useState(false)
+  const [error,        setError]        = useState<string | null>(null)
+  const [success,      setSuccess]      = useState(false)
+  const router  = useRouter()
   const supabase = createClient()
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
-      return
-    }
-    if (password !== confirm) {
-      setError('Passwords do not match')
-      return
-    }
-
+    e.preventDefault(); setError(null)
+    if (password.length < 8) { setError('Password must be at least 8 characters'); return }
+    if (password !== confirm) { setError('Passwords do not match'); return }
     setLoading(true)
     const { error } = await supabase.auth.updateUser({ password })
-
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
-    }
-
+    if (error) { setError(error.message); setLoading(false); return }
     setSuccess(true)
     setTimeout(() => router.push('/dashboard'), 2000)
   }
 
   return (
-    <section className="fixed inset-0 text-zinc-50" style={{ backgroundColor: '#111111' }}>
-      <style>{`
-        .card-animate{opacity:0;transform:translateY(20px);animation:fadeUp 0.8s cubic-bezier(.22,.61,.36,1) 0.4s forwards}
-        @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
-      `}</style>
+    <div style={{ position: 'fixed', inset: 0, background: BG, fontFamily: SANS, color: TEXT, overflow: 'hidden' }}>
 
-      <InteractiveDots />
+      <DitheringShader
+        shape="wave" type="8x8" colorBack={BG} colorFront="#BC86FF"
+        pxSize={3} speed={0.6}
+        style={{ opacity: 0.18, pointerEvents: 'none', position: 'absolute', inset: 0, zIndex: 0 }}
+      />
 
-      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1, background: 'linear-gradient(to bottom, transparent 0%, #111111 90%), radial-gradient(ellipse at center, transparent 40%, #111111 95%)' }} />
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', background: 'radial-gradient(ellipse at center, transparent 40%, rgba(27,30,27,0.85) 100%)' }} />
 
-      <a href="/" style={{ position: 'absolute', top: 20, left: 20, zIndex: 20, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 6, border: '1px solid #2a2a2a', background: 'rgba(17,17,17,0.7)', backdropFilter: 'blur(8px)', color: '#999', fontSize: 13, textDecoration: 'none', transition: 'color 0.15s, border-color 0.15s' }}
-        onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#fff'; (e.currentTarget as HTMLAnchorElement).style.borderColor = '#444' }}
-        onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#999'; (e.currentTarget as HTMLAnchorElement).style.borderColor = '#2a2a2a' }}
+      <a href="/v2" style={{ position: 'absolute', top: 20, left: 24, zIndex: 10, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: MUTED, textDecoration: 'none', fontFamily: SANS, transition: 'color 0.15s' }}
+        onMouseEnter={e => (e.currentTarget.style.color = TEXT)}
+        onMouseLeave={e => (e.currentTarget.style.color = MUTED)}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        <svg width="12" height="12" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 1L2 5.5 7 10" /></svg>
         Home
       </a>
 
-      <div className="h-full w-full grid place-items-center px-4" style={{ position: 'relative', zIndex: 10 }}>
-        <Card className="card-animate w-full max-w-sm border-zinc-800 bg-zinc-900/70 backdrop-blur">
+      <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
+        <div style={{ width: '100%', maxWidth: 400, background: CARD, backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: LINE, borderRadius: 10, overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03)' }}>
 
-          <CardHeader className="space-y-1 pb-2">
-            <CardTitle className="text-2xl">Set new password</CardTitle>
-            <CardDescription className="text-zinc-400">
-              Choose a strong password for your Gate402 account
-            </CardDescription>
-          </CardHeader>
+          {/* header */}
+          <div style={{ padding: '28px 28px 20px', borderBottom: LINE }}>
+            <a href="/v2" style={{ display: 'inline-block', marginBottom: 20, textDecoration: 'none' }}>
+              <img src="/logos/metera-logo.png" alt="Metera" style={{ height: 22, width: 'auto', filter: 'brightness(0) invert(1)', display: 'block' }} />
+            </a>
+            <h1 style={{ fontSize: 20, fontWeight: 300, letterSpacing: '-0.03em', color: TEXT, margin: '0 0 4px', fontFamily: SANS }}>
+              Set new password
+            </h1>
+            <p style={{ fontSize: 13, color: MUTED, margin: 0, fontWeight: 300, fontFamily: SANS }}>
+              Choose a strong password for your Metera account.
+            </p>
+          </div>
 
-          <CardContent className="grid gap-4">
+          {/* body */}
+          <div style={{ padding: '24px 28px 28px' }}>
             {success ? (
-              <div className="flex flex-col items-center gap-3 py-6 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M4 10l4 4 8-8" stroke="#00bc7d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '16px 0', textAlign: 'center' }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', border: `1px solid ${GREEN}33`, background: `${GREEN}10`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                    <path d="M4 10l4 4 8-8" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <p className="text-sm font-medium text-zinc-50">Password updated</p>
-                <p className="text-xs text-zinc-500">Redirecting to dashboard…</p>
+                <p style={{ fontSize: 14, color: TEXT, fontFamily: SANS, fontWeight: 300, margin: 0 }}>Password updated successfully.</p>
+                <p style={{ fontSize: 12, color: MUTED, fontFamily: SANS, fontWeight: 300, margin: 0 }}>Redirecting to dashboard...</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="new-password" className="text-zinc-300">New password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                    <Input
-                      id="new-password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Min. 8 characters"
-                      required
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      className="pl-10 pr-10 bg-zinc-950 border-zinc-800 text-zinc-50 placeholder:text-zinc-600"
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-zinc-400 hover:text-zinc-200"
-                      onClick={() => setShowPassword(v => !v)}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="confirm-password" className="text-zinc-300">Confirm password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                    <Input
-                      id="confirm-password"
-                      type={showConfirm ? 'text' : 'password'}
-                      placeholder="Repeat password"
-                      required
-                      value={confirm}
-                      onChange={e => setConfirm(e.target.value)}
-                      className="pl-10 pr-10 bg-zinc-950 border-zinc-800 text-zinc-50 placeholder:text-zinc-600"
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-zinc-400 hover:text-zinc-200"
-                      onClick={() => setShowConfirm(v => !v)}
-                    >
-                      {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <PasswordField id="new-password" label="New password" show={showPassword} onToggle={() => setShowPassword(v => !v)}
+                  placeholder="Min. 8 characters" value={password} onChange={setPassword} />
+                <PasswordField id="confirm-password" label="Confirm password" show={showConfirm} onToggle={() => setShowConfirm(v => !v)}
+                  placeholder="Repeat password" value={confirm} onChange={setConfirm} />
 
                 {error && (
-                  <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-md px-3 py-2">
+                  <div style={{ fontSize: 13, color: '#f87171', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: 6, padding: '9px 12px', fontFamily: SANS, fontWeight: 300 }}>
                     {error}
-                  </p>
+                  </div>
                 )}
 
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full h-10 rounded-lg bg-zinc-50 text-zinc-900 hover:bg-zinc-200 font-medium"
+                <button type="submit" disabled={loading}
+                  style={{ width: '100%', background: GREEN, border: 'none', borderRadius: 6, padding: '11px 0', fontSize: 14, fontFamily: SANS, fontWeight: 500, color: BG, cursor: loading ? 'not-allowed' : 'pointer', transition: 'opacity 0.15s', opacity: loading ? 0.65 : 1 }}
+                  onMouseEnter={e => { if (!loading) e.currentTarget.style.opacity = '0.85' }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = loading ? '0.65' : '1' }}
                 >
-                  {loading ? 'Updating…' : 'Update password'}
-                </Button>
+                  {loading ? 'Updating...' : 'Update password'}
+                </button>
 
-                <p className="text-center text-xs text-zinc-500">
-                  <a href="/auth/login" className="text-zinc-400 hover:text-zinc-200">
-                    ← Back to sign in
-                  </a>
-                </p>
+                <a href="/auth/login" style={{ fontSize: 13, color: MUTED, textDecoration: 'none', textAlign: 'center', fontFamily: SANS, transition: 'color 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = TEXT)}
+                  onMouseLeave={e => (e.currentTarget.style.color = MUTED)}
+                >
+                  ← Back to sign in
+                </a>
               </form>
             )}
-          </CardContent>
-
-        </Card>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   )
 }

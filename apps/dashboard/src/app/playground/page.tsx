@@ -10,10 +10,10 @@ import PageHeader from '../components/PageHeader'
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
 
 const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? 'https://api.gate402.dev'
-const MONO = 'var(--font-code)'
-const SANS = 'var(--font-display)'
+const MONO = 'var(--font-label)'
+const SANS = 'var(--font-label)'
 
-interface Endpoint { id: string; path: string; priceUsdc: number }
+interface Endpoint { id: string; slug: string; name: string; pricePerCall: number }
 interface CallResult {
   status: number; statusText: string; data: unknown
   headers: Record<string, string>; timeMs: number
@@ -35,13 +35,13 @@ function JsonDisplay({ data }: { data: unknown }) {
 
 function StatusBadge({ status }: { status: number }) {
   const cfg = status === 200
-    ? { bg: 'rgba(0,188,125,0.1)', border: 'rgba(0,188,125,0.3)', color: '#00bc7d', label: '200 OK' }
+    ? { bg: 'rgba(0,188,125,0.1)', border: 'rgba(0,188,125,0.3)', color: '#7AF279', label: '200 OK' }
     : status === 402
     ? { bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)', color: '#f59e0b', label: '402 Payment Required' }
     : status === 0
     ? { bg: 'rgba(100,100,100,0.1)', border: 'rgba(100,100,100,0.3)', color: '#888', label: 'Error' }
     : { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', color: '#ef4444', label: String(status) }
-  return <span style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color, borderRadius: 6, padding: '2px 8px', fontSize: 11, fontFamily: MONO, fontWeight: 500 }}>{cfg.label}</span>
+  return <span style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color, borderRadius: 6, padding: '2px 8px', fontSize: 12, fontFamily: MONO, fontWeight: 500 }}>{cfg.label}</span>
 }
 
 const METHOD_COLORS: Record<string, { color: string; bg: string; border: string }> = {
@@ -51,7 +51,7 @@ const METHOD_COLORS: Record<string, { color: string; bg: string; border: string 
 
 function MethodBadge({ method }: { method: string }) {
   const cfg = METHOD_COLORS[method] ?? METHOD_COLORS.GET
-  return <span style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color, borderRadius: 6, padding: '2px 8px', fontSize: 11, fontFamily: MONO, fontWeight: 600 }}>{method}</span>
+  return <span style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color, borderRadius: 6, padding: '2px 8px', fontSize: 12, fontFamily: MONO, fontWeight: 600 }}>{method}</span>
 }
 
 function timeAgo(ts: number) {
@@ -79,14 +79,18 @@ export default function PlaygroundPage() {
     createClient().auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return
       setSupabaseId(user.id)
-      fetch(`${SERVER}/api/endpoints`, { headers: { ...await getAuthHeaders() } })
-        .then(r => r.ok ? r.json() : [])
-        .then((eps: Endpoint[]) => { setEndpoints(eps); if (eps.length > 0) setSelectedPath(eps[0].path) })
+      fetch(`${SERVER}/api/proxy-endpoints`, { headers: { ...await getAuthHeaders() } })
+        .then(r => r.ok ? r.json() : { endpoints: [] })
+        .then((data: { endpoints: Endpoint[] }) => {
+          const eps = data.endpoints || []
+          setEndpoints(eps)
+          if (eps.length > 0) setSelectedPath(eps[0].slug)
+        })
         .catch(() => {})
     })
   }, [])
 
-  const selectedEp = endpoints.find(e => e.path === selectedPath)
+  const selectedEp = endpoints.find(e => e.slug === selectedPath)
   const hasBody = method === 'POST'
 
   async function doCall(paid: boolean) {
@@ -94,7 +98,7 @@ export default function PlaygroundPage() {
     setLoading(paid ? 'paid' : 'unpaid')
     setActiveTab('response')
     const start = Date.now()
-    const url = `${SERVER}${selectedPath}`
+    const url = `${SERVER}/p/${selectedPath}`
     let apiKey = ''
     if (paid && supabaseId) {
       try {
@@ -160,8 +164,8 @@ export default function PlaygroundPage() {
                   <div style={{ flex: 1, position: 'relative' }}>
                     <select value={selectedPath} onChange={e => setSelectedPath(e.target.value)}
                       style={{ width: '100%', background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 6, padding: '8px 32px 8px 12px', fontSize: 13, color: 'var(--text-secondary)', fontFamily: MONO, outline: 'none', cursor: 'pointer', appearance: 'none' }}>
-                      {endpoints.length === 0 && <option value="">No endpoints configured</option>}
-                      {endpoints.map(ep => <option key={ep.id} value={ep.path}>{ep.path}</option>)}
+                      {endpoints.length === 0 && <option value="">No APIs configured</option>}
+                      {endpoints.map(ep => <option key={ep.id} value={ep.slug}>{ep.name || ep.slug}</option>)}
                     </select>
                     <svg style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#444" strokeWidth="1.5" strokeLinecap="round"><path d="M2 4l4 4 4-4"/></svg>
                   </div>
@@ -169,8 +173,8 @@ export default function PlaygroundPage() {
 
                 <div style={{ padding: '8px 16px 12px' }}>
                   {selectedEp
-                    ? <span style={{ fontFamily: MONO, fontSize: 11, color: '#00bc7d' }}>{selectedEp.priceUsdc} USDC / call</span>
-                    : <a href="/endpoints" style={{ fontFamily: MONO, fontSize: 11, color: '#00bc7d' }}>Add an endpoint →</a>}
+                    ? <span style={{ fontFamily: MONO, fontSize: 12, color: '#7AF279' }}>${selectedEp.pricePerCall} USDC / call</span>
+                    : <a href="/proxy" style={{ fontFamily: MONO, fontSize: 12, color: '#7AF279' }}>Register an API →</a>}
                 </div>
 
                 {/* Tabs */}
@@ -196,9 +200,9 @@ export default function PlaygroundPage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                         <StatusBadge status={response.status} />
                         <MethodBadge method={response.method} />
-                        <span style={{ fontFamily: MONO, fontSize: 11, color: '#444' }}>{response.timeMs}ms</span>
+                        <span style={{ fontFamily: MONO, fontSize: 12, color: '#444' }}>{response.timeMs}ms</span>
                         <button onClick={() => { navigator.clipboard.writeText(JSON.stringify(response.data, null, 2)); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-                          style={{ marginLeft: 'auto', background: 'none', border: '1px solid #1a1a1a', borderRadius: 6, color: copied ? '#00bc7d' : '#444', fontSize: 11, fontFamily: MONO, padding: '3px 10px', cursor: 'pointer' }}>
+                          style={{ marginLeft: 'auto', background: 'none', border: '1px solid #1a1a1a', borderRadius: 6, color: copied ? '#7AF279' : '#444', fontSize: 12, fontFamily: MONO, padding: '3px 10px', cursor: 'pointer' }}>
                           {copied ? 'Copied' : 'Copy'}
                         </button>
                       </div>
@@ -221,7 +225,7 @@ export default function PlaygroundPage() {
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
                         <button onClick={() => { navigator.clipboard.writeText(response.curlCmd); setCurlCopied(true); setTimeout(() => setCurlCopied(false), 2000) }}
-                          style={{ background: 'none', border: '1px solid #1a1a1a', borderRadius: 6, color: curlCopied ? '#00bc7d' : '#444', fontSize: 11, fontFamily: MONO, padding: '3px 10px', cursor: 'pointer' }}>
+                          style={{ background: 'none', border: '1px solid #1a1a1a', borderRadius: 6, color: curlCopied ? '#7AF279' : '#444', fontSize: 12, fontFamily: MONO, padding: '3px 10px', cursor: 'pointer' }}>
                           {curlCopied ? 'Copied' : 'Copy cURL'}
                         </button>
                       </div>
@@ -235,7 +239,7 @@ export default function PlaygroundPage() {
                 {/* Body */}
                 {hasBody && (
                   <div style={{ padding: '0 16px 12px', borderTop: '1px solid #111' }}>
-                    <div style={{ fontFamily: MONO, fontSize: 11, color: '#444', fontWeight: 500, marginBottom: 8, marginTop: 12 }}>Request body</div>
+                    <div style={{ fontFamily: MONO, fontSize: 12, color: '#444', fontWeight: 500, marginBottom: 8, marginTop: 12 }}>Request body</div>
                     <textarea value={body} onChange={e => setBody(e.target.value)}
                       style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 6, padding: 12, fontSize: 12, color: 'var(--text-secondary)', fontFamily: MONO, lineHeight: 1.6, height: 90, resize: 'vertical', outline: 'none' }}
                       spellCheck={false} />
@@ -251,7 +255,7 @@ export default function PlaygroundPage() {
                     {loading === 'unpaid' ? 'Calling...' : 'Call free'}
                   </button>
                   <button onClick={() => doCall(true)} disabled={loading !== null || !selectedPath}
-                    style={{ flex: 1, padding: '10px 0', background: !selectedPath ? 'var(--bg-surface)' : '#006239', border: `0.5px solid ${!selectedPath ? 'var(--border-default)' : '#128353'}`, borderRadius: 6, fontSize: 13, color: !selectedPath ? 'var(--text-muted)' : '#fff', fontFamily: SANS, fontWeight: 600, cursor: loading !== null || !selectedPath ? 'not-allowed' : 'pointer', opacity: loading !== null || !selectedPath ? 0.4 : 1, transition: 'opacity 150ms' }}>
+                    style={{ flex: 1, padding: '10px 0', background: !selectedPath ? 'var(--bg-surface)' : '#7AF279', border: `1px solid ${!selectedPath ? 'var(--border-default)' : '#7AF279'}`, borderRadius: 0, fontSize: 13, color: !selectedPath ? 'var(--text-muted)' : '#1B1E1B', fontFamily: SANS, fontWeight: 600, cursor: loading !== null || !selectedPath ? 'not-allowed' : 'pointer', opacity: loading !== null || !selectedPath ? 0.4 : 1, transition: 'opacity 150ms' }}>
                     {loading === 'paid' ? 'Paying...' : 'Pay & call \u2192'}
                   </button>
                 </div>
@@ -269,13 +273,13 @@ export default function PlaygroundPage() {
                 <Panel defaultSize={history.length > 0 ? 65 : 100} minSize={40}>
                   <div style={panelBox}>
                     <div style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                      <span style={{ fontFamily: MONO, fontSize: 11, color: '#555', fontWeight: 500 }}>Response</span>
+                      <span style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Response</span>
                       {response && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <StatusBadge status={response.status} />
                           <MethodBadge method={response.method} />
-                          <span style={{ fontFamily: MONO, fontSize: 11, color: '#444' }}>{response.timeMs}ms</span>
-                          <span style={{ fontFamily: MONO, fontSize: 11, color: '#2a2a2a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>{response.endpoint}</span>
+                          <span style={{ fontFamily: MONO, fontSize: 12, color: '#444' }}>{response.timeMs}ms</span>
+                          <span style={{ fontFamily: MONO, fontSize: 12, color: '#2a2a2a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>{response.endpoint}</span>
                         </div>
                       )}
                     </div>
@@ -300,8 +304,8 @@ export default function PlaygroundPage() {
                     <Panel defaultSize={35} minSize={18}>
                       <div style={panelBox}>
                         <div style={{ padding: '10px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <span style={{ fontFamily: MONO, fontSize: 11, color: '#555', fontWeight: 500 }}>Session history</span>
-                          <span style={{ fontFamily: MONO, fontSize: 11, color: '#333' }}>{history.length} call{history.length !== 1 ? 's' : ''}</span>
+                          <span style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Session history</span>
+                          <span style={{ fontFamily: MONO, fontSize: 12, color: '#333' }}>{history.length} call{history.length !== 1 ? 's' : ''}</span>
                         </div>
                         <div style={{ flex: 1, overflowY: 'auto' }}>
                           {history.map((h, i) => (
@@ -310,12 +314,12 @@ export default function PlaygroundPage() {
                                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', cursor: 'pointer', borderBottom: '1px solid var(--border-default)', background: expandedHistory === i ? 'var(--bg-overlay)' : 'transparent', transition: 'background 100ms' }}
                                 onMouseEnter={e => { if (expandedHistory !== i) e.currentTarget.style.background = 'var(--bg-overlay)' }}
                                 onMouseLeave={e => { if (expandedHistory !== i) e.currentTarget.style.background = 'transparent' }}>
-                                <span style={{ width: 7, height: 7, borderRadius: '50%', background: h.status === 200 ? '#00bc7d' : h.status === 402 ? '#f59e0b' : '#555', flexShrink: 0 }} />
+                                <span style={{ width: 7, height: 7, borderRadius: '50%', background: h.status === 200 ? '#7AF279' : h.status === 402 ? '#f59e0b' : '#555', flexShrink: 0 }} />
                                 <MethodBadge method={h.method} />
                                 <span style={{ fontFamily: MONO, fontSize: 12, color: '#666', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.endpoint}</span>
-                                <span style={{ fontFamily: MONO, fontSize: 11, color: h.type === 'paid' ? '#00bc7d' : '#f59e0b', flexShrink: 0 }}>{h.type}</span>
-                                <span style={{ fontFamily: MONO, fontSize: 11, color: '#333', flexShrink: 0 }}>{h.timeMs}ms</span>
-                                <span style={{ fontFamily: MONO, fontSize: 11, color: '#222', flexShrink: 0, minWidth: 56, textAlign: 'right' }}>{timeAgo(h.timestamp)}</span>
+                                <span style={{ fontFamily: MONO, fontSize: 12, color: h.type === 'paid' ? '#7AF279' : '#f59e0b', flexShrink: 0 }}>{h.type}</span>
+                                <span style={{ fontFamily: MONO, fontSize: 12, color: '#333', flexShrink: 0 }}>{h.timeMs}ms</span>
+                                <span style={{ fontFamily: MONO, fontSize: 12, color: '#222', flexShrink: 0, minWidth: 56, textAlign: 'right' }}>{timeAgo(h.timestamp)}</span>
                               </div>
                               {expandedHistory === i && (
                                 <div style={{ padding: '12px 16px', background: 'var(--bg-overlay)', borderBottom: '1px solid var(--border-default)' }}>

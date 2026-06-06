@@ -389,7 +389,7 @@ function LiveFeed() {
               <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 32, color: '#fff', letterSpacing: '-0.02em', marginBottom: 6, transition: 'all 0.3s' }}>
                 {value}
               </div>
-              <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.08em' }}>{label}</div>
+              <div className="mono" style={{ fontSize: 12, color: '#333', letterSpacing: '0.08em' }}>{label}</div>
             </div>
           ))}
         </div>
@@ -432,7 +432,7 @@ function HowItWorks() {
     <section id="how-it-works" style={{ background: '#111111', padding: '120px 32px', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
-        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 16 }}>
+        <div className="mono" style={{ fontSize: 12, color: '#333', letterSpacing: '0.1em', marginBottom: 16 }}>
           HOW IT WORKS
         </div>
 
@@ -470,7 +470,7 @@ function HowItWorks() {
                 transition: 'background 200ms ease',
               }}
             >
-              <div className="mono" style={{ fontSize: 11, color: '#222', letterSpacing: '0.1em', marginBottom: 24 }}>
+              <div className="mono" style={{ fontSize: 12, color: '#222', letterSpacing: '0.1em', marginBottom: 24 }}>
                 {n}
               </div>
 
@@ -622,7 +622,7 @@ function AgentFlow() {
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
 
         {/* Eyebrow */}
-        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>
+        <div className="mono" style={{ fontSize: 12, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>
           AGENT PAYMENT FLOW
         </div>
 
@@ -653,7 +653,7 @@ function AgentFlow() {
               ].map(({ icon, label, color }) => (
                 <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, paddingBottom: 16 }}>
                   <span style={{ fontSize: 18, color }}>{icon}</span>
-                  <span style={{ fontSize: 11, color: '#666', letterSpacing: '0.06em' }}>{label}</span>
+                  <span style={{ fontSize: 12, color: '#666', letterSpacing: '0.06em' }}>{label}</span>
                 </div>
               ))}
             </div>
@@ -681,17 +681,17 @@ function AgentFlow() {
                   >
                     {/* Arrow row */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center', marginBottom: 4 }}>
-                      <span style={{ fontSize: 11, color: '#555', textAlign: 'center' }}>{isRight ? fromLabel : toLabel}</span>
+                      <span style={{ fontSize: 12, color: '#555', textAlign: 'center' }}>{isRight ? fromLabel : toLabel}</span>
                       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <div style={{ position: 'absolute', left: 0, right: 0, borderTop: '1px dashed #1a1a1a' }} />
                         <span style={{ position: 'relative', fontSize: 14, color: line.color, background: '#111111', padding: '0 4px' }}>
                           {isRight ? '→' : '←'}
                         </span>
                       </div>
-                      <span style={{ fontSize: 11, color: '#555', textAlign: 'center' }}>{isRight ? toLabel : fromLabel}</span>
+                      <span style={{ fontSize: 12, color: '#555', textAlign: 'center' }}>{isRight ? toLabel : fromLabel}</span>
                     </div>
                     {/* Message */}
-                    <div style={{ textAlign: 'center', fontSize: 11, color: line.color, letterSpacing: '0.02em', opacity: 0.9 }}>
+                    <div style={{ textAlign: 'center', fontSize: 12, color: line.color, letterSpacing: '0.02em', opacity: 0.9 }}>
                       {line.msg}
                     </div>
                   </div>
@@ -709,11 +709,11 @@ function AgentFlow() {
                   <div key={c} style={{ width: 9, height: 9, borderRadius: '50%', background: c }} />
                 ))}
               </div>
-              <span className="mono" style={{ fontSize: 11, color: '#333', marginLeft: 4 }}>agent.ts</span>
+              <span className="mono" style={{ fontSize: 12, color: '#333', marginLeft: 4 }}>agent.ts</span>
             </div>
 
             {/* Code */}
-            <pre style={{ margin: 0, fontFamily: 'var(--font-mono, monospace)', fontSize: 11, lineHeight: 1.85, overflowX: 'auto' }}>
+            <pre style={{ margin: 0, fontFamily: 'var(--font-mono, monospace)', fontSize: 12, lineHeight: 1.85, overflowX: 'auto' }}>
               {codeRows.map((row, i) => (
                 <div key={i} style={{ minHeight: '1.85em' }}>
                   {row.segments.map((seg, j) => (
@@ -726,7 +726,7 @@ function AgentFlow() {
         </div>
 
         {/* Footer badge */}
-        <div className="mono" style={{ fontSize: 11, color: '#333', textAlign: 'center', letterSpacing: '0.06em' }}>
+        <div className="mono" style={{ fontSize: 12, color: '#333', textAlign: 'center', letterSpacing: '0.06em' }}>
           Compatible with Claude · GPT-4 · Gemini · Any HTTP client
         </div>
 
@@ -791,7 +791,7 @@ function Features() {
   return (
     <section id="features" style={{ background: '#111111', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
       <div ref={ref} style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px' }}>
-        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>
+        <div className="mono" style={{ fontSize: 12, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>
           INFRASTRUCTURE
         </div>
         <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 48, letterSpacing: '-0.03em', color: '#fff', marginBottom: 16 }}>
@@ -893,7 +893,7 @@ function CodeSection() {
 
         {/* Left */}
         <div>
-          <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>ONE MIDDLEWARE</div>
+          <div className="mono" style={{ fontSize: 12, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>ONE MIDDLEWARE</div>
           <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 40, letterSpacing: '-0.03em', color: '#fff', marginBottom: 16 }}>
             Any API.<br />Monetized.
           </h2>
@@ -920,7 +920,7 @@ function CodeSection() {
                 <div key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />
               ))}
             </div>
-            <span className="mono" style={{ fontSize: 11, color: '#333' }}>gate402 · Express</span>
+            <span className="mono" style={{ fontSize: 12, color: '#333' }}>gate402 · Express</span>
           </div>
           {/* code with typing effect */}
           <pre style={{ margin: 0, padding: '20px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.75, overflowX: 'auto', minHeight: 280 }}>
@@ -960,10 +960,10 @@ function CodeBlock({ lang, lines }: { lang: string; lines: CodeLine[] }) {
   return (
     <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid #1a1a1a' }}>
-        <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333', letterSpacing: '0.06em' }}>{lang}</span>
+        <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#333', letterSpacing: '0.06em' }}>{lang}</span>
         <button
           onClick={copy}
-          style={{ background: copied ? '#00bc7d15' : 'transparent', border: `1px solid ${copied ? '#00bc7d40' : '#222'}`, color: copied ? '#00bc7d' : '#444', borderRadius: 6, padding: '3px 10px', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, cursor: 'pointer', transition: 'all 0.15s' }}
+          style={{ background: copied ? '#00bc7d15' : 'transparent', border: `1px solid ${copied ? '#00bc7d40' : '#222'}`, color: copied ? '#00bc7d' : '#444', borderRadius: 6, padding: '3px 10px', fontFamily: 'var(--font-mono, monospace)', fontSize: 12, cursor: 'pointer', transition: 'all 0.15s' }}
         >
           {copied ? 'Copied ✓' : 'Copy'}
         </button>
@@ -994,7 +994,7 @@ function StatsBar() {
         {stats.map((s, i) => (
           <div key={i} style={{ textAlign: 'center', borderRight: i < 3 ? '1px solid #1a1a1a' : 'none', padding: '8px 0' }}>
             <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 600, fontSize: 22, color: '#fff' }}>{s.value}</div>
-            <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', letterSpacing: '0.08em', marginTop: 4 }}>{s.label}</div>
+            <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#444', letterSpacing: '0.08em', marginTop: 4 }}>{s.label}</div>
           </div>
         ))}
       </div>
@@ -1029,7 +1029,7 @@ function ProviderSide() {
       content: (
         <div>
           <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', lineHeight: 1.6, marginBottom: 12 }}>Payments go directly to your Solana wallet.</p>
-          <span style={{ display: 'inline-block', background: 'rgba(0,188,125,0.08)', border: '1px solid rgba(0,188,125,0.2)', color: '#00bc7d', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, padding: '4px 10px', borderRadius: 6 }}>Non-custodial</span>
+          <span style={{ display: 'inline-block', background: 'rgba(0,188,125,0.08)', border: '1px solid rgba(0,188,125,0.2)', color: '#00bc7d', fontFamily: 'var(--font-mono, monospace)', fontSize: 12, padding: '4px 10px', borderRadius: 6 }}>Non-custodial</span>
         </div>
       ),
     },
@@ -1038,7 +1038,7 @@ function ProviderSide() {
       content: (
         <div>
           <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 13, color: '#666', lineHeight: 1.6, marginBottom: 12 }}>Agents receive HTTP 402 and pay automatically.</p>
-          <span style={{ display: 'inline-block', background: 'rgba(0,188,125,0.08)', border: '1px solid rgba(0,188,125,0.2)', color: '#00bc7d', fontFamily: 'var(--font-mono, monospace)', fontSize: 11, padding: '4px 10px', borderRadius: 6 }}>✓ Done</span>
+          <span style={{ display: 'inline-block', background: 'rgba(0,188,125,0.08)', border: '1px solid rgba(0,188,125,0.2)', color: '#00bc7d', fontFamily: 'var(--font-mono, monospace)', fontSize: 12, padding: '4px 10px', borderRadius: 6 }}>✓ Done</span>
         </div>
       ),
     },
@@ -1048,7 +1048,7 @@ function ProviderSide() {
     <section style={{ background: '#111111', padding: '96px 0', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ marginBottom: 56 }}>
-          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', letterSpacing: '0.12em', marginBottom: 16 }}>FOR API DEVELOPERS</div>
+          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#444', letterSpacing: '0.12em', marginBottom: 16 }}>FOR API DEVELOPERS</div>
           <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 40, color: '#fff', lineHeight: 1.1, marginBottom: 12 }}>Three lines. Agents pay you.</h2>
           <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#888', maxWidth: 480 }}>Drop-in Express middleware. No custody. No intermediary.</p>
         </div>
@@ -1066,7 +1066,7 @@ function ProviderSide() {
                 transition: 'background 150ms, border-color 150ms',
               }}
             >
-              <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', marginBottom: 16 }}>{step.n}</div>
+              <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#444', marginBottom: 16 }}>{step.n}</div>
               <div style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 500, fontSize: 15, color: '#fff', marginBottom: 12 }}>{step.title}</div>
               {step.content}
             </div>
@@ -1082,7 +1082,7 @@ function AgentSide() {
     <section style={{ background: '#111111', borderTop: '1px solid #1a1a1a', borderBottom: '1px solid #1a1a1a', padding: '80px 0' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ maxWidth: 720, marginBottom: 48 }}>
-          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444', letterSpacing: '0.12em', marginBottom: 16 }}>FOR AGENT OPERATORS</div>
+          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#444', letterSpacing: '0.12em', marginBottom: 16 }}>FOR AGENT OPERATORS</div>
           <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 40, color: '#fff', lineHeight: 1.1, marginBottom: 12 }}>Any HTTP client. Pays itself.</h2>
           <p style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: 16, color: '#888' }}>Fund your agent wallet with USDC. The agent handles the rest.</p>
         </div>
@@ -1090,7 +1090,7 @@ function AgentSide() {
         <div className="code-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 32 }}>
           <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444' }}>with x402-fetch</span>
+              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#444' }}>with x402-fetch</span>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#00bc7d' }}>RECOMMENDED</span>
             </div>
             <div style={{ padding: '16px 20px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.7 }}>
@@ -1105,7 +1105,7 @@ function AgentSide() {
 
           <div style={{ background: '#111111', border: '1px solid #1a1a1a', borderRadius: 6, overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#444' }}>with any HTTP client</span>
+              <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#444' }}>with any HTTP client</span>
               <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 10, color: '#444' }}>MANUAL</span>
             </div>
             <div style={{ padding: '16px 20px', fontFamily: 'var(--font-mono, monospace)', fontSize: 13, lineHeight: 1.7 }}>
@@ -1216,7 +1216,7 @@ function HoodCard({ card }: { card: typeof HOOD_CARDS[number] }) {
       {card.detail && (
         <div style={{
           display: 'inline-block', marginTop: 16,
-          fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333',
+          fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#333',
           background: '#111111', border: '1px solid #1a1a1a', borderRadius: 6, padding: '6px 12px',
         }}>{card.detail}</div>
       )}
@@ -1232,7 +1232,7 @@ function HowItWorksTimeline() {
 
         {/* Header */}
         <div style={{ marginBottom: 48 }}>
-          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333', letterSpacing: '0.15em', marginBottom: 16 }}>UNDER THE HOOD</div>
+          <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#333', letterSpacing: '0.15em', marginBottom: 16 }}>UNDER THE HOOD</div>
           <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 52, lineHeight: 1.1, marginBottom: 16 }}>
             <span style={{ color: '#fff' }}>Seven steps.</span>
             <span style={{ color: '#333' }}> Under one second.</span>
@@ -1299,7 +1299,7 @@ function HowItWorksTimeline() {
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
               }}>
                 <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 24, color: '#00bc7d', fontWeight: 600 }}>200 OK</span>
-                <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: '#333' }}>handler executed</span>
+                <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 12, color: '#333' }}>handler executed</span>
               </div>
             </div>
           </div>
@@ -1330,7 +1330,7 @@ function FAQ() {
   return (
     <section style={{ background: '#111111', padding: '120px 0', borderTop: '1px solid #1a1a1a' }}>
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 32px' }}>
-        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>FAQ</div>
+        <div className="mono" style={{ fontSize: 12, color: '#333', letterSpacing: '0.1em', marginBottom: 20 }}>FAQ</div>
         <h2 style={{ fontSize: 40, fontWeight: 300, marginBottom: 64, lineHeight: 1.2 }}>Common questions</h2>
         <div>
           {FAQ_ITEMS.map((item, idx) => (
@@ -1418,7 +1418,7 @@ function Pricing() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Header */}
-        <div className="mono" style={{ fontSize: 11, color: '#333', letterSpacing: '0.1em', marginBottom: 20, textAlign: 'center' }}>PRICING</div>
+        <div className="mono" style={{ fontSize: 12, color: '#333', letterSpacing: '0.1em', marginBottom: 20, textAlign: 'center' }}>PRICING</div>
         <h2 style={{ fontFamily: 'var(--font-space, sans-serif)', fontWeight: 300, fontSize: 48, letterSpacing: '-0.03em', color: '#fff', marginBottom: 12, textAlign: 'center' }}>
           Free until you&apos;re making money.
         </h2>
@@ -1510,7 +1510,7 @@ function Pricing() {
                 borderRadius: 6,
                 padding: 10,
                 fontFamily: 'var(--font-mono, monospace)',
-                fontSize: 11,
+                fontSize: 12,
                 lineHeight: 1.85,
                 overflowX: 'auto',
               }}>
@@ -1660,7 +1660,7 @@ function GetStarted() {
                   {opt.label}
                 </h3>
                 <span style={{
-                  fontSize: 11, fontWeight: 500, color: '#00bc7d',
+                  fontSize: 12, fontWeight: 500, color: '#00bc7d',
                   background: 'rgba(0,188,125,0.1)', border: '1px solid rgba(0,188,125,0.2)',
                   borderRadius: 6, padding: '2px 8px', whiteSpace: 'nowrap',
                 }}>
@@ -1688,7 +1688,7 @@ function GetStarted() {
                     border: `1px solid ${copied === opt.cmd ? 'rgba(0,188,125,0.3)' : '#333'}`,
                     color: copied === opt.cmd ? '#00bc7d' : '#555',
                     borderRadius: 6, padding: '3px 10px',
-                    fontFamily: 'var(--font-mono, monospace)', fontSize: 11,
+                    fontFamily: 'var(--font-mono, monospace)', fontSize: 12,
                     cursor: 'pointer', transition: 'all 0.15s',
                   }}
                 >
@@ -1744,7 +1744,7 @@ function Footer() {
         </div>
 
         {/* Bottom line */}
-        <div className="mono" style={{ fontSize: 11, color: '#333', textAlign: 'center', padding: '24px 0' }}>
+        <div className="mono" style={{ fontSize: 12, color: '#333', textAlign: 'center', padding: '24px 0' }}>
           Built with x402 Protocol · Powered by Solana
         </div>
       </div>

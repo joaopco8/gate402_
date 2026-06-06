@@ -13,8 +13,8 @@ const MUTED= '#7A8C79'
 const DIM  = '#4A5549'
 const GREEN= '#7AF279'
 const LINE = '#2A2E2A'
-const MONO = "'JetBrains Mono', monospace"
-const SANS = "'Inter', sans-serif"
+const MONO = "'Geist Mono', monospace"
+const SANS = "'Geist Mono', monospace"
 
 function getIntent(): string | null {
   const urlIntent = new URLSearchParams(window.location.search).get('intent')
@@ -37,10 +37,17 @@ const PHRASES = [
   '( your workspace is loading )',
 ]
 
+const LOG_LINES = [
+  { ok: true,  text: 'Solana RPC            connected' },
+  { ok: true,  text: 'USDC rails            verified' },
+  { ok: true,  text: 'payment middleware    active' },
+  { ok: null,  text: 'workspace             loading' },
+]
+
 export default function PostLoginPage() {
   const [visible, setVisible] = useState(false)
   const [phrase]  = useState(() => PHRASES[Math.floor(Math.random() * PHRASES.length)])
-  const [dots, setDots] = useState('')
+  const [step, setStep] = useState(0)
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 80)
@@ -48,13 +55,10 @@ export default function PostLoginPage() {
   }, [])
 
   useEffect(() => {
-    let i = 0
-    const id = setInterval(() => {
-      i = (i + 1) % 4
-      setDots('.'.repeat(i))
-    }, 380)
-    return () => clearInterval(id)
-  }, [])
+    if (step >= LOG_LINES.length) return
+    const id = setTimeout(() => setStep(s => s + 1), 320)
+    return () => clearTimeout(id)
+  }, [step])
 
   useEffect(() => {
     async function go() {
@@ -143,80 +147,92 @@ export default function PostLoginPage() {
       <div style={{
         position: 'relative', zIndex: 1,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        gap: 0,
         opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(6px)',
+        transform: visible ? 'translateY(0)' : 'translateY(8px)',
         transition: 'opacity 0.5s ease, transform 0.5s ease',
-        width: '100%', maxWidth: 560, padding: '0 24px',
+        width: '100%', maxWidth: 480, padding: '0 32px',
       }}>
 
         {/* logo */}
         <img
           src="/logos/metera-logo.png"
           alt="Metera"
-          style={{ height: 20, width: 'auto', filter: 'brightness(0) invert(1)', marginBottom: 48, opacity: 0.7 }}
+          style={{ height: 34, width: 'auto', filter: 'brightness(0) invert(1)', marginBottom: 56, opacity: 0.9 }}
         />
-
-        {/* top line */}
-        <div style={{ width: '100%', height: 1, background: LINE }} />
 
         {/* phrase */}
         <div style={{
-          padding: '20px 0',
           fontFamily: MONO,
-          fontSize: 13,
+          fontSize: 16,
           fontWeight: 400,
-          letterSpacing: '0.04em',
+          letterSpacing: '-0.01em',
           color: GREEN,
           textAlign: 'center',
-          width: '100%',
+          marginBottom: 40,
+          lineHeight: 1.5,
         }}>
           {phrase}
         </div>
 
-        {/* bottom line */}
-        <div style={{ width: '100%', height: 1, background: LINE }} />
-
-        {/* sub-label */}
+        {/* terminal log */}
         <div style={{
-          marginTop: 32,
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+          width: '100%',
+          border: `1px solid ${LINE}`,
+          borderRadius: 8,
+          overflow: 'hidden',
+          background: 'rgba(255,255,255,0.02)',
         }}>
+          {/* titlebar */}
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 10,
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '8px 14px',
+            borderBottom: `1px solid ${LINE}`,
+            background: 'rgba(255,255,255,0.03)',
           }}>
-            {/* pulse dot */}
-            <span style={{
-              display: 'inline-block',
-              width: 6, height: 6,
-              borderRadius: '50%',
-              background: GREEN,
-              boxShadow: `0 0 8px ${GREEN}`,
-              animation: 'pulse-dot 1.4s ease-in-out infinite',
-            }} />
-            <span style={{
-              fontFamily: MONO, fontSize: 11,
-              color: MUTED, letterSpacing: '0.08em',
-            }}>
-              loading{dots}
-            </span>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#FF5F57' }} />
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#FEBC2E' }} />
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#28C840' }} />
+            <span style={{ fontFamily: MONO, fontSize: 11, color: DIM, marginLeft: 8 }}>metera — init</span>
           </div>
 
-          <p style={{
-            fontFamily: SANS, fontSize: 12,
-            color: DIM, fontWeight: 300,
-            letterSpacing: '0.01em', margin: 0,
-            textAlign: 'center', lineHeight: 1.6,
-          }}>
-            Enjoy the experience.
-          </p>
+          {/* log lines */}
+          <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {LOG_LINES.slice(0, step).map((line, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                fontFamily: MONO, fontSize: 13,
+                opacity: 0,
+                animation: 'fade-line 0.25s ease forwards',
+              }}>
+                <span style={{ color: line.ok === true ? GREEN : MUTED, flexShrink: 0 }}>
+                  {line.ok === true ? '✓' : '⠸'}
+                </span>
+                <span style={{ color: line.ok === true ? MUTED : TEXT, whiteSpace: 'pre' }}>
+                  {line.text}
+                </span>
+                {line.ok === null && (
+                  <span style={{ color: DIM, animation: 'blink-cursor 1s step-end infinite' }}>_</span>
+                )}
+              </div>
+            ))}
+            {step < LOG_LINES.length && (
+              <div style={{ fontFamily: MONO, fontSize: 13, color: DIM }}>
+                <span style={{ animation: 'blink-cursor 1s step-end infinite' }}>█</span>
+              </div>
+            )}
+          </div>
         </div>
+
       </div>
 
       <style>{`
-        @keyframes pulse-dot {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50%       { opacity: 0.4; transform: scale(0.7); }
+        @keyframes fade-line {
+          from { opacity: 0; transform: translateX(-4px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes blink-cursor {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0; }
         }
       `}</style>
     </div>

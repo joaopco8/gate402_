@@ -58,7 +58,7 @@ export function CreateAgentWalletModal({ open, onClose, onSuccess, serverUrl, au
   }
 
   const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: 11, color: '#7A8C79', textTransform: 'uppercase',
+    display: 'block', fontSize: 12, color: '#7A8C79', textTransform: 'uppercase',
     letterSpacing: '0.08em', marginBottom: 6, fontFamily: 'var(--font-code)',
   }
 
@@ -80,7 +80,7 @@ export function CreateAgentWalletModal({ open, onClose, onSuccess, serverUrl, au
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 500, color: '#fff', fontFamily: 'var(--font-display)' }}>New Agent Wallet</div>
-              <div style={{ fontSize: 11, color: '#4A5549', fontFamily: 'var(--font-code)' }}>Step {step} of 2</div>
+              <div style={{ fontSize: 12, color: '#4A5549', fontFamily: 'var(--font-code)' }}>Step {step} of 2</div>
             </div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4A5549', padding: 4 }}>
@@ -102,7 +102,7 @@ export function CreateAgentWalletModal({ open, onClose, onSuccess, serverUrl, au
               <div>
                 <label style={labelStyle}>Agent name *</label>
                 <input style={inputStyle} placeholder="customer-support-bot" value={form.name} onChange={update('name')} />
-                <p style={{ fontSize: 11, color: '#4A5549', marginTop: 6, fontFamily: 'var(--font-display)' }}>
+                <p style={{ fontSize: 12, color: '#4A5549', marginTop: 6, fontFamily: 'var(--font-display)' }}>
                   Use lowercase letters, numbers and hyphens only.
                 </p>
               </div>
@@ -113,7 +113,7 @@ export function CreateAgentWalletModal({ open, onClose, onSuccess, serverUrl, au
               {/* Info box */}
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: 'rgba(122,242,121,0.04)', border: '1px solid rgba(122,242,121,0.12)', borderRadius: 8, padding: 14 }}>
                 <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(122,242,121,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                  <span style={{ color: '#7AF279', fontSize: 11 }}>✓</span>
+                  <span style={{ color: '#7AF279', fontSize: 12 }}>✓</span>
                 </div>
                 <div>
                   <p style={{ fontSize: 12, color: '#7AF279', fontWeight: 500, marginBottom: 4, fontFamily: 'var(--font-display)' }}>
@@ -149,7 +149,7 @@ export function CreateAgentWalletModal({ open, onClose, onSuccess, serverUrl, au
                   <div style={{ width: 16, height: 16, border: '2px solid #7AF279', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
                   <div>
                     <p style={{ fontSize: 12, color: '#7AF279', fontFamily: 'var(--font-display)' }}>Creating wallet...</p>
-                    <p style={{ fontSize: 11, color: '#4A5549', fontFamily: 'var(--font-display)' }}>Setting up your Solana wallet via Privy</p>
+                    <p style={{ fontSize: 12, color: '#4A5549', fontFamily: 'var(--font-display)' }}>Setting up your Solana wallet via Privy</p>
                   </div>
                 </div>
               )}

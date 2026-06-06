@@ -1,8 +1,14 @@
 import type { Metadata } from 'next';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { Space_Grotesk, JetBrains_Mono, Roboto } from 'next/font/google';
+import { Inter, Space_Grotesk, JetBrains_Mono, Roboto, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { UserProvider } from '@/contexts/UserContext';
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600'],
+  variable: '--font-inter',
+});
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -22,12 +28,18 @@ const roboto = Roboto({
   variable: '--font-roboto',
 });
 
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-geist-mono',
+});
+
 export const metadata: Metadata = {
   title: {
-    default: 'Gate402 — Billing infrastructure for AI agents',
-    template: '%s | Gate402',
+    default: 'Metera — Billing infrastructure for AI agents',
+    template: '%s | Metera',
   },
-  description: 'Drop-in middleware that charges AI agents in USDC on Solana. No banks. No credit cards. No humans in the loop.',
+  description: 'Billing infrastructure for AI agents. USDC on Solana. No banks, no credit cards, no humans in the loop.',
   keywords: [
     'AI agents',
     'API monetization',
@@ -38,32 +50,33 @@ export const metadata: Metadata = {
     'MCP',
     'billing',
     'micropayments',
+    'metera',
   ],
-  authors: [{ name: 'Gate402' }],
-  creator: 'Gate402',
-  metadataBase: new URL('https://www.gate402.dev'),
+  authors: [{ name: 'Metera' }],
+  creator: 'Metera',
+  metadataBase: new URL('https://metera.dev'),
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://www.gate402.dev',
-    siteName: 'Gate402',
-    title: 'Gate402 — Billing infrastructure for AI agents',
-    description: 'Drop-in middleware that charges AI agents in USDC on Solana.',
+    url: 'https://metera.dev',
+    siteName: 'Metera',
+    title: 'Metera — Billing infrastructure for AI agents',
+    description: 'USDC on Solana. No banks, no credit cards, no humans.',
     images: [
       {
-        url: 'https://www.gate402.dev/og',
+        url: 'https://metera.dev/og',
         width: 1200,
         height: 630,
-        alt: 'Gate402',
+        alt: 'Metera',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Gate402 — Billing infrastructure for AI agents',
-    description: 'Drop-in middleware that charges AI agents in USDC on Solana.',
-    images: ['https://www.gate402.dev/og'],
-    creator: '@gate402_',
+    title: 'Metera — Billing infrastructure for AI agents',
+    description: 'USDC on Solana. No banks, no credit cards, no humans.',
+    images: ['https://metera.dev/og'],
+    creator: '@metera_dev',
   },
   robots: {
     index: true,
@@ -77,7 +90,7 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/favicon.png',
+    icon: '/logos/favicon-metera.png',
   },
 };
 
@@ -88,7 +101,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${roboto.variable}`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${roboto.variable} ${geistMono.variable}`} suppressHydrationWarning>
         <UserProvider>{children}</UserProvider>
         <GoogleAnalytics gaId="G-NS4QRRXMQ2" />
       </body>

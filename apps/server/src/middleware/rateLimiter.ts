@@ -6,6 +6,8 @@ export async function globalRateLimit(
   res: Response,
   next: NextFunction
 ) {
+  // Skip rate limiting in development
+  if (process.env.NODE_ENV === 'development') return next()
   // Payment requests bypass IP rate limit — verified by x402Middleware
   if (req.headers['x-payment-payload']) return next()
   // Admin and health routes bypass
@@ -72,6 +74,7 @@ export async function unpaidRateLimit(
   res: Response,
   next: NextFunction
 ) {
+  if (process.env.NODE_ENV === 'development') return next()
   if (req.headers['x-payment-payload']) return next()
   if (req.path.startsWith('/api/admin') || req.path === '/health') return next()
   if (req.headers['x-user-id'] || req.headers['x-api-key']) return next()

@@ -12,9 +12,9 @@ import Card from '../components/Card'
 import { useUser } from '@/contexts/UserContext'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
-const MONO = 'var(--font-code)'
-const SANS = 'var(--font-display)'
-const GREEN = '#00bc7d'
+const MONO = 'var(--font-label)'
+const SANS = 'var(--font-label)'
+const GREEN = '#7AF279'
 
 const CHART_CSS = `
   .g402-rev-chart .recharts-cartesian-axis-tick text { fill: var(--text-muted); font-size: 12px; }
@@ -77,7 +77,7 @@ function RevenueChart({ data }: { data: any[] }) {
             <Area type="linear" dataKey="gross" stroke="transparent" fill="url(#revGrad)" strokeWidth={0} dot={false} />
             <Line type="linear" dataKey="gross" stroke={GREEN} strokeWidth={3} dot={false}
               activeDot={{ r: 6, fill: GREEN, stroke: '#fff', strokeWidth: 2, filter: 'url(#revDotShadow)' }} />
-            <Line type="linear" dataKey="net" stroke="rgba(0,188,125,0.4)" strokeWidth={2} dot={false} strokeDasharray="4 4" />
+            <Line type="linear" dataKey="net" stroke="rgba(122,242,121,0.4)" strokeWidth={2} dot={false} strokeDasharray="4 4" />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -104,9 +104,9 @@ function Skeleton({ width = '100%', height = 16 }: { width?: string | number; he
 function StatCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
   return (
     <Card>
-      <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>{label}</div>
+      <div style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: 10 }}>{label}</div>
       <div style={{ fontSize: 28, fontWeight: 700, color: color ?? 'var(--text-primary)', letterSpacing: '-0.5px', lineHeight: 1.1, fontFamily: MONO }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6, fontFamily: SANS }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6, fontFamily: SANS }}>{sub}</div>}
     </Card>
   )
 }
@@ -134,7 +134,7 @@ function StatusBadge({ status }: { status: string }) {
   }
   const s = cfg[status] ?? { bg: 'var(--surface)', color: 'var(--text-muted)' }
   return (
-    <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 11, fontFamily: MONO, background: s.bg, color: s.color }}>
+    <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 12, fontFamily: MONO, background: s.bg, color: s.color }}>
       {status}
     </span>
   )
@@ -202,11 +202,86 @@ export default function AnalyticsPage() {
   if (!userLoading && !isPro) {
     return (
       <DashboardLayout>
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
-          <div style={{ fontSize: 15, color: 'var(--text-muted)', fontFamily: SANS }}>Analytics is a Pro feature.</div>
-          <a href="/billing" style={{ padding: '10px 24px', background: GREEN, color: '#000', borderRadius: 6, fontSize: 14, fontWeight: 600, textDecoration: 'none', fontFamily: SANS }}>
-            Upgrade to Pro →
-          </a>
+        <div style={{
+          minHeight: 'calc(100vh - 52px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '40px 24px',
+        }}>
+          <div style={{
+            maxWidth: 480, width: '100%', textAlign: 'center',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24,
+          }}>
+            {/* Icon */}
+            <div style={{
+              width: 56, height: 56, borderRadius: 14,
+              background: 'rgba(122,242,121,0.08)',
+              border: '1px solid rgba(122,242,121,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                <path d="M2 16l5-6 4 4 5-7 4 3" stroke={GREEN} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 19h18" stroke={GREEN} strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/>
+              </svg>
+            </div>
+
+            {/* Heading */}
+            <div>
+              <h2 style={{
+                fontSize: 'clamp(1.5rem, 3vw, 2.2rem)', fontWeight: 300,
+                letterSpacing: '-0.04em', color: '#E8F4EE',
+                margin: '0 0 12px', lineHeight: 1.1,
+                fontFamily: "'Geist Mono', monospace",
+              }}>
+                See exactly who pays you,<br />
+                <span style={{ color: GREEN }}>when, and how much.</span>
+              </h2>
+              <p style={{
+                fontSize: 14, color: '#7A8C79', lineHeight: 1.7,
+                fontWeight: 300, margin: 0, fontFamily: "'Geist Mono', monospace",
+              }}>
+                Revenue charts, success rates, latency by endpoint, top paying agents, and failed call analysis — all unlocked on Pro.
+              </p>
+            </div>
+
+            {/* Feature list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
+              {[
+                'Revenue by day, gross & net',
+                'Success rate & failed requests',
+                'Top paying agents ranked by spend',
+                'Latency p50 / p95 / p99 per endpoint',
+                'MRR projection',
+              ].map(f => (
+                <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                    <path d="M2.5 7l3 3 6-6" stroke={GREEN} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span style={{ fontSize: 13, color: '#7A8C79', fontFamily: "'Geist Mono', monospace", fontWeight: 300 }}>{f}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA */}
+            <a
+              href="/billing"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: GREEN, color: '#1B1E1B',
+                border: 'none', borderRadius: 8,
+                padding: '12px 28px', fontSize: 14,
+                fontFamily: "'Geist Mono', monospace", fontWeight: 500,
+                textDecoration: 'none',
+                transition: 'opacity 0.15s ease',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+            >
+              Upgrade to Pro
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                <path d="M2 6.5h9M7.5 3l3.5 3.5L7.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          </div>
         </div>
       </DashboardLayout>
     )
@@ -241,8 +316,8 @@ export default function AnalyticsPage() {
                 className={`period-btn${period === p ? ' active' : ''}`}
                 style={{
                   padding: '6px 14px', borderRadius: 6, fontSize: 12, fontFamily: MONO, cursor: 'pointer',
-                  background: period === p ? '#313131' : 'transparent',
-                  color: period === p ? '#fff' : 'var(--text-muted)',
+                  background: period === p ? 'rgba(122,242,121,0.1)' : 'transparent',
+                  color: period === p ? '#7AF279' : 'var(--text-muted)',
                   border: '1px solid transparent',
                   transition: 'all 150ms',
                 }}
@@ -255,27 +330,27 @@ export default function AnalyticsPage() {
 
         {/* ══ SECTION 1 — REVENUE SUMMARY ════════════════════════════════════ */}
         <div style={{ marginBottom: 'var(--space-md)' }}>
-          <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Revenue Summary</div>
+          <div style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: 12 }}>Revenue Summary</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-sm)', marginBottom: 'var(--space-md)' }}>
             {loading ? Array(4).fill(0).map((_, i) => <Card key={i}><Skeleton height={56} /></Card>) : (
               <>
                 <StatCard label="Gross Revenue" value={revenue ? `$${Number(revenue.summary?.grossRevenue ?? 0).toFixed(4)}` : '—'} sub="All time" />
                 <StatCard label="Net Revenue (100%)" value={revenue ? `$${Number(revenue.summary?.netRevenue ?? 0).toFixed(4)}` : '—'} sub="Goes to you" color={GREEN} />
-                <StatCard label="Platform Fees" value="Free" sub="Gate402 fee" />
+                <StatCard label="Platform Fees" value="Free" sub="Metera fee" />
                 <StatCard label="Transactions" value={revenue ? String(revenue.summary?.transactionCount ?? 0) : '—'} sub={`Last ${period}`} />
               </>
             )}
           </div>
 
           <Card>
-            <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>Revenue by Day</div>
+            <div style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: 16 }}>Revenue by Day</div>
             {loading ? <Skeleton height={280} /> : <RevenueChart data={byDay} />}
           </Card>
         </div>
 
         {/* ══ SECTION 2 — SUCCESS RATE & MRR ════════════════════════════════ */}
         <div style={{ marginBottom: 'var(--space-md)' }}>
-          <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Success Rate & MRR</div>
+          <div style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: 12 }}>Success Rate & MRR</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 'var(--space-sm)' }}>
             {/* Left — Success Rate + Failed Calls */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
@@ -305,12 +380,12 @@ export default function AnalyticsPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {byDay.slice(-3).map((d: any, i: number) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)' }}>{d.date}</span>
-                      <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-secondary)' }}>${(d.gross ?? 0).toFixed(5)}</span>
+                      <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)' }}>{d.date}</span>
+                      <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-secondary)' }}>${(d.gross ?? 0).toFixed(5)}</span>
                     </div>
                   ))}
                   {byDay.length === 0 && (
-                    <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)' }}>No data yet</span>
+                    <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)' }}>No data yet</span>
                   )}
                 </div>
               </Card>
@@ -321,7 +396,7 @@ export default function AnalyticsPage() {
         {/* ══ SECTION 3 — TOP PAYING AGENTS ══════════════════════════════════ */}
         <Card style={{ padding: 0, marginBottom: 'var(--space-md)' }}>
           <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Top Paying Agents</div>
+            <div style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Top Paying Agents</div>
           </div>
           {loading ? (
             <div style={{ padding: 24 }}><Skeleton height={120} /></div>
@@ -334,7 +409,7 @@ export default function AnalyticsPage() {
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr 80px 110px 110px', padding: '10px 24px', borderBottom: '1px solid var(--border)' }}>
                 {['Rank', 'Agent Wallet', 'Calls', 'Total Paid', 'Net Received'].map(h => (
-                  <span key={h} style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</span>
+                  <span key={h} style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{h}</span>
                 ))}
               </div>
               {topAgents.map((ag, i) => {
@@ -357,9 +432,9 @@ export default function AnalyticsPage() {
         {/* ══ SECTION 4 — LATENCY ════════════════════════════════════════════ */}
         <Card style={{ padding: 0, marginBottom: 'var(--space-md)' }}>
           <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Latency</div>
+            <div style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Latency</div>
             {hasHighLatency && (
-              <div style={{ padding: '4px 12px', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: 6, fontSize: 11, color: '#fbbf24', fontFamily: SANS }}>
+              <div style={{ padding: '4px 12px', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: 6, fontSize: 12, color: '#fbbf24', fontFamily: SANS }}>
                 High latency detected — optimize handler response time
               </div>
             )}
@@ -372,7 +447,7 @@ export default function AnalyticsPage() {
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px 80px 64px', padding: '10px 24px', borderBottom: '1px solid var(--border)' }}>
                 {['Endpoint', 'p50', 'p95', 'p99', 'Avg', 'Calls'].map(h => (
-                  <span key={h} style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</span>
+                  <span key={h} style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{h}</span>
                 ))}
               </div>
               {latency.map((ep, i) => (
@@ -392,7 +467,7 @@ export default function AnalyticsPage() {
         {/* ══ SECTION 5 — FAILED REQUESTS ════════════════════════════════════ */}
         <Card style={{ padding: 0 }}>
           <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Failed Requests</div>
+            <div style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Failed Requests</div>
           </div>
           {loading ? (
             <div style={{ padding: 24 }}><Skeleton height={120} /></div>
@@ -404,7 +479,7 @@ export default function AnalyticsPage() {
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 90px 1fr', padding: '10px 24px', borderBottom: '1px solid var(--border)' }}>
                 {['Time', 'Endpoint', 'Status', 'Tx Hash'].map(h => (
-                  <span key={h} style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</span>
+                  <span key={h} style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{h}</span>
                 ))}
               </div>
               {failed.map((f, i) => {
@@ -413,10 +488,10 @@ export default function AnalyticsPage() {
                 const txHash: string = f.txHash ?? f.txHashProvider ?? '—'
                 return (
                   <div key={i} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 90px 1fr', padding: '12px 24px', borderBottom: i < failed.length - 1 ? '1px solid var(--border)' : 'none', alignItems: 'center' }}>
-                    <span style={{ fontFamily: MONO, fontSize: 11, color: 'var(--text-muted)' }}>{timeStr}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-muted)' }}>{timeStr}</span>
                     <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.endpoint ?? f.endpointPath ?? '—'}</span>
                     <StatusBadge status={f.status ?? 'failed'} />
-                    <span style={{ fontFamily: MONO, fontSize: 11, color: '#444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{txHash.length > 20 ? `${txHash.slice(0, 8)}...${txHash.slice(-6)}` : txHash}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 12, color: '#444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{txHash.length > 20 ? `${txHash.slice(0, 8)}...${txHash.slice(-6)}` : txHash}</span>
                   </div>
                 )
               })}

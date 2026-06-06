@@ -21,6 +21,12 @@ import billingRouter from './routes/billing'
 import meteringRouter from './routes/metering';
 import dashboardRouter from './routes/dashboard';
 import agentWalletsRouter from './routes/agentWallets';
+import moonpayRouter from './routes/moonpay';
+import skillRouter from './routes/skill';
+import agentProxyRouter from './routes/agentProxy';
+import proxyEndpointsRouter from './routes/proxyEndpoints';
+import proxyRouter from './routes/proxy';
+import marketplaceRouter from './routes/marketplace';
 import { walletAddress } from './solana/wallet';
 
 const app = express();
@@ -63,6 +69,8 @@ app.use(cors({
     'x-user-id',
     'x-api-key',
     'x-agent-wallet',
+    'x-payment-signature',
+    'x-payment',
     'Authorization',
     'stripe-signature',
     'x-admin-secret',
@@ -85,6 +93,12 @@ app.use('/api', requireAuth);
 
 app.use(globalRateLimit);
 app.use(unpaidRateLimit);
+
+// Public routes — no auth, before requireAuth
+// skill.md — public markdown for Claude Code / Cursor
+app.use('/skill', skillRouter);
+// Agent fetch proxy + balance — public by agentKey
+app.use('/agent', agentProxyRouter);
 
 app.get('/health', async (_req, res) => {
   let redisStatus = 'not configured';
@@ -120,6 +134,7 @@ app.use('/api/users/webhook', requirePro);
 
 // Account required for dashboard routes (/api/users/sync is exempt — it creates new accounts)
 app.use('/api/agent-wallets', requireAccount);
+app.use('/api/proxy-endpoints', requireAccount);
 app.use('/api/dashboard', requireAccount);
 app.use('/api/metrics', requireAccount);
 app.use('/api/calls', requireAccount);
@@ -132,6 +147,12 @@ app.use('/api/endpoints', requireAccount);
 
 // Agent wallets CRUD
 app.use('/api/agent-wallets', agentWalletsRouter);
+// Proxy endpoints CRUD
+app.use('/api/proxy-endpoints', proxyEndpointsRouter);
+// Public proxy — agents call this
+app.use('/p', proxyRouter);
+// Public marketplace — no auth
+app.use('/api/marketplace', marketplaceRouter);
 
 // Aggregated dashboard route (single request)
 app.use('/api', dashboardRouter);
@@ -156,6 +177,7 @@ app.use('/api', billingRouter);
 
 // Metering engine — token/compute/bandwidth billing
 app.use('/api', meteringRouter);
+app.use('/api', moonpayRouter);
 // Analytics v2 — phase 5
 
 // x402 paywall middleware — runs after all management routes

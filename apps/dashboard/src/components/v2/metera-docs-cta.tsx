@@ -3,8 +3,8 @@ import React, { useState, useId } from 'react'
 import { motion, MotionConfigContext, LayoutGroup } from 'framer-motion'
 
 const LINE   = '1px solid #2A2E2A'
-const SANS   = "'Inter', sans-serif"
-const MONO   = "'JetBrains Mono', monospace"
+const SANS   = "'Geist Mono', monospace"
+const MONO   = "'Geist Mono', monospace"
 const BG     = '#1B1E1B'
 const FG     = '#E8F4EE'
 const MUTED  = '#7A8C79'
@@ -110,7 +110,7 @@ function DocCard({ heading, text, accent = GREEN, href }: CardProps) {
         <motion.div
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onClick={() => href && window.open(href, '_blank')}
+          onClick={() => href && (window.location.href = href)}
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -271,21 +271,21 @@ export function MeteraDocsCTA() {
   const docs: CardProps[] = [
     {
       heading: 'Quickstart',
-      text: 'Zero to first USDC payment in under 5 minutes. Copy, paste, done.',
+      text: 'Paste your API URL, set a price. First USDC hits your wallet in under 5 minutes.',
       accent: GREEN,
-      href: '#',
+      href: '/v2/docs#api-register',
     },
     {
-      heading: 'API Reference',
-      text: 'Every endpoint, every header, every response code. Fully documented.',
+      heading: 'Agent skill',
+      text: 'One line. Claude reads it. Your agent knows how to pay — no npm, no config, no crypto.',
       accent: GREEN,
-      href: '#',
+      href: '/v2/docs#agent-connect',
     },
     {
-      heading: 'SDK Guide',
-      text: 'Express, Fastify, Python. Framework-specific examples, copy-paste ready.',
+      heading: 'Spending limits',
+      text: 'Per call, per day, per month. Set the cap, the agent stops. You stay in control.',
       accent: PURPLE,
-      href: '#',
+      href: '/v2/docs#agent-limits',
     },
   ]
 
@@ -293,20 +293,21 @@ export function MeteraDocsCTA() {
     <div style={{ borderBottom: LINE }}>
 
       {/* headline */}
-      <div style={{ padding: '40px 56px', borderBottom: LINE }}>
+      <div className="v2r-docs-head" style={{ padding: '40px 56px', borderBottom: LINE }}>
         <h2 style={{
-          fontSize: 'clamp(2rem, 4vw, 3.5rem)',
+          fontSize: 'clamp(2rem, 3.5vw, 3rem)',
           fontWeight: 300,
           letterSpacing: '-0.02em',
           color: '#FFFFFF',
           margin: 0,
         }}>
-          Everything you need to ship.
+          Everything an agent needs<br />
+          <span style={{ color: '#7AF279' }}>to pay you.</span>
         </h2>
       </div>
 
       {/* 3-col cards grid */}
-      <div style={{
+      <div className="v2r-docs-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',
         overflow: 'hidden',
@@ -314,6 +315,7 @@ export function MeteraDocsCTA() {
         {docs.map((doc, i) => (
           <div
             key={doc.heading}
+            className={i < 2 ? 'v2r-docs-card-col' : undefined}
             style={{
               padding: '40px 32px',
               borderRight: i < 2 ? LINE : 'none',

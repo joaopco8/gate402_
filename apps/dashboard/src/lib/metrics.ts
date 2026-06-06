@@ -22,7 +22,7 @@ export function calcChange(current: number, previous: number): ChangeResult {
   const rounded = Math.round(pct * 10) / 10
 
   if (rounded > 0) {
-    return { value: rounded, direction: 'up', label: `↑ ${rounded}%`, color: '#3ecf8e' }
+    return { value: rounded, direction: 'up', label: `↑ ${rounded}%`, color: '#7AF279' }
   }
 
   if (rounded < 0) {

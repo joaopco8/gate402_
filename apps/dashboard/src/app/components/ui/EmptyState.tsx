@@ -13,16 +13,16 @@ export function AgentWalletsEmptyState({ onAction }: { onAction: () => void }) {
           <path d="M12 7v4"/><path d="M8 15h.01M12 15h.01M16 15h.01"/>
         </svg>
       </div>
-      <h3 style={{ fontSize: 15, fontWeight: 300, color: '#E8F4EE', marginBottom: 8, fontFamily: 'var(--font-display)' }}>
+      <h3 style={{ fontSize: 15, fontWeight: 300, color: '#E8F4EE', marginBottom: 8, fontFamily: 'var(--font-label)' }}>
         No agent wallets yet
       </h3>
-      <p style={{ fontSize: 13, color: '#4A5549', maxWidth: 280, marginBottom: 32, lineHeight: 1.6, fontFamily: 'var(--font-display)' }}>
+      <p style={{ fontSize: 13, color: '#4A5549', maxWidth: 280, marginBottom: 32, lineHeight: 1.6, fontFamily: 'var(--font-label)' }}>
         Create your first agent wallet to control the spending of your AI agents.
       </p>
       <button onClick={onAction} style={{
         padding: '12px 24px', background: '#7AF279', color: '#1B1E1B',
         fontSize: 13, fontWeight: 500, borderRadius: 8, border: 'none', cursor: 'pointer',
-        fontFamily: 'var(--font-display)',
+        fontFamily: 'var(--font-label)',
       }}>
         Create agent wallet
       </button>

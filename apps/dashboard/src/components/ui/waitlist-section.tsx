@@ -89,7 +89,7 @@ export function WaitlistSection() {
       <div className="waitlist-inner">
         {/* Left */}
         <div>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#00bc7d', marginBottom: 14, fontWeight: 500 }}>
+          <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#00bc7d', marginBottom: 14, fontWeight: 500 }}>
             Early Access
           </div>
           <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 500, lineHeight: 1.15, color: '#fff', marginBottom: 14 }}>

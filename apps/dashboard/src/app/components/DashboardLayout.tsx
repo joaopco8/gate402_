@@ -110,13 +110,19 @@ const IconAgents = () => (
     <path d="M8 15h.01M12 15h.01M16 15h.01"/>
   </svg>
 )
+const IconProxy = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M2 8h12M10 5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="4" cy="8" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
+  </svg>
+)
 
 const NAV_ITEMS = [
   { label: 'Overview',      href: '/dashboard',  Icon: IconOverview },
   { label: 'Analytics',     href: '/analytics',  Icon: IconAnalytics, pro: true },
   { label: 'Wallet',        href: '/wallet',     Icon: IconWallet },
-  { label: 'Endpoints',     href: '/endpoints',  Icon: IconEndpoints },
   { label: 'Agent Wallets', href: '/agents',     Icon: IconAgents },
+  { label: 'APIs',          href: '/proxy',      Icon: IconProxy },
   { label: 'Playground',    href: '/playground', Icon: IconPlayground },
   { label: 'Docs',          href: '/docs',       Icon: IconDocs },
   { label: 'Billing',       href: '/billing',    Icon: IconBilling },
@@ -254,7 +260,7 @@ function DocsSearch() {
           borderRadius: 'var(--radius-md)',
           color: 'var(--text-muted)',
           fontSize: 'var(--text-sm)',
-          fontFamily: 'var(--font-sans)',
+          fontFamily: 'var(--font-label)',
           cursor: 'pointer',
           transition: 'border-color 150ms',
         }}
@@ -267,7 +273,7 @@ function DocsSearch() {
         <span style={{
           fontSize: 10, color: 'var(--text-disabled)',
           background: 'var(--bg-overlay)', border: '1px solid var(--border-default)',
-          borderRadius: 6, padding: '1px 5px', fontFamily: 'var(--font-mono)',
+          borderRadius: 6, padding: '1px 5px', fontFamily: 'var(--font-label)',
         }}>⌘K</span>
       </button>
 
@@ -309,7 +315,7 @@ function DocsSearch() {
                 style={{
                   flex: 1, background: 'none', border: 'none', outline: 'none',
                   color: 'var(--text-primary)', fontSize: 'var(--text-sm)',
-                  fontFamily: 'var(--font-sans)',
+                  fontFamily: 'var(--font-label)',
                 }}
               />
               {query && (
@@ -352,8 +358,8 @@ function DocsSearch() {
               display: 'flex', gap: 12, alignItems: 'center',
             }}>
               {[['↑↓', 'navigate'], ['↵', 'open'], ['esc', 'close']].map(([key, desc]) => (
-                <span key={key} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-muted)' }}>
-                  <kbd style={{ background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 6, padding: '1px 5px', fontFamily: 'var(--font-mono)', fontSize: 10 }}>{key}</kbd>
+                <span key={key} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-muted)' }}>
+                  <kbd style={{ background: 'var(--bg-overlay)', border: '1px solid var(--border-default)', borderRadius: 6, padding: '1px 5px', fontFamily: 'var(--font-label)', fontSize: 10 }}>{key}</kbd>
                   {desc}
                 </span>
               ))}
@@ -367,8 +373,8 @@ function DocsSearch() {
 
 // ─── AvatarMenu ───────────────────────────────────────────────────────────────
 
-const MONO = "'JetBrains Mono', monospace"
-const SANS = "'Inter', sans-serif"
+const MONO = "'Geist Mono', monospace"
+const SANS = "'Geist Mono', monospace"
 
 function AvatarMenu({ avatarUrl, firstName, initial, email, isPro }: {
   avatarUrl: string | null
@@ -424,7 +430,7 @@ function AvatarMenu({ avatarUrl, firstName, initial, email, isPro }: {
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               />
             ) : (
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#7AF279', fontFamily: MONO }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#7AF279', fontFamily: MONO }}>
                 {initial}
               </span>
             )}
@@ -494,7 +500,7 @@ function AvatarMenu({ avatarUrl, firstName, initial, email, isPro }: {
               <div style={{ fontSize: 13, fontWeight: 500, color: '#E8F4EE', fontFamily: SANS, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {firstName}
               </div>
-              <div style={{ fontSize: 11, color: '#4A5549', fontFamily: MONO, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontSize: 12, color: '#4A5549', fontFamily: MONO, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {email}
               </div>
             </div>
@@ -599,38 +605,60 @@ function AvatarMenu({ avatarUrl, firstName, initial, email, isPro }: {
   )
 }
 
+// ─── Profile cache ────────────────────────────────────────────────────────────
+
+const PROFILE_KEY = 'g402_profile'
+
+function readProfileCache(): { firstName: string; email: string | null; avatarUrl: string | null } | null {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem(PROFILE_KEY) : null
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+function writeProfileCache(data: { firstName: string; email: string | null; avatarUrl: string | null }) {
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(data)) } catch {}
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(true)
-  const [email, setEmail] = useState<string | null>(null)
-  const [displayName, setDisplayName] = useState<string | null>(null)
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
   const { userData } = useUser()
-  const isPro = userData?.plan === 'pro' || userData?.plan === 'enterprise'
+  const isPro = mounted && (userData?.plan === 'pro' || userData?.plan === 'enterprise')
+
+  const cached = typeof window !== 'undefined' ? readProfileCache() : null
+  const [email, setEmail] = useState<string | null>(cached?.email ?? null)
+  const [firstName, setFirstName] = useState<string>(cached?.firstName ?? 'User')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(cached?.avatarUrl ?? null)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     async function load() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      setEmail(user?.email ?? null)
-      setAvatarUrl(user?.user_metadata?.avatar_url ?? null)
-      // Use real name from metadata (GitHub: full_name, email signup: name)
-      const meta = user?.user_metadata ?? {}
+      if (!user) return
+      const meta = user.user_metadata ?? {}
       const name = meta.full_name || meta.name || null
-      setDisplayName(name ? name.split(' ')[0] : null)
+      const fn = name ? name.split(' ')[0] : (user.email ? user.email.split('@')[0] : 'User')
+      const av = meta.avatar_url ?? null
+      setEmail(user.email ?? null)
+      setFirstName(fn)
+      setAvatarUrl(av)
+      writeProfileCache({ firstName: fn, email: user.email ?? null, avatarUrl: av })
     }
     load()
   }, [])
 
-  const firstName = displayName ?? (email ? email.split('@')[0] : 'User')
   const initial = firstName[0]?.toUpperCase() ?? '?'
 
   return (
     <div style={{
       display: 'flex', height: '100vh',
-      background: 'var(--bg-base)', fontFamily: 'var(--font-sans)', overflow: 'hidden',
+      background: 'var(--bg-base)', fontFamily: 'var(--font-label)', overflow: 'hidden',
     }}>
 
       {/* ═══ SIDEBAR ═══ */}
@@ -672,7 +700,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <img src="/logos/favicon-metera-white.png" alt="Metera" style={{ height: 22, width: 'auto', display: 'block' }} />
             <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-              Hi, <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{firstName}</span>
+              Hi, <span style={{ color: 'var(--text-primary)', fontWeight: 500 }} suppressHydrationWarning>{firstName}</span>
             </div>
           </div>
 
@@ -699,10 +727,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Avatar + dropdown */}
             <AvatarMenu
-              avatarUrl={avatarUrl}
-              firstName={firstName}
-              initial={initial}
-              email={email}
+              avatarUrl={mounted ? avatarUrl : null}
+              firstName={mounted ? firstName : 'User'}
+              initial={mounted ? initial : '?'}
+              email={mounted ? email : null}
               isPro={isPro}
             />
           </div>

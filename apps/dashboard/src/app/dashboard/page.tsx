@@ -81,14 +81,14 @@ function StatsCard({ label, value, sub, loading, current, previous, chartData }:
     // Primary: drive color from current vs previous (same signal as % badge)
     if (current !== undefined && previous !== undefined) {
       if (current === 0 && previous === 0) return '#6b7280'
-      if (current > previous) return '#00bc7d'
+      if (current > previous) return '#7AF279'
       if (current < previous) return '#ef4444'
       return '#6b7280'
     }
     // Fallback: chart shape trend
     if (normalizedData.length < 2) return '#6b7280'
     const delta = normalizedData[normalizedData.length - 1] - normalizedData[0]
-    if (delta > 4) return '#00bc7d'
+    if (delta > 4) return '#7AF279'
     if (delta < -4) return '#ef4444'
     return '#6b7280'
   }, [normalizedData, current, previous])
@@ -162,7 +162,7 @@ function StatsCard({ label, value, sub, loading, current, previous, chartData }:
 
 // ── MiniChart ────────────────────────────────────────────────────────────────
 
-const LINE_COLOR = '#00bc7d'
+const LINE_COLOR = '#7AF279'
 
 const CHART_CSS = `
   .g402-chart .recharts-cartesian-axis-tick text { fill: var(--text-muted); font-size: 12px; }
@@ -176,7 +176,7 @@ interface MiniTooltipProps { active?: boolean; payload?: TooltipPayload[]; label
 function MiniTooltip({ active, payload }: MiniTooltipProps) {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: '#18181b', color: '#fff', borderRadius: 6, padding: '8px 12px', fontSize: 12, fontFamily: 'var(--font-code)', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}>
+    <div style={{ background: '#18181b', color: '#fff', borderRadius: 6, padding: '8px 12px', fontSize: 12, fontFamily: 'var(--font-label)', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}>
       <div style={{ fontSize: 12, color: '#a1a1aa', marginBottom: 2 }}>Total</div>
       <div style={{ fontWeight: 600 }}>{payload[0].value} calls</div>
     </div>
@@ -185,7 +185,7 @@ function MiniTooltip({ active, payload }: MiniTooltipProps) {
 
 function MiniChart({ data, days = 7 }: { data: Array<{ date: string; count: number }>; days?: number }) {
   if (!data?.length) return (
-    <div style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--font-code)' }}>
+    <div style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--font-label)' }}>
       no data yet
     </div>
   )
@@ -339,7 +339,7 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
         padding: '9px 20px', borderBottom: '1px solid var(--border-default)',
         background: 'var(--bg-base)' }}>
         {['Endpoint', 'Amount', 'Payer', 'Chart', 'Time'].map(h => (
-          <span key={h} style={{ fontFamily: "'Roboto', sans-serif", fontSize: 11,
+          <span key={h} style={{ fontFamily: "var(--font-label)", fontSize: 11,
             color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
             {h}
           </span>
@@ -354,7 +354,7 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
         ))
       ) : calls.length === 0 ? (
         <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)',
-          fontFamily: "'Roboto', sans-serif", fontSize: 12 }}>
+          fontFamily: "var(--font-label)", fontSize: 12 }}>
           No calls yet — make your first request
         </div>
       ) : (
@@ -373,17 +373,17 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
                   onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.025)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: 12,
+                  <span style={{ fontFamily: "var(--font-label)", fontSize: 12,
                     color: 'var(--text-primary)', overflow: 'hidden',
                     textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>
                     {call.endpoint || '—'}
                   </span>
 
-                  <span style={{ fontSize: 11, fontFamily: "'Roboto', sans-serif", color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: 11, fontFamily: "var(--font-label)", color: 'var(--text-muted)' }}>
                     {amount ? `$${amount.toFixed(5)}` : 'free'}
                   </span>
 
-                  <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: 11,
+                  <span style={{ fontFamily: "var(--font-label)", fontSize: 11,
                     color: 'var(--text-secondary)', overflow: 'hidden',
                     textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {call.payerWallet
@@ -395,7 +395,7 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
                     <Sparkline data={spark.length >= 2 ? spark : [0, amount ?? 0, amount ?? 0]} />
                   </div>
 
-                  <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: 11,
+                  <span style={{ fontFamily: "var(--font-label)", fontSize: 11,
                     color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                     {call.createdAt ? timeAgo(call.createdAt) : '—'}
                   </span>
@@ -409,10 +409,10 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
       {!isPro && !loading && calls.length >= 5 && (
         <div style={{ padding: '10px 20px', borderTop: '1px solid var(--border-default)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: "'Roboto', sans-serif" }}>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: "var(--font-label)" }}>
             Showing last 5 calls
           </span>
-          <a href="/billing" style={{ fontSize: 12, color: '#3ECF8E', fontFamily: "'Roboto', sans-serif" }}>
+          <a href="/billing" style={{ fontSize: 12, color: '#3ECF8E', fontFamily: "var(--font-label)" }}>
             Upgrade for last 50 →
           </a>
         </div>
@@ -436,7 +436,7 @@ function QuickSetup({ walletAddress, endpointCount, totalCalls }: {
 
   return (
     <Card style={{ marginTop: 'var(--space-xl)' }}>
-      <div style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-muted)', marginBottom: 20 }}>
+      <div style={{ fontFamily: 'var(--font-label)', fontSize: 12, color: 'var(--text-muted)', marginBottom: 20 }}>
         Quick Setup
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -458,7 +458,7 @@ function QuickSetup({ walletAddress, endpointCount, totalCalls }: {
               {step.label}
             </span>
             {!step.done && step.link && (
-              <a href={step.link} style={{ fontSize: 12, color: 'var(--green)', fontFamily: 'var(--font-code)' }}>Set up →</a>
+              <a href={step.link} style={{ fontSize: 12, color: 'var(--green)', fontFamily: 'var(--font-label)' }}>Set up →</a>
             )}
           </div>
         ))}
@@ -483,8 +483,8 @@ function MeteringCard({ stats }: { stats: any }) {
     <Card style={{ marginBottom: 'var(--space-xl)' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-        <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Usage Metering</span>
-        <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-code)', background: 'rgba(147,51,234,0.12)', color: '#a78bfa', border: '1px solid rgba(147,51,234,0.2)' }}>PRO</span>
+        <span style={{ fontFamily: 'var(--font-label)', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Usage Metering</span>
+        <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-label)', background: 'rgba(147,51,234,0.12)', color: '#a78bfa', border: '1px solid rgba(147,51,234,0.2)' }}>PRO</span>
       </div>
 
       {/* Grid */}
@@ -494,14 +494,14 @@ function MeteringCard({ stats }: { stats: any }) {
           return (
             <div key={item.type} style={{ padding: '14px 16px', background: 'var(--surface)', borderRadius: 6, border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <span style={{ fontFamily: 'var(--font-code)', fontSize: 13, color: 'var(--text-muted)', width: 20, textAlign: 'center' }}>{meta.icon}</span>
-                <span style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{item.type}</span>
+                <span style={{ fontFamily: 'var(--font-label)', fontSize: 13, color: 'var(--text-muted)', width: 20, textAlign: 'center' }}>{meta.icon}</span>
+                <span style={{ fontFamily: 'var(--font-label)', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{item.type}</span>
               </div>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
+              <div style={{ fontFamily: 'var(--font-label)', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
                 {(item.totalUsage ?? 0).toLocaleString()} <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-muted)' }}>{meta.unit}</span>
               </div>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--green)' }}>${(item.totalCost ?? 0).toFixed(6)} USDC</div>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: 11, color: '#444', marginTop: 4 }}>{item.count ?? 0} record{item.count !== 1 ? 's' : ''}</div>
+              <div style={{ fontFamily: 'var(--font-label)', fontSize: 12, color: 'var(--green)' }}>${(item.totalCost ?? 0).toFixed(6)} USDC</div>
+              <div style={{ fontFamily: 'var(--font-label)', fontSize: 11, color: '#444', marginTop: 4 }}>{item.count ?? 0} record{item.count !== 1 ? 's' : ''}</div>
             </div>
           )
         })}
@@ -509,10 +509,10 @@ function MeteringCard({ stats }: { stats: any }) {
 
       {/* Footer */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, borderTop: '1px solid var(--border)' }}>
-        <span style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: '#555' }}>
+        <span style={{ fontFamily: 'var(--font-label)', fontSize: 12, color: '#555' }}>
           Pending settlement: ${(stats.totalPending ?? 0).toFixed(6)} USDC
         </span>
-        <a href="/analytics" style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--green)', textDecoration: 'none' }}>
+        <a href="/analytics" style={{ fontFamily: 'var(--font-label)', fontSize: 12, color: 'var(--green)', textDecoration: 'none' }}>
           Settle pending →
         </a>
       </div>
@@ -552,7 +552,7 @@ export default function DashboardPage() {
       `}</style>
 
       <PageContainer>
-        <ProBanner isPro={isPro} />
+        <ProBanner isPro={isPro} loading={userLoading} />
 
         <PageHeader title="Overview" />
 
@@ -567,11 +567,11 @@ export default function DashboardPage() {
         {/* Chart */}
         <Card style={{ marginBottom: 'var(--space-xl)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: 12, color: 'var(--text-muted)' }}>
+            <span style={{ fontFamily: "var(--font-label)", fontSize: 12, color: 'var(--text-muted)' }}>
               Calls
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: 11, color: 'var(--text-secondary)' }}>
+              <span style={{ fontFamily: "var(--font-label)", fontSize: 11, color: 'var(--text-secondary)' }}>
                 {data?.callsPerDay?.reduce((s, d) => s + d.count, 0) || 0} total
               </span>
               <Select
@@ -579,13 +579,13 @@ export default function DashboardPage() {
                 onValueChange={v => setChartDays(Number(v))}
                 indicatorPosition="right"
               >
-                <SelectTrigger size="sm" className="w-[130px] text-[11px]" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontFamily: "'Roboto', sans-serif" }}>
+                <SelectTrigger size="sm" className="w-[130px] text-[11px]" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-primary)', fontFamily: "var(--font-label)" }}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {PERIOD_OPTIONS.map(opt => (
                     (!isPro && opt.value !== '7') ? null : (
-                      <SelectItem key={opt.value} value={opt.value} className="text-[11px]" style={{ fontFamily: "'Roboto', sans-serif" }}>
+                      <SelectItem key={opt.value} value={opt.value} className="text-[11px]" style={{ fontFamily: "var(--font-label)" }}>
                         {opt.label}
                         {!isPro && opt.value !== '7' && <span className="ml-1 text-[10px] opacity-50">Pro</span>}
                       </SelectItem>
@@ -593,10 +593,10 @@ export default function DashboardPage() {
                   ))}
                   {!isPro && (
                     <>
-                      <SelectItem value="30" disabled className="text-[11px]" style={{ fontFamily: "'Roboto', sans-serif" }}>
+                      <SelectItem value="30" disabled className="text-[11px]" style={{ fontFamily: "var(--font-label)" }}>
                         Last 30 days <span className="ml-1 text-[10px] opacity-50">Pro</span>
                       </SelectItem>
-                      <SelectItem value="90" disabled className="text-[11px]" style={{ fontFamily: "'Roboto', sans-serif" }}>
+                      <SelectItem value="90" disabled className="text-[11px]" style={{ fontFamily: "var(--font-label)" }}>
                         Last 90 days <span className="ml-1 text-[10px] opacity-50">Pro</span>
                       </SelectItem>
                     </>
@@ -611,10 +611,10 @@ export default function DashboardPage() {
         {/* Recent calls */}
         <div style={{ marginBottom: 'var(--space-xl)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-sm)' }}>
-            <span style={{ fontFamily: 'var(--font-code)', fontSize: 12, color: 'var(--text-muted)', }}>
+            <span style={{ fontFamily: 'var(--font-label)', fontSize: 12, color: 'var(--text-muted)', }}>
               Recent Calls
             </span>
-            <a href="/endpoints" style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-code)' }}>
+            <a href="/endpoints" style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-label)' }}>
               Manage endpoints →
             </a>
           </div>

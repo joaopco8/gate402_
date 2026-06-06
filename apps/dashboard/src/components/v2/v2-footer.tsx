@@ -14,30 +14,26 @@ const COLUMNS = [
   {
     title: 'PRODUCT',
     links: [
-      { label: 'Gate402 SDK',       href: '/v2/docs' },
-      { label: 'Dashboard',         href: '/dashboard' },
-      { label: 'Metering Engine',   href: '/v2/docs#token-metering' },
-      { label: 'Wallet Management', href: '/v2/docs#wallet-payouts' },
-      { label: 'Pricing',           href: '/v2/pricing' },
+      { label: 'Hosted APIs',    href: '/proxy' },
+      { label: 'Agent Wallets',  href: '/agents' },
+      { label: 'Marketplace',    href: '/marketplace' },
+      { label: 'Dashboard',      href: '/dashboard' },
+      { label: 'Pricing',        href: '/v2/pricing' },
     ],
   },
   {
     title: 'DEVELOPERS',
     links: [
       { label: 'Documentation', href: '/v2/docs' },
-      { label: 'Quick Start',   href: '/v2/docs#quick-start', badge: 'New' },
-      { label: 'API Reference', href: '/v2/docs#api-reference' },
+      { label: 'Quick Start',   href: '/v2/docs#how-it-works' },
+      { label: 'API Reference', href: '/v2/docs#x402-flow' },
       { label: 'GitHub',        href: 'https://github.com/joaopco8/gate402_', external: true },
-      { label: 'Changelog',     href: '/changelog' },
     ],
   },
   {
     title: 'COMPANY',
     links: [
-      { label: 'About',   href: '#' },
-      { label: 'Blog',    href: '#' },
       { label: 'Careers', href: '/v2/hiring', badge: 'Hiring' },
-      { label: 'Contact', href: '#' },
     ],
   },
   {
@@ -95,7 +91,7 @@ export function V2Footer() {
     <footer style={{ borderTop: LINE }}>
 
       {/* main body */}
-      <div style={{
+      <div className="v2r-footer-body" style={{
         display: 'flex',
         flexDirection: 'row',
         gap: 0,
@@ -104,7 +100,7 @@ export function V2Footer() {
       }}>
 
         {/* left — logo + desc + social */}
-        <div style={{
+        <div className="v2r-footer-logo" style={{
           display: 'flex', flexDirection: 'column', gap: 24,
           width: 260, flexShrink: 0,
           paddingRight: 48, borderRight: LINE,
@@ -156,22 +152,10 @@ export function V2Footer() {
             ))}
           </div>
 
-          {/* npm pill */}
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: 'rgba(255,255,255,0.04)',
-            border: LINE, borderRadius: 6,
-            padding: '7px 12px', alignSelf: 'flex-start',
-          }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: GREEN, flexShrink: 0 }} />
-            <code style={{ fontSize: 11, fontFamily: MONO, color: MUTED, userSelect: 'all' }}>
-              npm install gate402
-            </code>
-          </div>
         </div>
 
         {/* right — columns */}
-        <div style={{
+        <div className="v2r-footer-cols" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '0 40px',
@@ -207,7 +191,7 @@ export function V2Footer() {
       </div>
 
       {/* bottom bar */}
-      <div style={{
+      <div className="v2r-footer-bar" style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',

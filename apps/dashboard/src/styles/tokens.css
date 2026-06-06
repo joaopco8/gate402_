@@ -1,29 +1,29 @@
 :root {
   /* Background */
-  --bg-base:        #171717;
-  --bg-surface:     #1F1F1F;
-  --bg-overlay:     #2A2A2A;
+  --bg-base:        #1B1E1B;
+  --bg-surface:     #1F221F;
+  --bg-overlay:     #242724;
 
   /* Border */
-  --border-default: #2E2E2E;
-  --border-strong:  #3E3E3E;
+  --border-default: #2A2E2A;
+  --border-strong:  #333733;
 
   /* Text */
-  --text-primary:   #EDEDED;
-  --text-secondary: #B4B4B4;
-  --text-muted:     #6E6E6E;
-  --text-disabled:  #3E3E3E;
+  --text-primary:   #E8F4EE;
+  --text-secondary: #7A8C79;
+  --text-muted:     #4A5549;
+  --text-disabled:  #2A2E2A;
 
   /* Brand */
-  --brand-primary:  #3ECF8E;
-  --brand-bg:       #2A7252;
-  --brand-border:   #3ECF8E;
-  --brand-muted:    rgba(62,207,142,0.1);
+  --brand-primary:  #7AF279;
+  --brand-bg:       rgba(122,242,121,0.15);
+  --brand-border:   #7AF279;
+  --brand-muted:    rgba(122,242,121,0.1);
 
   /* Status */
-  --success:        #3ECF8E;
-  --success-bg:     rgba(62,207,142,0.1);
-  --success-border: rgba(62,207,142,0.2);
+  --success:        #7AF279;
+  --success-bg:     rgba(122,242,121,0.1);
+  --success-border: rgba(122,242,121,0.2);
 
   --warning:        #F59E0B;
   --warning-bg:     rgba(245,158,11,0.1);
@@ -38,15 +38,21 @@
   --info-border:    rgba(59,130,246,0.2);
 
   /* Typography */
-  --font-sans:      'Roboto', -apple-system, sans-serif;
-  --font-mono:      'Roboto Mono', 'Courier New', monospace;
+  --font-sans:      var(--font-inter), 'Inter', -apple-system, sans-serif;
+  --font-mono:      var(--font-mono-jb), 'JetBrains Mono', monospace;
+  /* Labels / additional info — Geist Mono uppercase tight */
+  --font-label:     'Geist Mono', monospace;
+  --font-label-transform: uppercase;
+  --font-label-spacing: 0;
+  --font-label-size: 12px;
+  --font-label-weight: 500;
 
-  --text-xs:   11px;
+  --text-xs:   12px;
   --text-sm:   13px;
-  --text-base: 14px;
-  --text-lg:   16px;
-  --text-xl:   20px;
-  --text-2xl:  24px;
+  --text-base: 15px;
+  --text-lg:   17px;
+  --text-xl:   21px;
+  --text-2xl:  26px;
 
   /* Spacing */
   --space-1:  4px;
@@ -59,11 +65,17 @@
   --space-10: 40px;
   --space-12: 48px;
 
+  /* Semantic layout tokens */
+  --page-padding:  48px;
+  --section-gap:   28px;
+  --card-padding:  20px 24px;
+  --row-height:    40px;
+
   /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 6px;
-  --radius-lg: 6px;
-  --radius-xl: 6px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
 
   /* Shadow */
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);

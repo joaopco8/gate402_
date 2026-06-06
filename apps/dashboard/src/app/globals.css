@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap');
 @import '../styles/tokens.css';
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -10,22 +11,23 @@
   --color-3: 210 100% 63%;
   --color-4: 195 100% 63%;
   --color-5: 90 100% 63%;
-  --bg:           #0A0A0A;
-  --surface:      #0a0a0a;
-  --card:         #0a0a0a;
-  --card-raised:  #111111;
-  --border:       #1a1a1a;
-  --border-hover: #242424;
-  --text-primary:   #ffffff;
-  --text-secondary: #888888;
-  --text-muted:     #555555;
-  --text-faint:     #333333;
-  --green:       #00bc7d;
-  --green-deep:  #00a36d;
-  --purple: #9945FF;
+  --bg:           #1B1E1B;
+  --surface:      #1F221F;
+  --card:         #1F221F;
+  --card-raised:  #242724;
+  --border:       #2A2E2A;
+  --border-hover: #333733;
+  --text-primary:   #E8F4EE;
+  --text-secondary: #7A8C79;
+  --text-muted:     #4A5549;
+  --text-faint:     #2A2E2A;
+  --green:       #7AF279;
+  --green-deep:  #5BC55A;
+  --purple: #BC86FF;
   --blue:   #3b82f6;
-  --font-display: var(--font-space), system-ui, sans-serif;
-  --font-code:    var(--font-mono-jb), monospace;
+  --font-display: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-code:    var(--font-mono-jb), 'JetBrains Mono', monospace;
+  --font-label:   'Geist Mono', monospace;
 
   /* spacing */
   --space-xxs: 2px;
@@ -38,11 +40,11 @@
   --space-huge: 64px;
 
   /* radius */
-  --radius-xs: 6px;
-  --radius-sm: 6px;
-  --radius-md: 6px;
-  --radius-lg: 6px;
-  --radius-xl: 6px;
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
 
   /* shadows */
   --shadow-1: 0 1px 3px rgba(0,0,0,0.4);
@@ -68,7 +70,7 @@
   --color-accent-foreground:    oklch(0.985 0 0);
   --color-ring:                 oklch(0.556 0 0);
   --color-input:                oklch(1 0 0 / 10%);
-  --radius:                     0.5rem;
+  --radius:                     0px;
   --color-zinc-400:             oklch(0.705 0.015 286.07);
   --color-zinc-600:             oklch(0.442 0.017 285.79);
   --color-zinc-800:             oklch(0.274 0.006 286.03);
@@ -81,13 +83,20 @@
     margin: 0;
     padding: 0;
     border-color: var(--color-border);
+    border-radius: 0 !important;
+  }
+  /* preserve true circles */
+  [style*="border-radius: 50%"],
+  [style*="borderRadius:\"50%\""],
+  .rounded-full {
+    border-radius: 50% !important;
   }
 }
 
 body {
   background: var(--bg-base);
   color: var(--text-primary);
-  font-family: var(--font-sans);
+  font-family: var(--font-label);
   font-size: var(--text-base);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -117,12 +126,32 @@ a { text-decoration: none; color: inherit; }
   }
 }
 
+/* Remove number input spinners */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: #2a2a2a; }
+::-webkit-scrollbar-thumb { background: #2A2E2A; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #333733; }
 
-::selection { background: rgba(0,188,125,0.15); color: #fff; }
+::selection { background: rgba(122,242,121,0.15); color: #E8F4EE; }
+
+/* Design system: additional info label — Geist Mono uppercase tight */
+.ds-label {
+  font-family: var(--font-label);
+  text-transform: uppercase;
+  letter-spacing: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
 
 @keyframes rainbow {
   0%   { background-position: 0%; }

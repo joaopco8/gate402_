@@ -88,7 +88,7 @@ const DropdownItemRow = ({ item }: { item: DropdownItem }) => {
         {item.label}{item.badge && <Badge text={item.badge} />}
       </span>
       {item.desc && (
-        <span style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.4 }}>{item.desc}</span>
+        <span style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.4 }}>{item.desc}</span>
       )}
     </a>
   );
@@ -183,7 +183,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   };
   const MobileSection = ({ label, items }: { label: string; items: DropdownItem[] }) => (
     <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 12 }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#4b5563', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: '#4b5563', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
       {items.map((item, i) => (
         <a key={i} href={item.href} target={item.target} rel={item.target === '_blank' ? 'noopener noreferrer' : undefined}
           onClick={onClose}

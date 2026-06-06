@@ -27,6 +27,90 @@ model User {
   apiCalls      ApiCall[]
   transactions  Transaction[]
   agentWallets  AgentWallet[]
+  proxyEndpoints ProxyEndpoint[]
+
+  username          String?  @unique
+  displayName       String?
+  bio               String?
+  avatarEmoji       String?  @default("👤")
+  avatarColor       String?  @default("#7AF279")
+  avatarImage       String?
+  githubUrl         String?
+  websiteUrl        String?
+  twitterUrl        String?
+  isPublicProfile   Boolean  @default(false)
+}
+
+model ProxyEndpoint {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  slug        String   @unique
+  name        String
+  description String?
+  category    String   @default("data")
+
+  targetUrl   String
+
+  pricePerCall Float   @default(0.001)
+
+  targetApiKey    String?
+  targetApiHeader String?  @default("x-api-key")
+
+  totalCalls     Int    @default(0)
+  totalEarned    Float  @default(0)
+  lastCallAt     DateTime?
+
+  uptimePercent  Float  @default(100)
+  avgLatencyMs   Int    @default(0)
+
+  isActive       Boolean @default(true)
+  isPublic       Boolean @default(true)
+  isFeatured     Boolean @default(false)
+
+  avatarEmoji     String?  @default("🔌")
+  avatarColor     String?  @default("#7AF279")
+  avatarImage     String?
+  tags            String[] @default([])
+  docsUrl         String?
+  methods         String[] @default(["GET"])
+  responseExample String?
+  longDescription String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  calls       ProxyCall[]
+
+  @@index([userId])
+  @@index([slug])
+  @@index([isPublic, isActive])
+  @@index([category])
+}
+
+model ProxyCall {
+  id              String   @id @default(uuid())
+  proxyEndpointId String
+  proxyEndpoint   ProxyEndpoint @relation(fields: [proxyEndpointId], references: [id])
+
+  callerWallet    String?
+  agentWalletId   String?
+
+  amount          Float
+  txHash          String?
+  paymentStatus   String   @default("pending")
+
+  latencyMs       Int?
+  targetStatus    Int?
+
+  errorCode       String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([proxyEndpointId])
+  @@index([createdAt])
+  @@index([callerWallet])
 }
 
 model AgentWallet {

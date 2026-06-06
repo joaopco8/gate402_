@@ -10,60 +10,30 @@ export function ProGate({ isPro, feature, children }: ProGateProps) {
   if (isPro) return <>{children}</>
 
   return (
-    <div style={{ position: 'relative' }}>
-      <div style={{
-        filter: 'blur(4px)',
-        pointerEvents: 'none',
-        userSelect: 'none',
-        opacity: 0.4,
-      }}>
-        {children}
-      </div>
-
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        display: 'flex',
-        flexDirection: 'column',
+    <a
+      href="/billing"
+      title={`${feature} — Pro plan`}
+      style={{
+        display: 'inline-flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        background: 'rgba(13,13,13,0.75)',
-        borderRadius: 6,
-        backdropFilter: 'blur(2px)',
-        gap: 10,
-      }}>
-        <div style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: '#fff',
-          textAlign: 'center',
-        }}>{feature}</div>
-
-        <div style={{
-          fontSize: 12,
-          color: '#555',
-          textAlign: 'center',
-          maxWidth: 200,
-        }}>Available on the Pro plan</div>
-
-        <a
-          href="/billing"
-          style={{
-            marginTop: 4,
-            padding: '8px 20px',
-            background: '#006239',
-            border: '0.5px solid #128353',
-            color: '#fff',
-            borderRadius: 6,
-            fontSize: 13,
-            fontWeight: 500,
-            textDecoration: 'none',
-            fontFamily: 'var(--font-display)',
-          }}
-        >
-          Upgrade to Pro
-        </a>
-      </div>
-    </div>
+        gap: 6,
+        padding: '6px 14px',
+        background: 'rgba(122,242,121,0.06)',
+        border: '1px solid rgba(122,242,121,0.2)',
+        color: '#7AF279',
+        fontSize: 12,
+        fontWeight: 500,
+        fontFamily: 'var(--font-label)',
+        textTransform: 'uppercase',
+        textDecoration: 'none',
+        whiteSpace: 'nowrap',
+        cursor: 'pointer',
+      }}
+    >
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      {feature}
+    </a>
   )
 }
