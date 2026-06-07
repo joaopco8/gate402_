@@ -116,17 +116,24 @@ const IconProxy = () => (
     <circle cx="4" cy="8" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
   </svg>
 )
+const IconMarketplace = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M1 4h14M1 4l1.5-2h11L15 4M1 4v9a1 1 0 001 1h12a1 1 0 001-1V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M6 8h4M8 6v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+)
 
 const NAV_ITEMS = [
-  { label: 'Overview',      href: '/dashboard',  Icon: IconOverview },
-  { label: 'Analytics',     href: '/analytics',  Icon: IconAnalytics, pro: true },
-  { label: 'Wallet',        href: '/wallet',     Icon: IconWallet },
-  { label: 'Agent Wallets', href: '/agents',     Icon: IconAgents },
-  { label: 'APIs',          href: '/proxy',      Icon: IconProxy },
-  { label: 'Playground',    href: '/playground', Icon: IconPlayground },
-  { label: 'Docs',          href: '/docs',       Icon: IconDocs },
-  { label: 'Billing',       href: '/billing',    Icon: IconBilling },
-  { label: 'Settings',      href: '/settings',   Icon: IconSettings },
+  { label: 'Overview',      href: '/dashboard',   Icon: IconOverview },
+  { label: 'Analytics',     href: '/analytics',   Icon: IconAnalytics, pro: true },
+  { label: 'Wallet',        href: '/wallet',      Icon: IconWallet },
+  { label: 'Agent Wallets', href: '/agents',      Icon: IconAgents },
+  { label: 'APIs',          href: '/proxy',       Icon: IconProxy },
+  { label: 'Marketplace',   href: '/marketplace', Icon: IconMarketplace },
+  { label: 'Playground',    href: '/playground',  Icon: IconPlayground },
+  { label: 'Docs',          href: '/docs',        Icon: IconDocs },
+  { label: 'Billing',       href: '/billing',     Icon: IconBilling },
+  { label: 'Settings',      href: '/settings',    Icon: IconSettings },
 ]
 
 // ─── Framer variants ──────────────────────────────────────────────────────────

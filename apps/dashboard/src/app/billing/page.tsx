@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode, type CSSProperties } from 'react'
 import { Check } from 'lucide-react'
 import { createClient } from '../../../lib/supabase/client'
 import { useUser } from '@/contexts/UserContext'
@@ -123,7 +123,6 @@ export default function BillingPage() {
   const currentPlan = !loading ? (userData?.plan ?? 'free') : null
   const isStarter   = currentPlan === 'starter'
   const isPro       = currentPlan === 'pro' || currentPlan === 'enterprise'
-  const isPaid      = isStarter || isPro
 
   async function getSession() {
     const supabase = createClient()
@@ -200,8 +199,8 @@ export default function BillingPage() {
     accent: string | null
     checkColor: string
     badge?: string
-    tag?: React.ReactNode
-    cta: React.ReactNode
+    tag?: ReactNode
+    cta: ReactNode
     borderRight?: boolean
   }) {
     return (
@@ -245,7 +244,7 @@ export default function BillingPage() {
     )
   }
 
-  const btnStyle = (bg: string, color: string, disabled: boolean): React.CSSProperties => ({
+  const btnStyle = (bg: string, color: string, disabled: boolean): CSSProperties => ({
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     height: 38, width: '100%', fontSize: 12, fontWeight: 500,
     background: bg, color, border: 'none',
@@ -255,7 +254,7 @@ export default function BillingPage() {
     textDecoration: 'none',
   })
 
-  const outlineBtn: React.CSSProperties = {
+  const outlineBtn: CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     height: 38, width: '100%', fontSize: 12, fontWeight: 500,
     background: 'transparent', border: LINE, color: '#7A8C79',
