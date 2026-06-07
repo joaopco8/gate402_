@@ -23,7 +23,7 @@ export interface UserData {
   id: string
   apiKey: string
   walletAddress: string | null
-  plan: 'free' | 'pro' | 'enterprise'
+  plan: 'free' | 'starter' | 'pro' | 'enterprise'
   network: string
   totalCalls: number
   totalEndpoints: number
@@ -35,15 +35,16 @@ export interface UserData {
 
 function buildLimits(plan: UserData['plan']): PlanLimits {
   const isPro = plan === 'pro' || plan === 'enterprise'
+  const isStarter = plan === 'starter'
   return {
-    maxEndpoints: isPro ? Infinity : 3,
-    recentCallsLimit: isPro ? 100 : 10,
-    chartDays: isPro ? 30 : 7,
-    hasAnalytics: isPro,
+    maxEndpoints: isPro ? Infinity : isStarter ? 10 : 3,
+    recentCallsLimit: isPro ? 50 : isStarter ? 20 : 5,
+    chartDays: isPro ? 90 : isStarter ? 30 : 7,
+    hasAnalytics: isPro || isStarter,
     hasMetering: isPro,
     hasExport: isPro,
     hasLatency: isPro,
-    hasWallet: isPro,
+    hasWallet: isPro || isStarter,
     hasMRR: isPro,
   }
 }
