@@ -7,6 +7,7 @@ import { createClient } from '../../../lib/supabase/client'
 import DashboardLayout from '../components/DashboardLayout'
 import { SpendingProgress } from '../components/ui/SpendingProgress'
 import { CreateAgentWalletModal } from '../components/ui/CreateAgentWalletModal'
+import { EditAgentWalletModal } from '../components/ui/EditAgentWalletModal'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { DepositModal } from '@/components/ui/deposit-modal'
 
@@ -59,6 +60,8 @@ export default function AgentsPage() {
   const [createOpen, setCreateOpen]         = useState(false)
   const [deleteTarget, setDeleteTarget]     = useState<AgentWallet | null>(null)
   const [deleteLoading, setDeleteLoading]   = useState(false)
+  const [deleteError, setDeleteError]       = useState<string | null>(null)
+  const [editTarget, setEditTarget]         = useState<AgentWallet | null>(null)
   const [depositTarget, setDepositTarget]   = useState<AgentWallet | null>(null)
   const [copied, setCopied]                 = useState('')
 
@@ -136,9 +139,15 @@ export default function AgentsPage() {
   async function handleDelete() {
     if (!deleteTarget) return
     setDeleteLoading(true)
+    setDeleteError(null)
     try {
       const headers = await authHeader()
-      await fetch(`${SERVER_URL}/api/agent-wallets/${deleteTarget.id}`, { method: 'DELETE', headers })
+      const res = await fetch(`${SERVER_URL}/api/agent-wallets/${deleteTarget.id}`, { method: 'DELETE', headers })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setDeleteError(data.error || 'Failed to delete wallet')
+        return
+      }
       const updated = wallets.filter(w => w.id !== deleteTarget.id)
       setWallets(updated)
       if (selected?.id === deleteTarget.id) { setSelected(updated[0] || null); setStats(null) }
@@ -316,6 +325,18 @@ export default function AgentsPage() {
                       <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
                     </svg>
                   </a>
+                  <button
+                    onClick={() => setEditTarget(selected)}
+                    style={{
+                      padding: 8, background: 'transparent', border: LINE,
+                      borderRadius: 8, color: '#4A5549', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                  </button>
                   <button
                     onClick={() => setDeleteTarget(selected)}
                     style={{
@@ -620,15 +641,28 @@ export default function AgentsPage() {
         agentName={depositTarget?.name || ''}
       />
 
+      <EditAgentWalletModal
+        open={!!editTarget}
+        wallet={editTarget}
+        onClose={() => setEditTarget(null)}
+        onSuccess={updated => {
+          setWallets(ws => ws.map(w => w.id === updated.id ? { ...w, ...updated } : w))
+          if (selected?.id === updated.id) setSelected(s => s ? { ...s, ...updated } : s)
+          setEditTarget(null)
+        }}
+        serverUrl={SERVER_URL}
+        authHeader={authHeader}
+      />
+
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete agent wallet?"
-        description={`"${deleteTarget?.name}" will be permanently deleted. This cannot be undone.`}
+        description={deleteError ? deleteError : `"${deleteTarget?.name}" will be permanently deleted. This cannot be undone.`}
         confirmLabel="Delete"
         danger
         loading={deleteLoading}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => { setDeleteTarget(null); setDeleteError(null) }}
       />
     </DashboardLayout>
   )

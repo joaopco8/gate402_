@@ -255,22 +255,10 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Agent wallet not found', code: 'NOT_FOUND' })
     }
 
-    // 1. Delete from Privy first
-    if (existing.privyWalletId) {
-      try {
-        await (privy.walletApi as any).delete(existing.privyWalletId)
-        console.log(`[privy] Wallet deleted: ${existing.privyWalletId}`)
-      } catch (privyError: any) {
-        if (privyError?.status === 404 || privyError?.code === 404) {
-          console.warn(`[privy] Wallet already deleted: ${existing.privyWalletId}`)
-        } else {
-          console.error('[privy] Delete failed:', privyError?.message)
-          return res.status(500).json({ error: 'Failed to delete wallet from Privy', code: 'PRIVY_DELETE_FAILED' })
-        }
-      }
-    }
+    // Note: Privy server-auth SDK v1.x does not expose a walletApi.delete method.
+    // The wallet is soft-deleted in our DB; the Privy-managed key becomes unreachable.
 
-    // 2. Soft delete in DB
+    // Soft delete in DB
     await prisma.agentWallet.update({ where: { id }, data: { isActive: false } })
 
     // 3. Invalidate cache
