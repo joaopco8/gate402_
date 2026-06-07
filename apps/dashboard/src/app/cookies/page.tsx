@@ -13,32 +13,36 @@ const GREEN = '#7AF279'
 
 const sections = [
   {
-    title: 'Information We Collect',
-    body: `We collect information you provide directly to us, such as when you create an account, integrate our SDK, or contact support. This includes your email address, API keys, and wallet addresses associated with your account.\n\nWe also automatically collect certain technical data when you use our services: IP addresses, browser type, operating system, referring URLs, and usage data about API calls made through Metera.`,
+    title: 'What Are Cookies',
+    body: `Cookies are small text files placed on your device when you visit a website. They allow the site to remember your preferences and understand how you interact with it.\n\nMetera uses cookies and similar technologies such as local storage and session storage to operate the Service and improve your experience.`,
   },
   {
-    title: 'How We Use Your Information',
-    body: `We use the information we collect to provide, maintain, and improve our services — including processing payments, detecting fraud, and generating analytics dashboards. We do not sell your personal data to third parties.\n\nOn-chain transaction data (wallet addresses, payment amounts) is publicly visible on the Solana blockchain by nature of the protocol. Metera does not control or obscure this data.`,
+    title: 'Essential Cookies',
+    body: `These cookies are necessary for the Service to function and cannot be disabled. They include:\n\nAuthentication tokens that keep you signed in across sessions. Session identifiers used to maintain your state while using the dashboard. Security cookies that help detect and prevent fraudulent activity.\n\nYou cannot opt out of essential cookies as they are required for the Service to operate.`,
   },
   {
-    title: 'Data Storage and Security',
-    body: `Your data is stored on servers located in the United States and the European Union. We implement industry-standard security measures including encryption at rest and in transit, access controls, and regular security audits.\n\nAPI keys are hashed before storage. We recommend rotating your keys regularly and never sharing them publicly.`,
+    title: 'Analytics Cookies',
+    body: `We use analytics cookies to understand how users interact with the Service. This data is aggregated and anonymous — it helps us improve the dashboard, documentation, and onboarding flow.\n\nAnalytics data includes pages visited, time spent, and general navigation patterns. No personally identifiable information is included in analytics reports.`,
   },
   {
-    title: 'Third-Party Services',
-    body: `We use Supabase for database and authentication services, Solana mainnet for payment settlement, and standard cloud infrastructure providers. Each third-party service operates under its own privacy policy.\n\nWe do not share your personal data with advertising networks or data brokers.`,
+    title: 'Preference Cookies',
+    body: `Preference cookies remember your settings and choices within the dashboard, such as selected time ranges, theme preferences, and display options.\n\nThese cookies improve your experience by avoiding the need to reconfigure settings on each visit. They can be cleared by resetting your browser storage.`,
   },
   {
-    title: 'Your Rights',
-    body: `You have the right to access, correct, or delete your personal data at any time. You may request a copy of all data we hold about you by contacting us at privacy@Metera.dev.\n\nFor users in the European Economic Area, you have additional rights under GDPR including the right to data portability and the right to object to processing.`,
+    title: 'Third-Party Cookies',
+    body: `Some features of the Service may load resources from third-party providers. These providers may set their own cookies in accordance with their privacy policies.\n\nWe do not use third-party advertising cookies or allow ad networks to place cookies through Metera.`,
+  },
+  {
+    title: 'Managing Your Cookies',
+    body: `You can control cookies through your browser settings. Most browsers allow you to block, delete, or be notified when cookies are set. Refer to your browser's documentation for specific instructions.\n\nNote that blocking essential cookies will prevent you from signing in and using authenticated features of the dashboard.`,
   },
   {
     title: 'Contact',
-    body: `If you have questions about this Privacy Policy or our data practices, contact us at:\n\nprivacy@Metera.dev\n\nThis policy was last updated January 2026.`,
+    body: `For questions about our cookie practices, contact us at:\n\nprivacy@Metera.dev\n\nThis policy was last updated January 2026.`,
   },
 ]
 
-export default function PrivacyPage() {
+export default function CookiesPage() {
   return (
     <div style={{ background: '#1B1E1B', minHeight: '100vh', fontFamily: SANS, color: TEXT }}>
       <V2Navbar />
@@ -49,10 +53,10 @@ export default function PrivacyPage() {
             legal
           </span>
           <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)', fontWeight: 300, letterSpacing: '-0.04em', color: '#FFFFFF', margin: '0 0 20px', lineHeight: 1.05, fontFamily: SANS }}>
-            Privacy Policy
+            Cookie Settings
           </h1>
           <p style={{ fontSize: 15, color: MUTED, margin: 0, fontWeight: 300, maxWidth: 480 }}>
-            How Metera collects, uses, and protects your data. Effective January 1, 2026.
+            How Metera uses cookies and how to manage your preferences. Effective January 1, 2026.
           </p>
         </div>
 

@@ -1,13 +1,10 @@
 'use client'
 import { useState, useEffect } from 'react'
-import DashboardLayout from '../components/DashboardLayout'
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { V2Navbar } from '../../components/v2/v2-navbar'
+import { V2Footer } from '../../components/v2/v2-footer'
 
 type NavItem = { label: string; id: string }
 type NavGroup = { group: string; items: NavItem[] }
-
-// ─── Nav Data ─────────────────────────────────────────────────────────────────
 
 const NAV_GROUPS: NavGroup[] = [
   {
@@ -52,86 +49,46 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     group: 'FAQ',
-    items: [
-      { label: 'FAQ', id: 'faq' },
-    ],
+    items: [{ label: 'FAQ', id: 'faq' }],
   },
 ]
 
 const ALL_IDS = NAV_GROUPS.flatMap(g => g.items.map(i => i.id))
 
-// ─── Design tokens (dashboard design system) ───────────────────────────────────
 const T = {
   bg:            '#1B1E1B',
   card:          '#1F221F',
   border:        '#2A2E2A',
-  borderHover:   '#3A3E3A',
   textPrimary:   '#E8F4EE',
   textSecondary: '#7A8C79',
   textMuted:     '#4A5549',
-  textFaint:     '#2A2E2A',
   green:         '#7AF279',
   greenBg:       'rgba(122,242,121,0.06)',
   purple:        '#BC86FF',
   blue:          '#60a5fa',
-  font:          "'Inter', 'Geist Mono', sans-serif",
+  font:          "'Inter', sans-serif",
   mono:          "'Geist Mono', monospace",
   sideW:         220,
+  navH:          64,
 }
-
-// ─── Docs sub-nav ──────────────────────────────────────────────────────────────
 
 function DocsNav({ activeId, scrollTo }: { activeId: string; scrollTo: (id: string) => void }) {
   return (
-    <aside style={{
-      width: T.sideW,
-      flexShrink: 0,
-      borderRight: `1px solid ${T.border}`,
-      position: 'sticky',
-      top: 0,
-      height: '100vh',
-      overflowY: 'auto',
-      paddingBottom: 32,
-    }}>
+    <aside style={{ width: T.sideW, flexShrink: 0, borderRight: `1px solid ${T.border}`, position: 'sticky', top: T.navH, height: `calc(100vh - ${T.navH}px)`, overflowY: 'auto', paddingBottom: 32 }}>
       <div style={{ padding: '24px 12px 8px' }}>
-        <span style={{ fontFamily: T.mono, fontSize: 10, color: T.textMuted, letterSpacing: '0.10em', textTransform: 'uppercase' }}>
-          Documentation
-        </span>
+        <span style={{ fontFamily: T.mono, fontSize: 10, color: T.textMuted, letterSpacing: '0.10em', textTransform: 'uppercase' }}>Documentation</span>
       </div>
       <nav style={{ padding: '4px 0' }}>
         {NAV_GROUPS.map(group => (
           <div key={group.group} style={{ marginBottom: 4 }}>
-            <div style={{
-              padding: '6px 14px',
-              fontFamily: T.font, fontSize: 11, fontWeight: 600,
-              color: T.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase',
-            }}>
-              {group.group}
-            </div>
+            <div style={{ padding: '6px 14px', fontFamily: T.font, fontSize: 11, fontWeight: 600, color: T.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{group.group}</div>
             {group.items.map(item => {
               const active = activeId === item.id
               return (
-                <button
-                  key={item.id}
-                  onClick={() => scrollTo(item.id)}
-                  style={{
-                    display: 'block', width: '100%', textAlign: 'left',
-                    padding: '5px 14px 5px 18px',
-                    fontFamily: T.font, fontSize: 13,
-                    color: active ? T.green : T.textSecondary,
-                    background: active ? T.greenBg : 'transparent',
-                    border: 'none',
-                    borderLeft: `2px solid ${active ? T.green : 'transparent'}`,
-                    cursor: 'pointer',
-                    transition: 'all 0.12s',
-                    borderRadius: '0 6px 6px 0',
-                    marginRight: 8,
-                  }}
+                <button key={item.id} onClick={() => scrollTo(item.id)} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '5px 14px 5px 18px', fontFamily: T.font, fontSize: 13, color: active ? T.green : T.textSecondary, background: active ? T.greenBg : 'transparent', border: 'none', borderLeft: `2px solid ${active ? T.green : 'transparent'}`, cursor: 'pointer', transition: 'all 0.12s', borderRadius: '0 6px 6px 0', marginRight: 8 }}
                   onMouseEnter={e => { if (!active) { e.currentTarget.style.color = T.textPrimary; e.currentTarget.style.background = 'rgba(122,242,121,0.03)' } }}
                   onMouseLeave={e => { if (!active) { e.currentTarget.style.color = T.textSecondary; e.currentTarget.style.background = 'transparent' } }}
-                >
-                  {item.label}
-                </button>
+                >{item.label}</button>
               )
             })}
           </div>
@@ -141,18 +98,14 @@ function DocsNav({ activeId, scrollTo }: { activeId: string; scrollTo: (id: stri
   )
 }
 
-// ─── Content components ────────────────────────────────────────────────────────
-
 function CodeBlock({ lang, code }: { lang: string; code: string }) {
   const [copied, setCopied] = useState(false)
   return (
     <div style={{ background: '#111311', border: `1px solid ${T.border}`, borderRadius: 6, overflow: 'hidden', margin: '14px 0' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 14px', borderBottom: `1px solid ${T.border}`, background: T.card }}>
         <span style={{ fontFamily: T.mono, fontSize: 11, color: T.textMuted }}>{lang}</span>
-        <button
-          onClick={() => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-          style={{ background: 'none', border: 'none', fontFamily: T.font, fontSize: 12, color: copied ? T.green : T.textMuted, cursor: 'pointer', transition: 'color 0.15s' }}
-        >
+        <button onClick={() => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+          style={{ background: 'none', border: 'none', fontFamily: T.font, fontSize: 12, color: copied ? T.green : T.textMuted, cursor: 'pointer', transition: 'color 0.15s' }}>
           {copied ? 'Copied ✓' : 'Copy'}
         </button>
       </div>
@@ -165,10 +118,10 @@ function CodeBlock({ lang, code }: { lang: string; code: string }) {
 
 function Callout({ type = 'info', children }: { type?: 'info' | 'warning' | 'danger' | 'success'; children: React.ReactNode }) {
   const colors = {
-    info:    { border: T.blue,   bg: 'rgba(96,165,250,0.06)',   icon: 'ℹ' },
+    info:    { border: T.blue,    bg: 'rgba(96,165,250,0.06)',  icon: 'ℹ' },
     warning: { border: '#f59e0b', bg: 'rgba(245,158,11,0.06)', icon: '⚠' },
     danger:  { border: '#ef4444', bg: 'rgba(239,68,68,0.06)',  icon: '✕' },
-    success: { border: T.green,  bg: T.greenBg,                icon: '✓' },
+    success: { border: T.green,   bg: T.greenBg,               icon: '✓' },
   }
   const c = colors[type]
   return (
@@ -179,10 +132,7 @@ function Callout({ type = 'info', children }: { type?: 'info' | 'warning' | 'dan
   )
 }
 
-function Terminal({ title = 'bash', lines }: {
-  title?: string
-  lines: Array<{ type: 'command' | 'output' | 'comment' | 'success' | 'error' | 'blank'; text: string }>
-}) {
+function Terminal({ title = 'bash', lines }: { title?: string; lines: Array<{ type: 'command' | 'output' | 'comment' | 'success' | 'error' | 'blank'; text: string }> }) {
   const lineStyles: Record<string, React.CSSProperties> = {
     command: { color: T.textPrimary, fontSize: 12, lineHeight: '22px' },
     output:  { color: T.textMuted,   fontSize: 12, lineHeight: '22px', paddingLeft: 16 },
@@ -195,15 +145,13 @@ function Terminal({ title = 'bash', lines }: {
   return (
     <div style={{ background: '#111311', border: `1px solid ${T.border}`, borderRadius: 6, overflow: 'hidden', margin: '16px 0', fontFamily: T.mono }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', borderBottom: `1px solid ${T.border}`, background: T.card }}>
-        {['#ef4444','#f59e0b', T.green].map((c, i) => <div key={i} style={{ width: 9, height: 9, borderRadius: '50%', background: c }} />)}
+        {['#ef4444', '#f59e0b', T.green].map((c, i) => <div key={i} style={{ width: 9, height: 9, borderRadius: '50%', background: c }} />)}
         <span style={{ marginLeft: 'auto', fontSize: 11, color: T.textMuted, letterSpacing: '0.05em' }}>{title}</span>
       </div>
       <div style={{ padding: '14px 18px' }}>
         {lines.map((line, i) => (
           <div key={i} style={lineStyles[line.type]}>
-            {line.type !== 'blank' && (
-              <span style={{ color: line.type === 'command' ? T.green : 'inherit' }}>{prefix[line.type]}</span>
-            )}
+            {line.type !== 'blank' && <span style={{ color: line.type === 'command' ? T.green : 'inherit' }}>{prefix[line.type]}</span>}
             {line.text}
           </div>
         ))}
@@ -230,27 +178,17 @@ function StepList({ steps }: { steps: Array<{ title: string; description: string
   )
 }
 
-// ─── Section headings ──────────────────────────────────────────────────────────
-
 const H2 = ({ id, children }: { id: string; children: React.ReactNode }) => (
-  <h2 id={id} style={{ fontFamily: T.font, fontWeight: 600, fontSize: 20, color: T.textPrimary, borderBottom: `1px solid ${T.border}`, paddingBottom: 10, marginTop: 56, marginBottom: 18, scrollMarginTop: 24, lineHeight: 1.2 }}>
-    {children}
-  </h2>
+  <h2 id={id} style={{ fontFamily: T.font, fontWeight: 600, fontSize: 20, color: T.textPrimary, borderBottom: `1px solid ${T.border}`, paddingBottom: 10, marginTop: 56, marginBottom: 18, scrollMarginTop: T.navH + 16, lineHeight: 1.2 }}>{children}</h2>
 )
-
 const H3 = ({ id, children }: { id?: string; children: React.ReactNode }) => (
-  <h3 id={id} style={{ fontFamily: T.font, fontWeight: 600, fontSize: 14, color: T.textPrimary, marginTop: 24, marginBottom: 6, scrollMarginTop: 24 }}>
-    {children}
-  </h3>
+  <h3 id={id} style={{ fontFamily: T.font, fontWeight: 600, fontSize: 14, color: T.textPrimary, marginTop: 24, marginBottom: 6, scrollMarginTop: T.navH + 16 }}>{children}</h3>
 )
-
 const P = ({ children }: { children: React.ReactNode }) => (
   <p style={{ color: T.textSecondary, fontSize: 13, lineHeight: 1.8, marginBottom: 10, fontFamily: T.font }}>{children}</p>
 )
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-export default function DocsPage() {
+export default function DocsPublicPage() {
   const [activeId, setActiveId] = useState('introduction')
 
   useEffect(() => {
@@ -263,39 +201,32 @@ export default function DocsPage() {
   }, [])
 
   function scrollTo(id: string) {
-    const el = document.getElementById(id)
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   return (
-    <DashboardLayout>
-      <div style={{ display: 'flex', minHeight: '100vh', background: T.bg, color: T.textPrimary }}>
+    <div style={{ background: T.bg, minHeight: '100vh', color: T.textPrimary }}>
+      <V2Navbar />
 
-        {/* Docs sub-nav */}
+      <div style={{ display: 'flex', maxWidth: 1200, margin: '0 auto', borderLeft: `1px solid ${T.border}`, borderRight: `1px solid ${T.border}`, minHeight: `calc(100vh - ${T.navH}px)` }}>
         <DocsNav activeId={activeId} scrollTo={scrollTo} />
 
-        {/* Main content */}
-        <main style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
+        <main style={{ flex: 1, minWidth: 0 }}>
           <div style={{ maxWidth: 800, padding: '40px clamp(24px, 4vw, 56px) 80px', margin: '0 auto' }}>
 
-            {/* ══ INTRODUCTION ══ */}
             <section id="introduction">
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
                 {[
-                  { label: 'v1.0',   color: T.textMuted, border: T.border, bg: T.card },
-                  { label: 'MIT',    color: T.textMuted, border: T.border, bg: T.card },
-                  { label: 'Solana', color: T.purple, border: 'rgba(188,134,255,0.3)', bg: 'rgba(188,134,255,0.06)' },
-                  { label: 'x402',   color: T.blue,   border: 'rgba(96,165,250,0.3)',  bg: 'rgba(96,165,250,0.06)' },
+                  { label: 'v1.0',   color: T.textMuted, border: T.border,                      bg: T.card },
+                  { label: 'MIT',    color: T.textMuted, border: T.border,                      bg: T.card },
+                  { label: 'Solana', color: T.purple,    border: 'rgba(188,134,255,0.3)',        bg: 'rgba(188,134,255,0.06)' },
+                  { label: 'x402',   color: T.blue,      border: 'rgba(96,165,250,0.3)',         bg: 'rgba(96,165,250,0.06)' },
                 ].map(b => (
                   <span key={b.label} style={{ fontFamily: T.mono, fontSize: 11, background: b.bg, border: `1px solid ${b.border}`, color: b.color, borderRadius: 4, padding: '2px 7px' }}>{b.label}</span>
                 ))}
               </div>
-
-              <h1 style={{ fontFamily: T.font, fontWeight: 600, fontSize: 28, color: T.textPrimary, marginBottom: 8, lineHeight: 1.15, letterSpacing: '-0.3px' }}>
-                Documentation
-              </h1>
+              <h1 style={{ fontFamily: T.font, fontWeight: 600, fontSize: 28, color: T.textPrimary, marginBottom: 8, lineHeight: 1.15, letterSpacing: '-0.3px' }}>Documentation</h1>
               <P>Everything you need to monetize your API or connect your AI agent to paid services.</P>
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, margin: '24px 0' }}>
                 {[
                   { label: 'For API owners', desc: 'Register your API URL and set a price. Metera generates a public endpoint — agents pay automatically in USDC.', href: '#api-register', color: T.green },
@@ -310,41 +241,35 @@ export default function DocsPage() {
                   </a>
                 ))}
               </div>
-
-              <Callout type="success">
-                Metera is MIT licensed. The npm packages are free forever. The hosted platform at metera.dev is the commercial offering.
-              </Callout>
+              <Callout type="success">Metera is MIT licensed. The npm packages are free forever. The hosted platform at metera.dev is the commercial offering.</Callout>
             </section>
 
-            {/* ══ WHAT IS METERA ══ */}
             <H2 id="what-is-metera">What is Metera?</H2>
             <P>Metera is the economic layer for AI agents.</P>
             <P>If you have an API, Metera lets AI agents pay you automatically in USDC on Solana.</P>
             <P>If you have an AI agent, Metera gives it a wallet, spending limits, and access to hundreds of paid APIs — with one line of code.</P>
             <Callout type="info">No banks. No credit cards. No humans in the loop.</Callout>
 
-            {/* ══ HOW IT WORKS ══ */}
             <H2 id="how-it-works">How it works</H2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, margin: '16px 0' }}>
               <div style={{ border: `1px solid ${T.border}`, borderRadius: 6, padding: 16, background: T.card }}>
                 <div style={{ fontSize: 10, color: T.green, fontFamily: T.mono, letterSpacing: '0.10em', marginBottom: 14, textTransform: 'uppercase' as const }}>For API owners</div>
                 <StepList steps={[
-                  { title: 'Register your API',      description: <><span style={{ fontFamily: T.mono, fontSize: 11, color: T.textMuted }}>metera.dev/proxy</span><br />Paste your URL · Set a price</> },
+                  { title: 'Register your API',        description: <><span style={{ fontFamily: T.mono, fontSize: 11, color: T.textMuted }}>metera.dev/proxy</span><br />Paste your URL · Set a price</> },
                   { title: 'Get your public endpoint', description: <code style={{ fontFamily: T.mono, fontSize: 11, color: T.green }}>api.metera.dev/p/your-api</code> },
-                  { title: 'Agents call your API',   description: 'Metera charges automatically. USDC lands in your wallet.' },
+                  { title: 'Agents call your API',     description: 'Metera charges automatically. USDC lands in your wallet.' },
                 ]} />
               </div>
               <div style={{ border: `1px solid ${T.border}`, borderRadius: 6, padding: 16, background: T.card }}>
                 <div style={{ fontSize: 10, color: T.purple, fontFamily: T.mono, letterSpacing: '0.10em', marginBottom: 14, textTransform: 'uppercase' as const }}>For AI agents</div>
                 <StepList steps={[
-                  { title: 'Create an agent wallet',   description: <><span style={{ fontFamily: T.mono, fontSize: 11, color: T.textMuted }}>metera.dev/agents</span><br />Wallet created automatically · Deposit via Pix or card</> },
-                  { title: 'Connect to your agent',    description: <>Paste one line in Claude Code or Cursor:<br /><code style={{ fontFamily: T.mono, fontSize: 11, color: T.green }}>Read metera.dev/skill/your-key</code></> },
+                  { title: 'Create an agent wallet',        description: <><span style={{ fontFamily: T.mono, fontSize: 11, color: T.textMuted }}>metera.dev/agents</span><br />Wallet created automatically · Deposit via Pix or card</> },
+                  { title: 'Connect to your agent',         description: <>Paste one line in Claude Code or Cursor:<br /><code style={{ fontFamily: T.mono, fontSize: 11, color: T.green }}>Read metera.dev/skill/your-key</code></> },
                   { title: 'Your agent pays automatically', description: 'Detects x402, pays in USDC, retries — zero extra code.' },
                 ]} />
               </div>
             </div>
 
-            {/* ══ FOR API OWNERS ══ */}
             <H2 id="api-register">Register your API</H2>
             <P>No code required. Go to metera.dev/proxy, paste your API URL and set a price. Metera generates a public endpoint instantly.</P>
             <Terminal title="example" lines={[
@@ -362,9 +287,9 @@ export default function DocsPage() {
             <H2 id="api-pricing">Pricing</H2>
             <div style={{ border: `1px solid ${T.border}`, borderRadius: 6, overflow: 'hidden', margin: '14px 0' }}>
               {[
-                { plan: 'Free',       desc: 'Up to 3 endpoints · 0% fee',                color: T.textSecondary },
-                { plan: 'Pro',        desc: 'Unlimited endpoints · $99/month · 0% fee',  color: T.green },
-                { plan: 'Enterprise', desc: '0.5% of volume · white-label · SLA',         color: T.purple },
+                { plan: 'Free',       desc: 'Up to 3 endpoints · 0% fee',               color: T.textSecondary },
+                { plan: 'Pro',        desc: 'Unlimited endpoints · $99/month · 0% fee', color: T.green },
+                { plan: 'Enterprise', desc: '0.5% of volume · white-label · SLA',        color: T.purple },
               ].map((row, i) => (
                 <div key={row.plan} style={{ display: 'flex', gap: 16, padding: '12px 16px', borderBottom: i < 2 ? `1px solid ${T.border}` : 'none', background: i % 2 === 0 ? '#111311' : T.card, alignItems: 'center' }}>
                   <span style={{ fontFamily: T.mono, fontSize: 12, color: row.color, minWidth: 80 }}>{row.plan}</span>
@@ -373,7 +298,6 @@ export default function DocsPage() {
               ))}
             </div>
 
-            {/* ══ FOR AI AGENTS ══ */}
             <H2 id="agent-wallet">Create an agent wallet</H2>
             <StepList steps={[
               { title: 'Go to metera.dev/agents', description: 'Sign in with GitHub.' },
@@ -415,7 +339,6 @@ export default function DocsPage() {
               ))}
             </div>
 
-            {/* ══ MARKETPLACE ══ */}
             <H2 id="marketplace-discover">Discover paid APIs</H2>
             <P>The Metera Marketplace lists all APIs available for AI agents to consume. Browse by category: data, AI, media, finance. Each API shows price, uptime, latency and total calls.</P>
             <Callout type="info">
@@ -433,7 +356,6 @@ export default function DocsPage() {
               ))}
             </div>
 
-            {/* ══ x402 ══ */}
             <H2 id="x402-what">What is x402?</H2>
             <P>x402 is an open HTTP standard for machine-to-machine payments. When a server returns HTTP 402, it means: "This resource costs money. Here is how to pay."</P>
             <Callout type="info">The x402 Foundation — backed by Google, Microsoft, Stripe, Coinbase and Cloudflare — defines the standard. Metera is the implementation.</Callout>
@@ -460,15 +382,14 @@ export default function DocsPage() {
             <H3>Non-custodial</H3>
             <P>Metera never holds your funds. Payments go directly wallet-to-wallet on-chain.</P>
 
-            {/* ══ FAQ ══ */}
             <H2 id="faq">FAQ</H2>
             {[
-              { q: 'Do I need to know crypto to use Metera?',   a: 'No. Everything works with Pix, credit card and a GitHub login.' },
-              { q: 'What currency does Metera use?',             a: 'USDC on Solana. It is a stablecoin pegged to the US dollar. $1 USDC = $1 USD, always.' },
-              { q: 'How fast are payments?',                     a: '~400ms. Solana settles transactions in under a second.' },
-              { q: 'What if my API goes down?',                  a: 'If your API does not respond, the payment is not charged. Agents only pay for successful responses.' },
-              { q: 'Can I use Metera with any AI agent?',        a: 'Yes. Any agent that supports MCP or can read a URL works with Metera — Claude, GPT, Cursor and others.' },
-              { q: 'Is Metera open source?',                     a: 'Yes. MIT licensed. github.com/metera-dev' },
+              { q: 'Do I need to know crypto to use Metera?',  a: 'No. Everything works with Pix, credit card and a GitHub login.' },
+              { q: 'What currency does Metera use?',            a: 'USDC on Solana. It is a stablecoin pegged to the US dollar. $1 USDC = $1 USD, always.' },
+              { q: 'How fast are payments?',                    a: '~400ms. Solana settles transactions in under a second.' },
+              { q: 'What if my API goes down?',                 a: 'If your API does not respond, the payment is not charged. Agents only pay for successful responses.' },
+              { q: 'Can I use Metera with any AI agent?',       a: 'Yes. Any agent that supports MCP or can read a URL works with Metera — Claude, GPT, Cursor and others.' },
+              { q: 'Is Metera open source?',                    a: 'Yes. MIT licensed. github.com/metera-dev' },
             ].map(item => (
               <div key={item.q} style={{ borderBottom: `1px solid ${T.border}`, padding: '14px 0' }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: T.textPrimary, marginBottom: 6, fontFamily: T.font }}>{item.q}</div>
@@ -476,26 +397,21 @@ export default function DocsPage() {
               </div>
             ))}
 
-            {/* ══ CTA ══ */}
             <div style={{ marginTop: 56, padding: 24, border: `1px solid ${T.border}`, borderRadius: 8, background: T.card, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
               <div>
                 <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.mono, letterSpacing: '0.10em', marginBottom: 10, textTransform: 'uppercase' as const }}>For API owners</div>
-                <a href="/proxy" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: T.green, color: '#1B1E1B', borderRadius: 6, textDecoration: 'none', fontSize: 13, fontWeight: 600, fontFamily: T.font, transition: 'opacity 150ms' }}
+                <a href="/proxy" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: T.green, color: '#1B1E1B', borderRadius: 6, textDecoration: 'none', fontSize: 13, fontWeight: 600, fontFamily: T.font }}
                   onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
                   onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-                >
-                  Register your API →
-                </a>
+                >Register your API →</a>
                 <div style={{ fontSize: 11, color: T.textMuted, marginTop: 6, fontFamily: T.mono }}>metera.dev/proxy</div>
               </div>
               <div>
                 <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.mono, letterSpacing: '0.10em', marginBottom: 10, textTransform: 'uppercase' as const }}>For AI agents</div>
-                <a href="/agents" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: T.purple, color: '#fff', borderRadius: 6, textDecoration: 'none', fontSize: 13, fontWeight: 600, fontFamily: T.font, transition: 'opacity 150ms' }}
+                <a href="/agents" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: T.purple, color: '#fff', borderRadius: 6, textDecoration: 'none', fontSize: 13, fontWeight: 600, fontFamily: T.font }}
                   onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
                   onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-                >
-                  Create agent wallet →
-                </a>
+                >Create agent wallet →</a>
                 <div style={{ fontSize: 11, color: T.textMuted, marginTop: 6, fontFamily: T.mono }}>metera.dev/agents</div>
               </div>
             </div>
@@ -504,6 +420,8 @@ export default function DocsPage() {
           </div>
         </main>
       </div>
-    </DashboardLayout>
+
+      <V2Footer />
+    </div>
   )
 }
