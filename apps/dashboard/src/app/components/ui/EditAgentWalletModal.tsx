@@ -49,6 +49,7 @@ export function EditAgentWalletModal({ open, wallet, onClose, onSuccess, serverU
     setForm(f => ({ ...f, [k]: e.target.value }))
 
   async function handleSubmit() {
+    if (!wallet) return
     if (!form.name.trim()) { setError('Name is required'); return }
     setLoading(true)
     setError('')
