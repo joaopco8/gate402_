@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma'
 import { redis } from '../lib/redis'
 import { privy } from '../lib/privy'
 import { getHourBucket, getDayBucket, getMonthBucket } from '../services/spendingLimits'
+import { getPlanLimits } from '../lib/plans'
 
 const router = Router()
 
@@ -73,15 +74,24 @@ router.post('/', async (req, res) => {
       })
     }
 
-    const count = await prisma.agentWallet.count({
-      where: { userId: user.id, isActive: true },
-    })
+    const planLimits = getPlanLimits(user.plan || 'free')
+    const limit = planLimits.maxAgentWallets
 
-    if (count >= 10) {
-      return res.status(400).json({
-        error: 'Maximum 10 agent wallets per account',
-        code: 'MAX_WALLETS_REACHED',
+    if (limit !== null) {
+      const count = await prisma.agentWallet.count({
+        where: { userId: user.id, isActive: true },
       })
+
+      if (count >= limit) {
+        return res.status(403).json({
+          error: `Your ${planLimits.name} plan allows up to ${limit} agent wallet${limit === 1 ? '' : 's'}. Upgrade to get more.`,
+          code: 'PLAN_LIMIT_REACHED',
+          limit,
+          current: count,
+          plan: user.plan || 'free',
+          upgradeUrl: '/billing',
+        })
+      }
     }
 
     // Create managed Solana wallet via Privy

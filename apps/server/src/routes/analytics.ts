@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { redisGet, redisSet } from '../lib/redis';
 import { getCachedUser } from '../lib/userCache';
+import { getPlanLimits } from '../lib/plans';
 
 const router = Router();
 
@@ -64,7 +65,7 @@ router.get('/calls/per-day', async (req, res) => {
     const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const maxDays = (user.plan === 'pro' || user.plan === 'enterprise') ? 90 : 7;
+    const maxDays = getPlanLimits(user.plan).analyticsDays ?? 7;
     const requestedDays = Math.min(parseInt(req.query.days as string) || 7, maxDays);
     const days = Math.max(1, requestedDays);
 
@@ -112,7 +113,7 @@ router.get('/calls/recent', async (req, res) => {
     const user = await getCachedUser(supabaseId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const planLimit = user.plan === 'pro' ? 50 : 5;
+    const planLimit = getPlanLimits(user.plan).maxCallsVisible ?? 5;
     const limit = Math.max(1, Math.min(planLimit, parseInt(req.query.limit as string) || planLimit));
     const cursor = req.query.cursor as string | undefined;
 

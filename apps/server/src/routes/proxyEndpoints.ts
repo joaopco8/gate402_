@@ -2,14 +2,13 @@ import { Router } from 'express'
 import { prisma } from '../lib/prisma'
 import { redisDel } from '../lib/redis'
 import { generateSlug, ensureUniqueSlug } from '../lib/slugify'
+import { getPlanLimits } from '../lib/plans'
 
 const router = Router()
 
 function getUser(req: any) {
   return req.gate402User as { id: string; supabaseId: string; plan: string; apiKey: string } | undefined
 }
-
-const FREE_LIMIT = 3
 
 const SAFE_SELECT = {
   id: true,
@@ -109,13 +108,19 @@ router.post('/', async (req, res) => {
       }
     }
 
-    const isPro = user.plan === 'pro' || user.plan === 'enterprise'
-    if (!isPro) {
+    const planLimits = getPlanLimits(user.plan || 'free')
+    const limit = planLimits.maxProxyEndpoints
+
+    if (limit !== null) {
       const count = await prisma.proxyEndpoint.count({ where: { userId: user.id, isActive: true } })
-      if (count >= FREE_LIMIT) {
-        return res.status(400).json({
-          error: `Free plan allows up to ${FREE_LIMIT} proxy endpoints. Upgrade to Pro for unlimited.`,
-          code: 'LIMIT_REACHED',
+      if (count >= limit) {
+        return res.status(403).json({
+          error: `Your ${planLimits.name} plan allows up to ${limit} hosted endpoint${limit === 1 ? '' : 's'}. Upgrade to get more.`,
+          code: 'PLAN_LIMIT_REACHED',
+          limit,
+          current: count,
+          plan: user.plan || 'free',
+          upgradeUrl: '/billing',
         })
       }
     }
