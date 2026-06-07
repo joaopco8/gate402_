@@ -28,18 +28,37 @@ const plans = [
     ],
   },
   {
+    title: 'Starter',
+    description: 'For developers growing their first API.',
+    price: '$29',
+    priceLabel: 'monthly',
+    cta: 'Start Starter',
+    ctaHref: '/auth/login?intent=checkout&plan=starter',
+    accent: '#60a5fa',
+    badge: 'New',
+    features: [
+      'Everything in Free',
+      'Up to 10 hosted endpoints',
+      'Up to 5 agent wallets',
+      'Last 20 calls visible',
+      '30-day analytics',
+      'Community support',
+      'Cancel anytime',
+    ],
+  },
+  {
     title: 'Pro',
     description: 'For developers monetizing at scale.',
     price: '$99',
     priceLabel: 'monthly',
     cta: 'Start Pro',
-    ctaHref: '/auth/login?intent=checkout',
+    ctaHref: '/auth/login?intent=checkout&plan=pro',
     accent: '#7AF279',
     popular: true,
     features: [
-      'Everything in Free',
+      'Everything in Starter',
       'Unlimited hosted endpoints',
-      'Unlimited agent wallets',
+      'Up to 20 agent wallets',
       'Last 50 calls visible',
       '90-day analytics',
       'Revenue breakdown gross/net',
@@ -62,6 +81,7 @@ const plans = [
     accent: '#BC86FF',
     features: [
       'Everything in Pro',
+      'Unlimited agent wallets',
       'White-label dashboard',
       'Custom domain',
       'Marketplace featured listing',
@@ -137,11 +157,11 @@ export function MeteraPricingSection() {
       </div>
 
       {/* plans grid */}
-      <div ref={grid.ref} className="v2r-pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
+      <div ref={grid.ref} className="v2r-pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
         {plans.map((plan, i) => (
           <div key={plan.title} className="v2r-plan-item" style={{
             ...grid.itemStyle(i),
-            borderRight: i < 2 ? LINE : 'none',
+            borderRight: i < 3 ? LINE : 'none',
             borderTop: plan.accent ? `2px solid ${plan.accent}` : '2px solid transparent',
             display: 'flex',
             flexDirection: 'column',
@@ -158,13 +178,13 @@ export function MeteraPricingSection() {
                   {plan.title}
                 </span>
                 {plan.popular && (
-                  <span style={{
-                    fontSize: 12,
-                    color: '#7AF279',
-                    fontFamily: 'monospace',
-                    letterSpacing: '0.04em',
-                  }}>
+                  <span style={{ fontSize: 12, color: '#7AF279', fontFamily: 'monospace', letterSpacing: '0.04em' }}>
                     // most popular
+                  </span>
+                )}
+                {'badge' in plan && plan.badge && (
+                  <span style={{ fontSize: 11, color: '#60a5fa', fontFamily: 'monospace', letterSpacing: '0.04em', background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.25)', borderRadius: 4, padding: '1px 6px' }}>
+                    {plan.badge}
                   </span>
                 )}
               </div>
@@ -230,6 +250,8 @@ export function MeteraPricingSection() {
                     ? { background: '#7AF279', color: '#1B1E1B' }
                     : plan.accent === '#BC86FF'
                     ? { background: '#BC86FF', color: '#1B1E1B' }
+                    : plan.accent === '#60a5fa'
+                    ? { background: '#60a5fa', color: '#1B1E1B' }
                     : { background: 'transparent', border: LINE, color: '#7A8C79' }
                   ),
                 }}
