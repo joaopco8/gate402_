@@ -33,6 +33,20 @@ export const MatrixText = ({
   );
   const isAnimatingRef = useRef(false);
 
+  // Precompute word groups (start/end indices) — never changes
+  const wordGroups = useMemo(() => {
+    const groups: { start: number; end: number; isSpace: boolean }[] = [];
+    let i = 0;
+    while (i < text.length) {
+      const isSpace = text[i] === " ";
+      let j = i;
+      while (j < text.length && (text[j] === " ") === isSpace) j++;
+      groups.push({ start: i, end: j, isSpace });
+      i = j;
+    }
+    return groups;
+  }, [text]);
+
   const getRandomChar = useCallback(
     () => (Math.random() > 0.5 ? "1" : "0"),
     []
@@ -41,7 +55,6 @@ export const MatrixText = ({
   const animateLetter = useCallback(
     (index: number) => {
       if (index >= text.length) return;
-
       requestAnimationFrame(() => {
         setLetters((prev) => {
           const next = [...prev];
@@ -50,7 +63,6 @@ export const MatrixText = ({
           }
           return next;
         });
-
         setTimeout(() => {
           setLetters((prev) => {
             const next = [...prev];
@@ -67,7 +79,6 @@ export const MatrixText = ({
     if (isAnimatingRef.current) return;
     isAnimatingRef.current = true;
     let currentIndex = 0;
-
     const animate = () => {
       if (currentIndex >= text.length) {
         isAnimatingRef.current = false;
@@ -77,20 +88,13 @@ export const MatrixText = ({
       currentIndex++;
       setTimeout(animate, letterInterval);
     };
-
     animate();
   }, [animateLetter, text, letterInterval]);
 
   const motionVariants = useMemo(
     () => ({
-      matrix: {
-        color: "#FFFFFF",
-        textShadow: "none",
-      },
-      normal: {
-        color: "inherit",
-        textShadow: "none",
-      },
+      matrix: { color: "#FFFFFF", textShadow: "none" },
+      normal: { color: "inherit", textShadow: "none" },
     }),
     []
   );
@@ -98,26 +102,35 @@ export const MatrixText = ({
   return (
     <span
       className={className}
-      style={{ display: "inline-flex", flexWrap: "wrap", cursor: "default", ...style }}
+      style={{ display: "inline", cursor: "default", ...style }}
       onMouseEnter={startAnimation}
       aria-label={text}
     >
-      {letters.map((letter, index) => (
-        <motion.span
-          key={index}
-          style={{
-            display: "inline-block",
-            fontVariantNumeric: "tabular-nums",
-            minWidth: letter.isSpace ? "0.3em" : "auto",
-          }}
-          initial="normal"
-          animate={letter.isMatrix ? "matrix" : "normal"}
-          variants={motionVariants}
-          transition={{ duration: 0.04, ease: "easeInOut" }}
-        >
-          {letter.isSpace ? "\u00A0" : letter.char}
-        </motion.span>
-      ))}
+      {wordGroups.map((group, gi) =>
+        group.isSpace ? (
+          <span key={gi} style={{ display: "inline-block", minWidth: "0.25em" }}>
+            {" "}
+          </span>
+        ) : (
+          <span key={gi} style={{ display: "inline-flex", whiteSpace: "nowrap" }}>
+            {letters.slice(group.start, group.end).map((letter, li) => (
+              <motion.span
+                key={group.start + li}
+                style={{
+                  display: "inline-block",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+                initial="normal"
+                animate={letter.isMatrix ? "matrix" : "normal"}
+                variants={motionVariants}
+                transition={{ duration: 0.04, ease: "easeInOut" }}
+              >
+                {letter.char}
+              </motion.span>
+            ))}
+          </span>
+        )
+      )}
     </span>
   );
 };
