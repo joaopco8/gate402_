@@ -440,7 +440,6 @@ export default function DocsPublicPage() {
 
             <div style={{ height: 64 }} />
           </div>
-          </div>
         </main>
       </div>
 
