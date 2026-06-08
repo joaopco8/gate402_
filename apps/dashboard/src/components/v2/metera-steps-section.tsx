@@ -29,36 +29,38 @@ function StepCard({ step }: { step: typeof STEPS[0] }) {
   return (
     <div style={{
       border: LINE,
-      background: 'transparent',
-      display: 'flex',
-      flexDirection: 'column',
+      position: 'relative',
       overflow: 'hidden',
+      aspectRatio: '1080 / 1350',
     }}>
-      {/* image — aspect ratio 1080/1350 = 4/5 */}
-      <div style={{ width: '100%', aspectRatio: '1080 / 1350', overflow: 'hidden' }}>
-        <img
-          src={step.image}
-          alt={step.title}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-        />
-      </div>
+      {/* image fills entire card */}
+      <img
+        src={step.image}
+        alt={step.title}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+      />
 
-      {/* title + desc */}
-      <div style={{ padding: '20px 24px', borderTop: LINE }}>
+      {/* text overlay at bottom */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0, left: 0, right: 0,
+        padding: '32px 24px 24px',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)',
+      }}>
         <div style={{
           fontFamily: MONO,
           fontSize: 14,
           fontWeight: 500,
           color: TEXT,
-          marginBottom: 8,
+          marginBottom: 6,
         }}>
           {step.title}
         </div>
         <div style={{
           fontFamily: MONO,
           fontSize: 12,
-          color: MUTED,
-          lineHeight: 1.75,
+          color: 'rgba(232,244,238,0.75)',
+          lineHeight: 1.7,
         }}>
           {step.desc}
         </div>
