@@ -201,7 +201,7 @@ function FAQGroup({ group, defaultOpen }: { group: FAQGroup; defaultOpen?: boole
         <span style={{
           fontFamily: "'Geist Mono', monospace",
           fontSize: 11,
-          color: open ? "#7A8C79" : "#4A5549",
+          color: open ? "#E8F4EE" : "#B0C4B0",
           letterSpacing: "0.1em",
           textTransform: "uppercase",
           transition: "color 150ms",
@@ -246,8 +246,7 @@ export function MeteraFAQSection() {
           lineHeight: 1.05,
           margin: 0,
         }}>
-          Questions.<br />
-          <span style={{ color: "#7AF279" }}>Answered.</span>
+          <span style={{ color: "#7AF279" }}>FAQ</span>
         </h2>
       </div>
 

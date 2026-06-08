@@ -311,7 +311,7 @@ input[type=number] {
 }
 
 /* Hero responsive */
-.hero-section { aspect-ratio: 3108 / 1882; }
+.hero-section { aspect-ratio: 2146 / 941; }
 .hero-bg-mobile { display: none !important; }
 @media (max-width: 768px) {
   .hero-section { aspect-ratio: 1227 / 1742 !important; }

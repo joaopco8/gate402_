@@ -137,8 +137,8 @@ export function MeteraPricingSection() {
           margin: 0,
           lineHeight: 1.05,
         }}>
-          Pricing that<br />
-          <span style={{ color: '#7AF279' }}>scales with you.</span>
+          PRICING THAT<br />
+          <span style={{ color: '#7AF279' }}>SCALES WITH YOU.</span>
         </h2>
         <p style={{
           position: 'relative',

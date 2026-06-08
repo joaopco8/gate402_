@@ -84,8 +84,8 @@ export function MeteraFeaturesSection() {
             margin: 0,
             lineHeight: 1.05,
           }}>
-            Remove the <Strikethrough>roadblocks</Strikethrough>.<br />
-            <span style={{ color: '#7AF279' }}>Get paid for your work.</span>
+            REMOVE THE <Strikethrough>ROADBLOCKS</Strikethrough>.<br />
+            <span style={{ color: '#7AF279' }}>GET PAID FOR YOUR WORK.</span>
           </h2>
         </FadeIn>
         <FadeIn delay={100}>

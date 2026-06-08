@@ -93,8 +93,8 @@ export function MeteraOneLineSection() {
         {/* headline + subtitle — full width, centered */}
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
           <h2 style={{ fontFamily: SANS, fontWeight: 300, fontSize: 'clamp(2rem, 3.5vw, 3rem)', letterSpacing: '-0.03em', color: TEXT, margin: '0 0 8px', lineHeight: 1.15 }}>
-            Connect your AI agent<br />
-            <span style={{ color: GREEN }}>in one line.</span>
+            CONNECT YOUR AI AGENT<br />
+            <span style={{ color: GREEN }}>IN ONE LINE.</span>
           </h2>
           <p style={{ fontFamily: SANS, fontWeight: 300, fontSize: 15, color: MUTED, margin: '16px auto 0', lineHeight: 1.6, maxWidth: 480 }}>
             No npm. No config. No crypto knowledge.<br />

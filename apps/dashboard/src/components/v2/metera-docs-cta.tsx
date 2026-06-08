@@ -301,8 +301,8 @@ export function MeteraDocsCTA() {
           color: '#FFFFFF',
           margin: 0,
         }}>
-          Everything an agent needs<br />
-          <span style={{ color: '#7AF279' }}>to pay you.</span>
+          EVERYTHING AN AGENT NEEDS<br />
+          <span style={{ color: '#7AF279' }}>TO PAY YOU.</span>
         </h2>
       </div>
 

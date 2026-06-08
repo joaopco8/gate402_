@@ -23,8 +23,8 @@ export function MeteraHighlightsSection() {
           lineHeight: 1.05,
           margin: 0,
         }}>
-          Everything included.<br />
-          <span style={{ color: "#7AF279" }}>Nothing to configure.</span>
+          EVERYTHING INCLUDED.<br />
+          <span style={{ color: "#7AF279" }}>NOTHING TO CONFIGURE.</span>
         </h2>
       </div>
 

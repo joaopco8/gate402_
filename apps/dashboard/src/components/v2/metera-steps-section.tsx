@@ -45,7 +45,7 @@ function StepCard({ step }: { step: typeof STEPS[0] }) {
         position: 'absolute',
         bottom: 0, left: 0, right: 0,
         padding: '32px 24px 24px',
-        background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)',
+        background: 'transparent',
       }}>
         <div style={{
           fontFamily: MONO,
@@ -83,8 +83,8 @@ export function MeteraStepsSection() {
           lineHeight: 1.05,
           margin: 0,
         }}>
-          From API to income<br />
-          <span style={{ color: GREEN }}>in three steps.</span>
+          FROM API TO INCOME<br />
+          <span style={{ color: GREEN }}>IN THREE STEPS.</span>
         </h2>
       </div>
 

@@ -192,8 +192,8 @@ export function MeteraMarketplaceSection() {
         margin: "0 0 48px",
         lineHeight: 1.15,
       }}>
-        Every API your agent needs,<br />
-        <span style={{ color: "#7AF279" }}>ready to call.</span>
+        EVERY API YOUR AGENT NEEDS,<br />
+        <span style={{ color: "#7AF279" }}>READY TO CALL.</span>
       </h2>
 
       {/* 2×2 grid */}

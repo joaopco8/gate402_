@@ -230,7 +230,7 @@ export function MeteraControlSection() {
           color: '#FFFFFF',
           margin: 0,
         }}>
-          One prompt. Your agent<br />is live in seconds.
+          ONE PROMPT. YOUR AGENT<br />IS LIVE IN SECONDS.
         </h2>
       </div>
 
