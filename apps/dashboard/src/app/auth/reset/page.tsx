@@ -84,7 +84,7 @@ export default function ResetPage() {
           {/* header */}
           <div style={{ padding: '28px 28px 20px', borderBottom: LINE }}>
             <a href="/v2" style={{ display: 'inline-block', marginBottom: 20, textDecoration: 'none' }}>
-              <img src="/logos/metera-logo.png" alt="Metera" style={{ height: 22, width: 'auto', filter: 'brightness(0) invert(1)', display: 'block' }} />
+              <img src="/logo-metera.png" alt="Metera" style={{ height: 22, width: 'auto', filter: 'brightness(0) invert(1)', display: 'block' }} />
             </a>
             <h1 style={{ fontSize: 20, fontWeight: 300, letterSpacing: '-0.03em', color: TEXT, margin: '0 0 4px', fontFamily: SANS }}>
               Reset password

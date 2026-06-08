@@ -155,7 +155,7 @@ export default function PostLoginPage() {
 
         {/* logo */}
         <img
-          src="/logos/metera-logo.png"
+          src="/logo-metera.png"
           alt="Metera"
           style={{ height: 34, width: 'auto', filter: 'brightness(0) invert(1)', marginBottom: 56, opacity: 0.9 }}
         />

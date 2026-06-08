@@ -108,7 +108,7 @@ export function V2Footer() {
         }}>
           <a href="/v2" style={{ textDecoration: 'none', display: 'inline-block' }}>
             <img
-              src="/logos/metera-logo.png"
+              src="/logo-metera.png"
               alt="Metera"
               style={{ height: 26, width: 'auto', filter: 'brightness(0) invert(1)' }}
             />

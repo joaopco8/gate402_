@@ -232,7 +232,7 @@ export function V2Navbar({ activePage }: { activePage?: string }) {
             borderRight: LINE,
           }}>
             <img
-              src="/logos/metera-logo.png"
+              src="/logo-metera.png"
               alt="Metera"
               style={{ height: 28, width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }}
             />

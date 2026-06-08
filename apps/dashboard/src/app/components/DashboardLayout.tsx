@@ -749,7 +749,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <line x1="2" y1="13.5" x2="16" y2="13.5"/>
               </svg>
             </button>
-            <img src="/logos/favicon-metera-white.png" alt="Metera" style={{ height: 22, width: 'auto', display: 'block' }} />
+            <img src="/logo-metera.png" alt="Metera" style={{ height: 22, width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }} />
             <div className="dash-topbar-hi" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
               Hi, <span style={{ color: 'var(--text-primary)', fontWeight: 500 }} suppressHydrationWarning>{firstName}</span>
             </div>
