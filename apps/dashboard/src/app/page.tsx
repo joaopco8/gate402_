@@ -93,7 +93,7 @@ export default function HomePage() {
           transition: 'opacity 0.4s ease',
         }}>
           <h1 style={{
-            fontSize: 'clamp(1.85rem, 4.46vw, 5.15rem)',
+            fontSize: 'clamp(1.57rem, 3.79vw, 4.38rem)',
             fontWeight: 300,
             letterSpacing: '-0.04em',
             lineHeight: 1.05,
