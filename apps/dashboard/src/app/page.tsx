@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import '../styles/v2/tokens.css'
-import { DitheringShader } from '../components/v2/dithering-shader'
 import { MeteraControlSection } from '../components/v2/metera-control-section'
 import { MeteraFeaturesSection } from '../components/v2/metera-features-section'
 import { MeteraFAQSection } from '../components/v2/metera-faq-section'
@@ -25,7 +24,7 @@ export default function HomePage() {
   const [typed, setTyped] = useState('')
 
   useEffect(() => {
-    const t = setTimeout(() => setHeroReady(true), 800)
+    const t = setTimeout(() => setHeroReady(true), 300)
     return () => clearTimeout(t)
   }, [])
 
@@ -56,39 +55,42 @@ export default function HomePage() {
         margin: '0 auto',
         borderLeft: LINE,
         borderRight: LINE,
-        minHeight: '100vh',
         position: 'relative',
         zIndex: 1,
         background: '#1B1E1B',
       }}>
 
-        {/* ─── HERO ─── */}
-        <div className="v2r-hero-pad" style={{
+        {/* ─── HERO ─── constrained to 1200px, natural image height ─── */}
+        <FadeIn blur={6} y={24}>
+        <div style={{
           position: 'relative',
-          padding: '120px 64px 120px',
+          width: '100%',
+          aspectRatio: '3512 / 2160',
           borderBottom: LINE,
-          minHeight: '70vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-start',
           overflow: 'hidden',
         }}>
+          {/* bg image at 80% opacity */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'url(/bg-ofc1.png)',
+            backgroundSize: '100% 100%',
+            backgroundRepeat: 'no-repeat',
+            opacity: 0.8,
+          }} />
 
-          <DitheringShader
-            shape="wave"
-            type="8x8"
-            colorBack="#1B1E1B"
-            colorFront="#BC86FF"
-            pxSize={3}
-            speed={0.6}
-            style={{ opacity: heroReady ? 0.2 : 0, pointerEvents: 'none', transition: 'opacity 0.4s ease' }}
-            onFirstFrame={() => setHeroReady(true)}
-          />
-
-          <div style={{ position: 'relative', zIndex: 2, opacity: heroReady ? 1 : 0, transition: 'opacity 0.4s ease' }}>
-
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            padding: '0 64px',
+            opacity: heroReady ? 1 : 0,
+            transition: 'opacity 0.4s ease',
+          }}>
             <h1 style={{
-              fontSize: 'clamp(2.5rem, 5vw, 5rem)',
+              fontSize: 'clamp(2rem, 4.5vw, 5rem)',
               fontWeight: 300,
               letterSpacing: '-0.04em',
               lineHeight: 1.05,
@@ -97,18 +99,16 @@ export default function HomePage() {
             }}>
               Billing infrastructure
               <br />
-              <span style={{ color: '#7AF279' }}>
-                for AI agents.
-              </span>
+              <span style={{ color: '#7AF279' }}>for AI agents.</span>
             </h1>
 
             <p className="v2r-hero-subtitle" style={{
-              fontSize: '18px',
+              fontSize: 'clamp(13px, 1.2vw, 18px)',
               color: '#FFFFFF',
               lineHeight: 1.7,
               maxWidth: '540px',
-              marginBottom: '56px',
-              fontWeight: 400,
+              marginBottom: '40px',
+              fontWeight: 300,
               fontFamily: "'Geist Mono', monospace",
               whiteSpace: 'pre',
             }}>
@@ -125,44 +125,38 @@ export default function HomePage() {
               <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
             </p>
 
-            <div style={{
-              display: 'flex',
-              gap: '12px',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-            }}>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
               <a href="/auth/login" style={{
                 display: 'inline-block',
-                background: '#7AF279',
-                color: '#1B1E1B',
-                borderRadius: '8px',
-                padding: '14px 28px',
-                fontSize: '15px',
-                fontWeight: 500,
-                fontFamily: "'Geist Mono', monospace",
+                background: 'transparent',
+                color: '#7A8C79',
+                padding: '6px 0',
+                fontSize: '13px',
+                fontWeight: 400,
+                fontFamily: "'Inter', sans-serif",
                 cursor: 'pointer',
                 textDecoration: 'none',
               }}>
                 Get started free
               </a>
-              <a href="/v2/docs" style={{
+              <span style={{ color: '#2A2E2A', fontSize: '13px' }}>|</span>
+              <a href="/docs" style={{
                 display: 'inline-block',
-                background: '#BC86FF',
-                color: '#1B1E1B',
-                borderRadius: '8px',
-                padding: '14px 28px',
-                fontSize: '15px',
-                fontFamily: "'Geist Mono', monospace",
-                fontWeight: 500,
+                background: 'transparent',
+                color: '#7A8C79',
+                padding: '6px 0',
+                fontSize: '13px',
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: 400,
                 cursor: 'pointer',
                 textDecoration: 'none',
               }}>
                 Read docs →
               </a>
             </div>
-
           </div>
         </div>
+        </FadeIn>
 
         <FadeIn blur={6} y={24}><MeteraStepsSection /></FadeIn>
         <FadeIn blur={6} y={24}><MeteraOneLineSection /></FadeIn>
