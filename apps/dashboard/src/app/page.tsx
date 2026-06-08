@@ -117,7 +117,7 @@ export default function HomePage() {
             lineHeight: 1.7,
             marginBottom: 28,
             maxWidth: 480,
-            whiteSpace: 'pre',
+            whiteSpace: 'pre-wrap',
             minHeight: '3.4em',
           }}>
             {typed}

@@ -319,6 +319,50 @@ input[type=number] {
   .hero-bg-mobile { display: block !important; }
 }
 
+/* ── v2 landing page mobile ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* section headings — reduce padding */
+  .v2r-section-head,
+  .v2r-features-head,
+  .v2r-highlights-head,
+  .v2r-pricing-head,
+  .v2r-docs-head,
+  .v2r-control-headline { padding: 36px 20px !important; }
+
+  /* FAQ */
+  .v2r-faq-group  { padding: 20px !important; }
+  .v2r-faq-items  { padding: 0 20px 8px !important; }
+
+  /* one-line section */
+  .v2r-oneline-pad  { padding: 48px 20px 40px !important; }
+  .v2r-logos-strip  { gap: 28px !important; padding: 24px 20px !important; flex-wrap: wrap !important; }
+
+  /* marketplace section */
+  .v2r-market-section { padding: 48px 20px !important; }
+
+  /* steps */
+  .v2r-steps-pad { padding: 32px 20px !important; }
+
+  /* collapse all multi-col grids → single col */
+  .v2r-pricing-grid   { grid-template-columns: 1fr !important; }
+  .v2r-grid-3         { grid-template-columns: 1fr !important; }
+  .v2r-market-grid    { grid-template-columns: 1fr !important; }
+  .v2r-grid-control   { grid-template-columns: 1fr !important; }
+  .v2r-oneline-grid   { grid-template-columns: 1fr !important; }
+  .v2r-highlights-grid { grid-template-columns: 1fr 1fr !important; }
+  .v2r-docs-grid      { grid-template-columns: 1fr !important; }
+
+  /* remove side borders that look broken when stacked */
+  .v2r-plan-item      { border-right: none !important; }
+  .v2r-control-left   { border-right: none !important; padding: 32px 20px !important; }
+  .v2r-control-right  { padding: 20px 20px 32px !important; }
+  .v2r-docs-card-col  { border-right: none !important; }
+  .v2r-docs-grid > div { border-right: none !important; }
+
+  /* page border — remove side borders on mobile */
+  .v2r-page-border { border-left: none !important; border-right: none !important; }
+}
+
 @media (max-width: 480px) {
   .resp-grid-4    { grid-template-columns: 1fr !important; }
   .resp-grid-bill { grid-template-columns: 1fr !important; }
