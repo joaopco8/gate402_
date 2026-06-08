@@ -278,7 +278,7 @@ export default function BillingPage() {
         </div>
 
         {/* Plans grid — 4 columns */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderBottom: LINE }}>
+        <div className="resp-grid-bill" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderBottom: LINE }}>
 
           {/* Free */}
           <PlanCard

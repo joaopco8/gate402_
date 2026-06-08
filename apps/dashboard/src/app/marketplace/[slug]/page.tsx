@@ -19,6 +19,7 @@ interface APIDetail {
   avgLatencyMs: number
   avatarEmoji?: string
   avatarColor?: string
+  avatarImage?: string
   tags?: string[]
   docsUrl?: string
   methods?: string[]
@@ -145,14 +146,16 @@ npx gate402 skill YOUR_AGENT_KEY
             {/* Avatar */}
             <div style={{
               width: 64, height: 64, borderRadius: 16,
-              background: (api.avatarEmoji && api.avatarEmoji !== '🔌') ? (api.avatarColor || b.color) + '20' : 'transparent',
-              border: (api.avatarEmoji && api.avatarEmoji !== '🔌') ? `2px solid ${api.avatarColor || b.bg}40` : 'none',
+              background: api.avatarImage ? 'transparent' : (api.avatarEmoji && api.avatarEmoji !== '🔌') ? (api.avatarColor || b.color) + '20' : 'transparent',
+              border: api.avatarImage ? 'none' : (api.avatarEmoji && api.avatarEmoji !== '🔌') ? `2px solid ${api.avatarColor || b.bg}40` : 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 30, marginBottom: 20, overflow: 'hidden',
             }}>
-              {(api.avatarEmoji && api.avatarEmoji !== '🔌')
-                ? api.avatarEmoji
-                : <img src="/icon-api.jpg" alt="" style={{ width: 64, height: 64, objectFit: 'cover', display: 'block' }} />
+              {api.avatarImage
+                ? <img src={api.avatarImage} alt="" style={{ width: 64, height: 64, objectFit: 'cover', display: 'block' }} />
+                : (api.avatarEmoji && api.avatarEmoji !== '🔌')
+                  ? api.avatarEmoji
+                  : <img src="/icon-api.jpg" alt="" style={{ width: 64, height: 64, objectFit: 'cover', display: 'block' }} />
               }
             </div>
 

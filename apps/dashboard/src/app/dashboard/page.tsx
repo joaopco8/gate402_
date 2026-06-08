@@ -332,7 +332,7 @@ function RecentCalls({ calls, loading, isPro }: { calls: any[]; loading: boolean
   const COLS = '1fr 90px 120px 64px 90px'
 
   return (
-    <div style={{ borderRadius: 6, border: '1px solid var(--border-default)', background: 'var(--bg-surface)', overflow: 'hidden' }}>
+    <div style={{ borderRadius: 6, border: '1px solid var(--border-default)', background: 'var(--bg-surface)', overflow: 'hidden', minWidth: 480 }}>
 
       {/* Header */}
       <div style={{ display: 'grid', gridTemplateColumns: COLS, columnGap: 8,
@@ -557,7 +557,7 @@ export default function DashboardPage() {
         <PageHeader title="Overview" />
 
         {/* Stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
+        <div className="resp-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
           <StatsCard label="Total Calls"   value={loading ? '—' : (data?.totalCalls || 0).toLocaleString()} sub="all time"        loading={loading} current={data?.callsThisWeek}   previous={data?.callsLastWeek}  chartData={data?.callsPerDay?.map(d => d.count)} />
           <StatsCard label="Total Earned"  value={loading ? '—' : `$${(data?.totalUsdc || 0).toFixed(4)}`}  sub="USDC · all time" loading={loading} current={data?.revenueThisWeek} previous={data?.revenueLastWeek} chartData={data?.callsPerDay?.map(d => d.amount)} />
           <StatsCard label="Calls Today"   value={loading ? '—' : (data?.callsToday || 0).toLocaleString()} sub="since 00:00 UTC" loading={loading} current={data?.callsToday}      previous={data?.callsYesterday} chartData={data?.callsPerDay?.map(d => d.count)} />
@@ -618,7 +618,9 @@ export default function DashboardPage() {
               Manage endpoints →
             </a>
           </div>
-          <RecentCalls calls={data?.recentCalls || []} loading={loading} isPro={isPro} />
+          <div style={{ overflowX: 'auto' }}>
+            <RecentCalls calls={data?.recentCalls || []} loading={loading} isPro={isPro} />
+          </div>
         </div>
 
         {/* Metering */}

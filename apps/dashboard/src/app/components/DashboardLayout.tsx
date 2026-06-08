@@ -633,6 +633,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const { userData } = useUser()
   const isPro = mounted && (userData?.plan === 'pro' || userData?.plan === 'enterprise')
 
@@ -668,8 +669,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       background: 'var(--bg-base)', fontFamily: 'var(--font-label)', overflow: 'hidden',
     }}>
 
-      {/* ═══ SIDEBAR ═══ */}
+      {/* ═══ SIDEBAR (desktop) ═══ */}
       <motion.aside
+        className="dash-desktop-sidebar"
         initial="closed"
         animate={collapsed ? 'closed' : 'open'}
         variants={sidebarVariants}
@@ -696,6 +698,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
       </motion.aside>
 
+      {/* ═══ SIDEBAR (mobile overlay) ═══ */}
+      {mobileOpen && (
+        <>
+          <div
+            onClick={() => setMobileOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 48 }}
+          />
+          <motion.nav
+            initial="open"
+            animate="open"
+            style={{
+              position: 'fixed', top: 52, left: 0, width: 220,
+              height: 'calc(100vh - 52px)',
+              background: 'var(--bg-base)', borderRight: '1px solid var(--border-default)',
+              zIndex: 50, display: 'flex', flexDirection: 'column',
+              overflowY: 'auto', padding: '8px 0',
+            }}
+          >
+            {NAV_ITEMS.map(({ label, href, Icon, pro }) => {
+              const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href + '/'))
+              return (
+                <NavItem
+                  key={href} label={label} href={href} Icon={Icon}
+                  active={active} pro={pro} isPro={isPro} collapsed={false}
+                />
+              )
+            })}
+          </motion.nav>
+        </>
+      )}
+
       {/* ═══ TOPBAR (full-width, fixed, above sidebar) ═══ */}
       <header style={{
         position: 'fixed', top: 0, left: 0, right: 0,
@@ -705,15 +738,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         padding: '0 24px', zIndex: 100,
       }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button
+              className="dash-hamburger"
+              onClick={() => setMobileOpen(o => !o)}
+              aria-label="Toggle navigation"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <line x1="2" y1="4.5" x2="16" y2="4.5"/>
+                <line x1="2" y1="9" x2="16" y2="9"/>
+                <line x1="2" y1="13.5" x2="16" y2="13.5"/>
+              </svg>
+            </button>
             <img src="/logos/favicon-metera-white.png" alt="Metera" style={{ height: 22, width: 'auto', display: 'block' }} />
-            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+            <div className="dash-topbar-hi" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
               Hi, <span style={{ color: 'var(--text-primary)', fontWeight: 500 }} suppressHydrationWarning>{firstName}</span>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 
-            <DocsSearch />
+            <div className="dash-search-hide-mobile"><DocsSearch /></div>
 
             {/* Help */}
             <div
@@ -744,7 +788,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </header>
 
       {/* ═══ MAIN ═══ */}
-      <div style={{
+      <div className="dash-main-area" style={{
         flex: 1, marginLeft: 52, marginTop: 52,
         width: 'calc(100% - 52px)',
         height: 'calc(100vh - 52px)',

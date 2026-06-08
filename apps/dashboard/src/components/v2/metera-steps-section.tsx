@@ -93,15 +93,6 @@ function StepCard({ step }: { step: typeof STEPS[0] }) {
         }}>
           {step.icon}
         </div>
-        <span style={{
-          fontFamily: MONO,
-          fontSize: 12,
-          color: hov ? '#7AF27966' : DIM,
-          letterSpacing: '0.1em',
-          transition: 'color 0.2s ease',
-        }}>
-          {step.number}
-        </span>
       </div>
 
       {/* title + desc */}

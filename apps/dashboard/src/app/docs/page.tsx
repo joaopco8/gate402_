@@ -72,9 +72,12 @@ const T = {
   navH:          64,
 }
 
-function DocsNav({ activeId, scrollTo }: { activeId: string; scrollTo: (id: string) => void }) {
+function DocsNav({ activeId, scrollTo, navOpen }: { activeId: string; scrollTo: (id: string) => void; navOpen?: boolean }) {
   return (
-    <aside style={{ width: T.sideW, flexShrink: 0, borderRight: `1px solid ${T.border}`, position: 'sticky', top: T.navH, height: `calc(100vh - ${T.navH}px)`, overflowY: 'auto', paddingBottom: 32 }}>
+    <aside
+      className={`docs-sidebar-aside${navOpen ? ' docs-sidebar-mob-open' : ''}`}
+      style={{ width: T.sideW, flexShrink: 0, borderRight: `1px solid ${T.border}`, position: 'sticky', top: T.navH, height: `calc(100vh - ${T.navH}px)`, overflowY: 'auto', paddingBottom: 32 }}
+    >
       <div style={{ padding: '24px 12px 8px' }}>
         <span style={{ fontFamily: T.mono, fontSize: 10, color: T.textMuted, letterSpacing: '0.10em', textTransform: 'uppercase' }}>Documentation</span>
       </div>
@@ -190,6 +193,7 @@ const P = ({ children }: { children: React.ReactNode }) => (
 
 export default function DocsPublicPage() {
   const [activeId, setActiveId] = useState('introduction')
+  const [navOpen, setNavOpen] = useState(false)
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -209,9 +213,27 @@ export default function DocsPublicPage() {
       <V2Navbar />
 
       <div style={{ display: 'flex', maxWidth: 1200, margin: '0 auto', borderLeft: `1px solid ${T.border}`, borderRight: `1px solid ${T.border}`, minHeight: `calc(100vh - ${T.navH}px)` }}>
-        <DocsNav activeId={activeId} scrollTo={scrollTo} />
+        <DocsNav activeId={activeId} scrollTo={(id) => { scrollTo(id); setNavOpen(false) }} navOpen={navOpen} />
+
+        {navOpen && (
+          <div onClick={() => setNavOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 99 }} />
+        )}
 
         <main style={{ flex: 1, minWidth: 0 }}>
+          <button
+            className="docs-mob-nav-btn"
+            onClick={() => setNavOpen(o => !o)}
+            style={{
+              position: 'sticky', top: 0, zIndex: 10,
+              width: '100%', padding: '10px 16px',
+              background: T.bg, borderBottom: `1px solid ${T.border}`,
+              border: 'none', borderBottomWidth: 1, borderBottomStyle: 'solid', borderBottomColor: T.border,
+              cursor: 'pointer', color: T.textSecondary, fontSize: 13, fontFamily: T.font,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="1" y1="3" x2="13" y2="3"/><line x1="1" y1="7" x2="13" y2="7"/><line x1="1" y1="11" x2="13" y2="11"/></svg>
+            Navigation
+          </button>
           <div style={{ maxWidth: 800, padding: '40px clamp(24px, 4vw, 56px) 80px', margin: '0 auto' }}>
 
             <section id="introduction">
@@ -227,7 +249,7 @@ export default function DocsPublicPage() {
               </div>
               <h1 style={{ fontFamily: T.font, fontWeight: 600, fontSize: 28, color: T.textPrimary, marginBottom: 8, lineHeight: 1.15, letterSpacing: '-0.3px' }}>Documentation</h1>
               <P>Everything you need to monetize your API or connect your AI agent to paid services.</P>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, margin: '24px 0' }}>
+              <div className="resp-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, margin: '24px 0' }}>
                 {[
                   { label: 'For API owners', desc: 'Register your API URL and set a price. Metera generates a public endpoint — agents pay automatically in USDC.', href: '#api-register', color: T.green },
                   { label: 'For AI agents',  desc: 'Create a wallet, deposit USDC via Pix or card, and connect to your agent with one line of code.',             href: '#agent-wallet', color: T.purple },
@@ -251,7 +273,7 @@ export default function DocsPublicPage() {
             <Callout type="info">No banks. No credit cards. No humans in the loop.</Callout>
 
             <H2 id="how-it-works">How it works</H2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, margin: '16px 0' }}>
+            <div className="resp-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, margin: '16px 0' }}>
               <div style={{ border: `1px solid ${T.border}`, borderRadius: 6, padding: 16, background: T.card }}>
                 <div style={{ fontSize: 10, color: T.green, fontFamily: T.mono, letterSpacing: '0.10em', marginBottom: 14, textTransform: 'uppercase' as const }}>For API owners</div>
                 <StepList steps={[
@@ -397,7 +419,7 @@ export default function DocsPublicPage() {
               </div>
             ))}
 
-            <div style={{ marginTop: 56, padding: 24, border: `1px solid ${T.border}`, borderRadius: 8, background: T.card, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div className="resp-grid-2" style={{ marginTop: 56, padding: 24, border: `1px solid ${T.border}`, borderRadius: 8, background: T.card, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
               <div>
                 <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.mono, letterSpacing: '0.10em', marginBottom: 10, textTransform: 'uppercase' as const }}>For API owners</div>
                 <a href="/proxy" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: T.green, color: '#1B1E1B', borderRadius: 6, textDecoration: 'none', fontSize: 13, fontWeight: 600, fontFamily: T.font }}
@@ -417,6 +439,7 @@ export default function DocsPublicPage() {
             </div>
 
             <div style={{ height: 64 }} />
+          </div>
           </div>
         </main>
       </div>
