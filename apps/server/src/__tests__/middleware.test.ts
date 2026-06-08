@@ -60,7 +60,7 @@ describe('Autenticacao', () => {
     const res  = await get('/api/users/me', PRO_API_KEY)
     const data = await res.json() as Record<string, unknown>
     expect(res.status).toBe(200)
-    expect(['free', 'pro', 'enterprise']).toContain(data.plan)
+    expect(['free', 'starter', 'pro', 'enterprise']).toContain(data.plan)
   })
 
   it('GET /api/users/me retorna limits com campos obrigatorios', async () => {
@@ -155,9 +155,9 @@ describe('Metrics', () => {
 
   it('GET /api/calls/recent retorna array', async () => {
     const res  = await get('/api/calls/recent', PRO_API_KEY)
-    const data = await res.json() as unknown[]
+    const data = await res.json() as Record<string, unknown>
     expect(res.status).toBe(200)
-    expect(Array.isArray(data)).toBe(true)
+    expect(Array.isArray(data.calls)).toBe(true)
   })
 
   it('GET /api/calls/per-day retorna array com campo date', async () => {

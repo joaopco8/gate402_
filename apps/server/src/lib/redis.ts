@@ -48,6 +48,14 @@ export async function redisDel(key: string): Promise<void> {
   catch {}
 }
 
+export async function redisDelPattern(pattern: string): Promise<void> {
+  if (!redis) return
+  try {
+    const keys = await redis.keys(pattern)
+    if (keys.length > 0) await redis.del(...keys)
+  } catch {}
+}
+
 export async function redisIncr(
   key: string,
   ttlSeconds?: number

@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
-import { redisDel } from '../lib/redis'
+import { redisDel, redisDelPattern } from '../lib/redis'
 import { generateSlug, ensureUniqueSlug } from '../lib/slugify'
 import { getPlanLimits } from '../lib/plans'
 
@@ -209,7 +209,11 @@ router.delete('/:id', async (req, res) => {
     if (!existing) return res.status(404).json({ error: 'Not found', code: 'NOT_FOUND' })
 
     await prisma.proxyEndpoint.update({ where: { id }, data: { isActive: false } })
-    await redisDel(`proxy:${existing.slug}`)
+    await Promise.all([
+      redisDel(`proxy:${existing.slug}`),
+      redisDel(`marketplace:detail:${existing.slug}`),
+      redisDelPattern('marketplace:*'),
+    ])
 
     return res.json({ success: true })
   } catch (err) {
