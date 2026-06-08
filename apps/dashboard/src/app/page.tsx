@@ -67,7 +67,7 @@ export default function HomePage() {
         <div className="hero-bg-desktop" style={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: "url('/Prancheta 1.jpg')",
+          backgroundImage: "url('/BG-DESKTOP-OFC.jpg')",
           backgroundSize: '100% 100%',
           backgroundRepeat: 'no-repeat',
           opacity: 0.8,
@@ -93,7 +93,7 @@ export default function HomePage() {
           transition: 'opacity 0.4s ease',
         }}>
           <h1 style={{
-            fontSize: 'clamp(1.57rem, 3.79vw, 4.38rem)',
+            fontSize: 'clamp(2.2rem, 3.79vw, 4.38rem)',
             fontWeight: 300,
             letterSpacing: '-0.04em',
             lineHeight: 1.05,
