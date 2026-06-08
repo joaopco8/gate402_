@@ -310,6 +310,15 @@ input[type=number] {
   }
 }
 
+/* Hero responsive */
+.hero-section { aspect-ratio: 3108 / 1882; }
+.hero-bg-mobile { display: none !important; }
+@media (max-width: 768px) {
+  .hero-section { aspect-ratio: 1227 / 1742 !important; }
+  .hero-bg-desktop { display: none !important; }
+  .hero-bg-mobile { display: block !important; }
+}
+
 @media (max-width: 480px) {
   .resp-grid-4    { grid-template-columns: 1fr !important; }
   .resp-grid-bill { grid-template-columns: 1fr !important; }

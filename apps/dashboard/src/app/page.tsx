@@ -48,18 +48,26 @@ export default function HomePage() {
 
         {/* ─── HERO ─── constrained to 1200px, natural image height ─── */}
         <FadeIn blur={6} y={24}>
-        <div style={{
+        <div className="hero-section" style={{
           position: 'relative',
           width: '100%',
-          aspectRatio: '3108 / 1882',
           borderBottom: LINE,
           overflow: 'hidden',
         }}>
-          {/* bg image at 80% opacity */}
-          <div style={{
+          {/* desktop bg */}
+          <div className="hero-bg-desktop" style={{
             position: 'absolute',
             inset: 0,
             backgroundImage: 'url(/bg-desktop.png)',
+            backgroundSize: '100% 100%',
+            backgroundRepeat: 'no-repeat',
+            opacity: 0.8,
+          }} />
+          {/* mobile bg */}
+          <div className="hero-bg-mobile" style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'url(/mobile-bg.jpg)',
             backgroundSize: '100% 100%',
             backgroundRepeat: 'no-repeat',
             opacity: 0.8,
