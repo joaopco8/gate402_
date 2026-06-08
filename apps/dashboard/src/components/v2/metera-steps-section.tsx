@@ -159,38 +159,6 @@ export function MeteraStepsSection() {
       {/* Steps */}
       <div className="v2r-steps-pad" style={{ padding: "56px 56px" }}>
 
-        {/* connector line + numbers */}
-        <div className="v2r-connector" style={{ position: 'relative', marginBottom: 24 }}>
-          <div style={{
-            position: 'absolute',
-            left: 'calc(16.6667% + 12px)',
-            right: 'calc(16.6667% + 12px)',
-            top: '50%',
-            height: 1,
-            background: 'linear-gradient(to right, #2A2E2A, #2A2E2A)',
-            borderTop: '1px dashed #2A2E2A',
-            transform: 'translateY(-50%)',
-          }} />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', position: 'relative', zIndex: 1 }}>
-            {STEPS.map((step) => (
-              <div key={step.number} style={{ display: 'flex', justifyContent: 'center' }}>
-                <div style={{
-                  width: 28, height: 28,
-                  borderRadius: '50%',
-                  background: BG,
-                  border: `1px solid #2A2E2A`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: MONO, fontSize: 11, fontWeight: 500,
-                  color: GREEN,
-                  outline: `4px solid ${BG}`,
-                }}>
-                  {step.number}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Cards */}
         <div className="v2r-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           {STEPS.map((step) => (
