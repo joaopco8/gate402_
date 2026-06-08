@@ -49,7 +49,7 @@ router.get('/', async (req, res) => {
 
     const cached = await redisGet(cacheKey)
     if (cached) {
-      res.setHeader('Cache-Control', 'public, max-age=300')
+      res.setHeader('Cache-Control', 'no-cache')
       return res.json(JSON.parse(cached))
     }
 
@@ -107,7 +107,7 @@ router.get('/', async (req, res) => {
 
     await redisSet(cacheKey, JSON.stringify(result), 300)
 
-    res.setHeader('Cache-Control', 'public, max-age=300')
+    res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Access-Control-Allow-Origin', '*')
     return res.json(result)
   } catch (error) {
@@ -124,7 +124,7 @@ router.get('/:slug', async (req, res) => {
 
     const cached = await redisGet(cacheKey)
     if (cached) {
-      res.setHeader('Cache-Control', 'public, max-age=300')
+      res.setHeader('Cache-Control', 'no-cache')
       return res.json(JSON.parse(cached))
     }
 
@@ -170,7 +170,7 @@ router.get('/:slug', async (req, res) => {
 
     await redisSet(cacheKey, JSON.stringify(result), 300)
 
-    res.setHeader('Cache-Control', 'public, max-age=300')
+    res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Access-Control-Allow-Origin', '*')
     return res.json(result)
   } catch (error) {
