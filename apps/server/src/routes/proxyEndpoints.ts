@@ -195,7 +195,11 @@ router.patch('/:id', async (req, res) => {
       select: SAFE_SELECT,
     })
 
-    await redisDel(`proxy:${existing.slug}`)
+    await Promise.all([
+      redisDel(`proxy:${existing.slug}`),
+      redisDel(`marketplace:detail:${existing.slug}`),
+      redisDelPattern('marketplace:*'),
+    ])
 
     return res.json({ endpoint })
   } catch (err) {
