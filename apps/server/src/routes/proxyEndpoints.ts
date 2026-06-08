@@ -166,7 +166,14 @@ router.patch('/:id', async (req, res) => {
     if (!user) return res.status(401).json({ error: 'Unauthorized' })
 
     const { id } = req.params
-    const { name, description, category, pricePerCall, targetApiKey, isPublic, isActive } = req.body
+    const { name, description, category, pricePerCall, targetApiKey, isPublic, isActive, avatarImage, avatarColor, avatarEmoji } = req.body
+
+    if (avatarImage && !avatarImage.startsWith('data:image/')) {
+      return res.status(400).json({ error: 'avatarImage must be a valid image data URL', code: 'INVALID_IMAGE' })
+    }
+    if (avatarImage && avatarImage.length > 716800) {
+      return res.status(400).json({ error: 'avatarImage exceeds 512KB limit', code: 'IMAGE_TOO_LARGE' })
+    }
 
     const existing = await prisma.proxyEndpoint.findFirst({ where: { id, userId: user.id } })
     if (!existing) return res.status(404).json({ error: 'Not found', code: 'NOT_FOUND' })
@@ -181,6 +188,9 @@ router.patch('/:id', async (req, res) => {
         ...(targetApiKey !== undefined && { targetApiKey }),
         ...(isPublic !== undefined && { isPublic }),
         ...(isActive !== undefined && { isActive }),
+        ...(avatarImage !== undefined && { avatarImage }),
+        ...(avatarColor !== undefined && { avatarColor }),
+        ...(avatarEmoji !== undefined && { avatarEmoji }),
       },
       select: SAFE_SELECT,
     })
