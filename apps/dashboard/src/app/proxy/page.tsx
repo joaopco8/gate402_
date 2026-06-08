@@ -33,6 +33,7 @@ interface ProxyEndpoint {
   isActive: boolean
   avatarEmoji?: string
   avatarColor?: string
+  avatarImage?: string
   tags?: string[]
   docsUrl?: string
   methods?: string[]
@@ -156,7 +157,7 @@ export default function ProxyPage() {
 
   function openEdit(ep: ProxyEndpoint) {
     setEditEp(ep)
-    setEditAvatarImage(null)
+    setEditAvatarImage(ep.avatarImage || null)
     setEditImageError('')
     setEditTagInput('')
     setSaveError('')
