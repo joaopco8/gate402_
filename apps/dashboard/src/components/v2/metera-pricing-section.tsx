@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { Check } from 'lucide-react'
+import { MatrixText } from '@/components/ui/matrix-text'
 import { DitheringShader } from './dithering-shader'
 import { FadeIn, useStagger } from './animations'
 
@@ -137,8 +138,8 @@ export function MeteraPricingSection() {
           margin: 0,
           lineHeight: 1.05,
         }}>
-          PRICING THAT<br />
-          <span style={{ color: '#7AF279' }}>SCALES WITH YOU.</span>
+          <MatrixText text="PRICING THAT" /><br />
+          <span style={{ color: '#7AF279' }}><MatrixText text="SCALES WITH YOU." /></span>
         </h2>
         <p style={{
           position: 'relative',
@@ -259,7 +260,7 @@ export function MeteraPricingSection() {
                 onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
                 onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
               >
-                {plan.cta} →
+                <MatrixText text={`${plan.cta} →`} />
               </a>
             </div>
           </div>

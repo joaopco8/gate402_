@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import { MatrixText } from '@/components/ui/matrix-text'
 
 const CARD   = '#1F221F'
 const LINE   = '1px solid #2A2E2A'
@@ -30,10 +31,10 @@ const CLIENTS = [
 ]
 
 const BULLETS = [
-  'Pay for APIs automatically in USDC',
-  'Respect your spending limits',
-  'Discover APIs in the marketplace',
-  'Check its own balance',
+  'PAY FOR APIS AUTOMATICALLY IN USDC',
+  'RESPECT YOUR SPENDING LIMITS',
+  'DISCOVER APIS IN THE MARKETPLACE',
+  'CHECK ITS OWN BALANCE',
 ]
 
 // duplicate for seamless loop
@@ -93,12 +94,12 @@ export function MeteraOneLineSection() {
         {/* headline + subtitle — full width, centered */}
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
           <h2 style={{ fontFamily: SANS, fontWeight: 300, fontSize: 'clamp(2rem, 3.5vw, 3rem)', letterSpacing: '-0.03em', color: TEXT, margin: '0 0 8px', lineHeight: 1.15 }}>
-            CONNECT YOUR AI AGENT<br />
-            <span style={{ color: GREEN }}>IN ONE LINE.</span>
+            <MatrixText text="CONNECT YOUR AI AGENT" /><br />
+            <span style={{ color: GREEN }}><MatrixText text="IN ONE LINE." /></span>
           </h2>
-          <p style={{ fontFamily: SANS, fontWeight: 300, fontSize: 15, color: MUTED, margin: '16px auto 0', lineHeight: 1.6, maxWidth: 480 }}>
-            No npm. No config. No crypto knowledge.<br />
-            Paste this in Claude, Cursor or any MCP client:
+          <p style={{ fontFamily: MONO, fontWeight: 300, fontSize: 15, color: MUTED, margin: '16px auto 0', lineHeight: 1.6, maxWidth: 480 }}>
+            NO NPM. NO CONFIG. NO CRYPTO KNOWLEDGE.<br />
+            PASTE THIS IN CLAUDE, CURSOR OR ANY MCP CLIENT:
           </p>
         </div>
 
@@ -168,7 +169,7 @@ export function MeteraOneLineSection() {
               {BULLETS.map(b => (
                 <div key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
                   <span style={{ color: GREEN, fontFamily: MONO, fontSize: 16, flexShrink: 0, marginTop: 1 }}>→</span>
-                  <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 16, color: TEXT, lineHeight: 1.5 }}>{b}</span>
+                  <span style={{ fontFamily: MONO, fontWeight: 300, fontSize: 16, color: TEXT, lineHeight: 1.5 }}>{b}</span>
                 </div>
               ))}
             </div>

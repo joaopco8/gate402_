@@ -1,6 +1,7 @@
 // @ts-nocheck
 'use client'
 import React, { useState, useEffect, useRef } from 'react'
+import { MatrixText } from '@/components/ui/matrix-text'
 
 const MONO  = "'Geist Mono', monospace"
 const SANS  = "'Geist Mono', monospace"
@@ -177,7 +178,7 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
         </a>
         <a href="/auth/login" onClick={onClose}
           style={{ fontSize: 14, fontWeight: 500, color: '#1B1E1B', background: GREEN, textDecoration: 'none', textAlign: 'center', padding: 12, borderRadius: 6, fontFamily: SANS }}>
-          Get started →
+          <MatrixText text="Get started →" />
         </a>
       </div>
     </div>
@@ -270,7 +271,7 @@ export function V2Navbar({ activePage }: { activePage?: string }) {
               onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
               onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
             >
-              Get started →
+              <MatrixText text="Get started →" />
             </a>
           </div>
 

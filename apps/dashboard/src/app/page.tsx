@@ -13,12 +13,13 @@ import { MeteraClientsSection } from '../components/v2/metera-clients-section'
 import { MeteraHighlightsSection } from '../components/v2/metera-highlights-section'
 import { MeteraOneLineSection } from '../components/v2/metera-one-line-section'
 import { FadeIn } from '../components/v2/animations'
+import { MatrixText } from '../components/ui/matrix-text'
 
 const LINE = '1px solid #2A2E2A'
 const MAX_WIDTH = '1200px'
 
 
-const TYPEWRITER_TEXT = 'Agents pay you in USDC on Solana.\nNo banks, no credit cards, no humans.'
+const TYPEWRITER_TEXT = 'AGENTS PAY YOU IN USDC ON SOLANA.\nNO BANKS, NO CREDIT CARDS, NO HUMANS.'
 
 export default function HomePage() {
   const [heroReady, setHeroReady] = useState(false)
@@ -92,7 +93,7 @@ export default function HomePage() {
           transition: 'opacity 0.4s ease',
         }}>
           <h1 style={{
-            fontSize: 'clamp(2.5rem, 6vw, 7rem)',
+            fontSize: 'clamp(1.85rem, 4.46vw, 5.15rem)',
             fontWeight: 300,
             letterSpacing: '-0.04em',
             lineHeight: 1.05,
@@ -103,9 +104,9 @@ export default function HomePage() {
             transform: heroReady ? 'translateY(0)' : 'translateY(16px)',
             transition: 'opacity 700ms ease, filter 700ms ease, transform 700ms ease',
           }}>
-            Billing infrastructure
+            <MatrixText text="BILLING INFRASTRUCTURE" letterInterval={40} />
             <br />
-            <span style={{ color: '#7AF279' }}>for AI agents.</span>
+            <span style={{ color: '#7AF279' }}><MatrixText text="FOR AI AGENTS." letterInterval={40} /></span>
           </h1>
 
           <p style={{
@@ -146,7 +147,7 @@ export default function HomePage() {
               background: '#7AF279',
               cursor: 'pointer',
             }}>
-              Start free →
+              <MatrixText text="Start free →" />
             </a>
           </div>
         </div>

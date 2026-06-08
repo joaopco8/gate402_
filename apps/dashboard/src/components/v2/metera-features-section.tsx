@@ -1,6 +1,7 @@
 'use client'
 import React from 'react'
 import { FadeIn, Strikethrough } from './animations'
+import { MatrixText } from '@/components/ui/matrix-text'
 
 const LINE = '1px solid #2A2E2A'
 const GAP  = '0.75rem'
@@ -85,7 +86,7 @@ export function MeteraFeaturesSection() {
             lineHeight: 1.05,
           }}>
             REMOVE THE <Strikethrough>ROADBLOCKS</Strikethrough>.<br />
-            <span style={{ color: '#7AF279' }}>GET PAID FOR YOUR WORK.</span>
+            <span style={{ color: '#7AF279' }}><MatrixText text="GET PAID FOR YOUR WORK." /></span>
           </h2>
         </FadeIn>
         <FadeIn delay={100}>
@@ -98,8 +99,8 @@ export function MeteraFeaturesSection() {
             fontWeight: 300,
             fontFamily: "'Geist Mono', monospace",
           }}>
-            The tooling to monetize AI-facing APIs didn't exist.
-            Metera builds it — invisible to your code, instant for your wallet.
+            THE TOOLING TO MONETIZE AI-FACING APIS DIDN'T EXIST.
+            METERA BUILDS IT — INVISIBLE TO YOUR CODE, INSTANT FOR YOUR WALLET.
           </p>
         </FadeIn>
       </div>

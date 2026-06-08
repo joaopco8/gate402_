@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useId } from 'react'
 import { motion, MotionConfigContext, LayoutGroup } from 'framer-motion'
+import { MatrixText } from '@/components/ui/matrix-text'
 
 const LINE   = '1px solid #2A2E2A'
 const SANS   = "'Geist Mono', monospace"
@@ -301,8 +302,8 @@ export function MeteraDocsCTA() {
           color: '#FFFFFF',
           margin: 0,
         }}>
-          EVERYTHING AN AGENT NEEDS<br />
-          <span style={{ color: '#7AF279' }}>TO PAY YOU.</span>
+          <MatrixText text="EVERYTHING AN AGENT NEEDS" /><br />
+          <span style={{ color: '#7AF279' }}><MatrixText text="TO PAY YOU." /></span>
         </h2>
       </div>
 

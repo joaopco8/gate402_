@@ -1,12 +1,15 @@
+'use client'
+import { MatrixText } from '@/components/ui/matrix-text'
+
 const LINE = "1px solid #2A2E2A"
 
 const ITEMS = [
-  { title: "Auto wallet",       sub: "Created instantly"  },
-  { title: "Pix & card",        sub: "Deposit in minutes" },
-  { title: "On-chain verified", sub: "Helius + Solana"    },
-  { title: "Spending limits",   sub: "Per call/day/month" },
-  { title: "Open marketplace",  sub: "Any dev can list"   },
-  { title: "MIT licensed",      sub: "Free forever"       },
+  { title: "AUTO WALLET",       sub: "CREATED INSTANTLY"  },
+  { title: "PIX & CARD",        sub: "DEPOSIT IN MINUTES" },
+  { title: "ON-CHAIN VERIFIED", sub: "HELIUS + SOLANA"    },
+  { title: "SPENDING LIMITS",   sub: "PER CALL/DAY/MONTH" },
+  { title: "OPEN MARKETPLACE",  sub: "ANY DEV CAN LIST"   },
+  { title: "MIT LICENSED",      sub: "FREE FOREVER"       },
 ]
 
 export function MeteraHighlightsSection() {
@@ -23,8 +26,8 @@ export function MeteraHighlightsSection() {
           lineHeight: 1.05,
           margin: 0,
         }}>
-          EVERYTHING INCLUDED.<br />
-          <span style={{ color: "#7AF279" }}>NOTHING TO CONFIGURE.</span>
+          <MatrixText text="EVERYTHING INCLUDED." /><br />
+          <span style={{ color: "#7AF279" }}><MatrixText text="NOTHING TO CONFIGURE." /></span>
         </h2>
       </div>
 

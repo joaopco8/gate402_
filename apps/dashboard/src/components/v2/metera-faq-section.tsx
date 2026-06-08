@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { MatrixText } from "@/components/ui/matrix-text"
 
 const LINE = "1px solid #2A2E2A"
 
@@ -246,7 +247,7 @@ export function MeteraFAQSection() {
           lineHeight: 1.05,
           margin: 0,
         }}>
-          <span style={{ color: "#7AF279" }}>FAQ</span>
+          <span style={{ color: "#7AF279" }}><MatrixText text="FAQ" /></span>
         </h2>
       </div>
 

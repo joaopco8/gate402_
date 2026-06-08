@@ -1,5 +1,6 @@
 'use client'
 import React from 'react'
+import { MatrixText } from '@/components/ui/matrix-text'
 
 const LINE  = "1px solid #2A2E2A"
 const MONO  = "'Geist Mono', monospace"
@@ -10,18 +11,18 @@ const MUTED = "#7A8C79"
 const STEPS = [
   {
     image: "/ednpoint.jpg",
-    title: "Add your endpoint",
-    desc: "Paste any API URL. Gate402 wraps it with x402 payment middleware in seconds.",
+    title: "ADD YOUR ENDPOINT",
+    desc: "PASTE ANY API URL. METERA WRAPS IT WITH X402 PAYMENT MIDDLEWARE IN SECONDS.",
   },
   {
     image: "/set.jpg",
-    title: "Set your price",
-    desc: "Define per-call pricing in USDC. Set daily caps, per-call limits, or monthly budgets.",
+    title: "SET YOUR PRICE",
+    desc: "DEFINE PER-CALL PRICING IN USDC. SET DAILY CAPS, PER-CALL LIMITS, OR MONTHLY BUDGETS.",
   },
   {
     image: "/get paid.jpg",
-    title: "Get paid",
-    desc: "USDC lands in your Solana wallet automatically. No invoices, no banks, no waiting.",
+    title: "GET PAID",
+    desc: "USDC LANDS IN YOUR SOLANA WALLET AUTOMATICALLY. NO INVOICES, NO BANKS, NO WAITING.",
   },
 ]
 
@@ -83,8 +84,8 @@ export function MeteraStepsSection() {
           lineHeight: 1.05,
           margin: 0,
         }}>
-          FROM API TO INCOME<br />
-          <span style={{ color: GREEN }}>IN THREE STEPS.</span>
+          <MatrixText text="FROM API TO INCOME" /><br />
+          <span style={{ color: GREEN }}><MatrixText text="IN THREE STEPS." /></span>
         </h2>
       </div>
 

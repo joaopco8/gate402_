@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { MatrixText } from '@/components/ui/matrix-text'
 
 const LINE = '1px solid #2A2E2A'
 
@@ -230,7 +231,8 @@ export function MeteraControlSection() {
           color: '#FFFFFF',
           margin: 0,
         }}>
-          ONE PROMPT. YOUR AGENT<br />IS LIVE IN SECONDS.
+          <MatrixText text="ONE PROMPT. YOUR AGENT" /><br />
+          <MatrixText text="IS LIVE IN SECONDS." />
         </h2>
       </div>
 

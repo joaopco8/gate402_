@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { MatrixText } from "@/components/ui/matrix-text"
 
 const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3001"
 
@@ -192,8 +193,8 @@ export function MeteraMarketplaceSection() {
         margin: "0 0 48px",
         lineHeight: 1.15,
       }}>
-        EVERY API YOUR AGENT NEEDS,<br />
-        <span style={{ color: "#7AF279" }}>READY TO CALL.</span>
+        <MatrixText text="EVERY API YOUR AGENT NEEDS," /><br />
+        <span style={{ color: "#7AF279" }}><MatrixText text="READY TO CALL." /></span>
       </h2>
 
       {/* 2×2 grid */}
@@ -230,7 +231,7 @@ export function MeteraMarketplaceSection() {
           onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")}
           onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
         >
-          Go to marketplace →
+          <MatrixText text="Go to marketplace →" />
         </a>
       </div>
 
