@@ -211,6 +211,18 @@ export default function ProxyPage() {
     setTimeout(() => setCopied(''), 2000)
   }
 
+  async function toggleVisibility(ep: ProxyEndpoint) {
+    const headers = { 'Content-Type': 'application/json', ...(makeAuthHeader(accessToken)) }
+    const res = await fetch(`${SERVER_URL}/api/proxy-endpoints/${ep.id}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ isPublic: !ep.isPublic }),
+    })
+    if (res.ok) {
+      setEndpoints(prev => prev.map(e => e.id === ep.id ? { ...e, isPublic: !ep.isPublic } : e))
+    }
+  }
+
   const inputStyle: React.CSSProperties = {
     width: '100%',
     background: '#111311',
@@ -680,22 +692,40 @@ export default function ProxyPage() {
                 rows={4} />
             </div>
 
-            <div style={{ marginBottom: 20 }}>
-              <button onClick={() => setForm({ ...form, isPublic: !form.isPublic })} style={{
-                padding: '6px 12px', borderRadius: 8,
-                border: form.isPublic ? '1px solid rgba(122,242,121,0.4)' : '1px solid #2A2E2A',
-                background: form.isPublic ? 'rgba(122,242,121,0.06)' : 'transparent',
-                color: form.isPublic ? '#7AF279' : '#4A5549',
-                fontSize: 12, fontFamily: SANS, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 6,
-              }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
-                  {form.isPublic
-                    ? <><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>
-                    : <><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>
-                  }
-                </svg>
-                {form.isPublic ? 'Public — visible in marketplace' : 'Private — hidden'}
+            <div style={{ background: '#111311', border: '1px solid #2A2E2A', borderRadius: 10, overflow: 'hidden', marginBottom: 20 }}>
+              <button
+                onClick={() => setForm({ ...form, isPublic: true })}
+                style={{
+                  width: '100%', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12,
+                  background: form.isPublic ? 'rgba(122,242,121,0.03)' : 'transparent',
+                  borderTop: 'none', borderRight: 'none', borderBottom: '1px solid #2A2E2A',
+                  borderLeft: form.isPublic ? '3px solid #7AF279' : '3px solid transparent',
+                  cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                <span style={{ fontSize: 20 }}>🌐</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 13, color: form.isPublic ? '#7AF279' : '#E8F4EE', fontWeight: 500, margin: '0 0 2px' }}>Public</p>
+                  <p style={{ fontSize: 11, color: '#4A5549', margin: 0 }}>Listed in marketplace. Any agent can discover and pay.</p>
+                </div>
+                {form.isPublic && <span style={{ color: '#7AF279', fontSize: 16 }}>✓</span>}
+              </button>
+              <button
+                onClick={() => setForm({ ...form, isPublic: false })}
+                style={{
+                  width: '100%', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12,
+                  background: !form.isPublic ? 'rgba(188,134,255,0.03)' : 'transparent',
+                  borderTop: 'none', borderRight: 'none', borderBottom: 'none',
+                  borderLeft: !form.isPublic ? '3px solid #BC86FF' : '3px solid transparent',
+                  cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                <span style={{ fontSize: 20 }}>🔒</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 13, color: !form.isPublic ? '#BC86FF' : '#E8F4EE', fontWeight: 500, margin: '0 0 2px' }}>Private</p>
+                  <p style={{ fontSize: 11, color: '#4A5549', margin: 0 }}>Hidden from marketplace. Only accessible via direct URL. Share the endpoint URL with specific agents only.</p>
+                </div>
+                {!form.isPublic && <span style={{ color: '#BC86FF', fontSize: 16 }}>✓</span>}
               </button>
             </div>
 
@@ -883,20 +913,14 @@ export default function ProxyPage() {
                     >
                       {ep.name}
                     </span>
-                    <span
-                      style={{
-                        fontSize: 10,
-                        padding: '2px 7px',
-                        borderRadius: 99,
-                        border: ep.isPublic
-                          ? '1px solid rgba(122,242,121,0.3)'
-                          : '1px solid #2A2E2A',
-                        color: ep.isPublic ? '#7AF279' : '#4A5549',
-                        background: ep.isPublic ? 'rgba(122,242,121,0.06)' : 'transparent',
-                        fontFamily: MONO,
-                      }}
-                    >
-                      {ep.isPublic ? 'public' : 'private'}
+                    <span style={{
+                      fontSize: 10, padding: '2px 8px', borderRadius: 4,
+                      border: ep.isPublic ? '1px solid rgba(122,242,121,0.3)' : '1px solid rgba(188,134,255,0.3)',
+                      color: ep.isPublic ? '#7AF279' : '#BC86FF',
+                      background: ep.isPublic ? 'rgba(122,242,121,0.05)' : 'rgba(188,134,255,0.05)',
+                      letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: MONO,
+                    }}>
+                      {ep.isPublic ? '🌐 public' : '🔒 private'}
                     </span>
                     <span
                       style={{
@@ -912,19 +936,28 @@ export default function ProxyPage() {
                     </span>
                   </div>
                   {ep.description && (
-                    <p
-                      style={{
-                        fontSize: 12,
-                        color: '#4A5549',
-                        margin: 0,
-                        fontFamily: SANS,
-                      }}
-                    >
+                    <p style={{ fontSize: 12, color: '#4A5549', margin: 0, fontFamily: SANS }}>
                       {ep.description}
                     </p>
                   )}
+                  {!ep.isPublic && (
+                    <p style={{ fontSize: 11, color: '#4A5549', margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      🔒 Not visible in marketplace. Share this URL directly with your agents.
+                    </p>
+                  )}
                 </div>
-                <div style={{ display: 'flex', gap: 6 }}>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <button
+                    onClick={() => toggleVisibility(ep)}
+                    title={ep.isPublic ? 'Make private — hide from marketplace' : 'Make public — list in marketplace'}
+                    style={{
+                      padding: '5px 10px', background: 'transparent', border: '1px solid #2A2E2A',
+                      borderRadius: 6, color: '#4A5549', fontSize: 11, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: 4, fontFamily: MONO,
+                    }}
+                  >
+                    {ep.isPublic ? '🔒 Make private' : '🌐 Make public'}
+                  </button>
                   <a
                     href={publicUrl(ep.slug)}
                     target="_blank"
