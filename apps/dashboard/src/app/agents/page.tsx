@@ -36,6 +36,8 @@ interface AgentWallet {
   lastCallAt?: string
   agentKey: string
   createdAt: string
+  allowedEndpoints?: string[]
+  blockedEndpoints?: string[]
 }
 
 interface AgentStats {
@@ -64,8 +66,23 @@ export default function AgentsPage() {
   const [editTarget, setEditTarget]         = useState<AgentWallet | null>(null)
   const [depositTarget, setDepositTarget]   = useState<AgentWallet | null>(null)
   const [copied, setCopied]                 = useState('')
+  const [marketplaceApis, setMarketplaceApis]   = useState<{ slug: string; name: string; category: string }[]>([])
+  const [accessMode, setAccessMode]             = useState<'all' | 'allowed' | 'blocked'>('all')
+  const [allowedEndpoints, setAllowedEndpoints] = useState<string[]>([])
+  const [blockedEndpoints, setBlockedEndpoints] = useState<string[]>([])
+  const [savingAccess, setSavingAccess]         = useState(false)
 
   useEffect(() => { fetchWallets() }, [])
+
+  useEffect(() => {
+    fetch(`${SERVER_URL}/api/marketplace`)
+      .then(r => r.json())
+      .then(data => {
+        const list = (data.apis || data || []) as { slug: string; name: string; category: string }[]
+        setMarketplaceApis(list.map(a => ({ slug: a.slug, name: a.name, category: a.category })))
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     function handleMoonPayCompleted() {
@@ -87,6 +104,23 @@ export default function AgentsPage() {
       fetchBalance(selected.walletAddress, selected.network)
     }, 30000)
     return () => clearInterval(interval)
+  }, [selected?.id])
+
+  useEffect(() => {
+    if (!selected) return
+    if (selected.allowedEndpoints && selected.allowedEndpoints.length > 0) {
+      setAccessMode('allowed')
+      setAllowedEndpoints(selected.allowedEndpoints)
+      setBlockedEndpoints([])
+    } else if (selected.blockedEndpoints && selected.blockedEndpoints.length > 0) {
+      setAccessMode('blocked')
+      setBlockedEndpoints(selected.blockedEndpoints)
+      setAllowedEndpoints([])
+    } else {
+      setAccessMode('all')
+      setAllowedEndpoints([])
+      setBlockedEndpoints([])
+    }
   }, [selected?.id])
 
   async function fetchWallets() {
@@ -159,6 +193,41 @@ export default function AgentsPage() {
     navigator.clipboard.writeText(text)
     setCopied(key)
     setTimeout(() => setCopied(''), 2000)
+  }
+
+  function toggleEndpoint(slug: string, mode: 'allowed' | 'blocked') {
+    if (mode === 'allowed') {
+      setAllowedEndpoints(prev => prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug])
+    } else {
+      setBlockedEndpoints(prev => prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug])
+    }
+  }
+
+  async function saveEndpointAccess() {
+    if (!selected) return
+    setSavingAccess(true)
+    try {
+      const headers = await authHeader()
+      await fetch(`${SERVER_URL}/api/agent-wallets/${selected.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({
+          allowedEndpoints: accessMode === 'allowed' ? allowedEndpoints : [],
+          blockedEndpoints: accessMode === 'blocked' ? blockedEndpoints : [],
+        }),
+      })
+      await fetch(`${SERVER_URL}/skill/${selected.agentKey}/invalidate`, { method: 'POST', headers })
+      const patch = {
+        allowedEndpoints: accessMode === 'allowed' ? allowedEndpoints : [],
+        blockedEndpoints: accessMode === 'blocked' ? blockedEndpoints : [],
+      }
+      setWallets(ws => ws.map(w => w.id === selected.id ? { ...w, ...patch } : w))
+      setSelected(s => s ? { ...s, ...patch } : s)
+    } catch {
+      // silent fail
+    } finally {
+      setSavingAccess(false)
+    }
   }
 
   const hasLimits = selected && (selected.maxPerCall || selected.maxPerHour || selected.maxPerDay || selected.maxPerMonth)
@@ -484,30 +553,103 @@ export default function AgentsPage() {
                 </div>
               )}
 
-              {/* Top endpoints */}
+              {/* API Access */}
+              <div style={{ padding: '20px 32px', borderBottom: LINE }}>
+                <p style={{
+                  fontSize: 10, color: '#4A5549', letterSpacing: '0.10em',
+                  textTransform: 'uppercase', marginBottom: 14, marginTop: 0,
+                }}>
+                  API Access
+                </p>
+                <div style={{ display: 'flex', gap: 0, marginBottom: 16, border: LINE, borderRadius: 6, overflow: 'hidden' }}>
+                  {(['all', 'allowed', 'blocked'] as const).map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => setAccessMode(mode)}
+                      style={{
+                        flex: 1, padding: '8px 0', fontSize: 12, fontFamily: MONO,
+                        background: accessMode === mode ? '#2A2E2A' : 'transparent',
+                        color: accessMode === mode ? '#E8F4EE' : '#4A5549',
+                        border: 'none', borderRight: mode !== 'blocked' ? LINE : 'none',
+                        cursor: 'pointer', transition: 'all 150ms',
+                      }}
+                    >
+                      {mode === 'all' ? 'All APIs' : mode === 'allowed' ? 'Allowlist' : 'Blocklist'}
+                    </button>
+                  ))}
+                </div>
+                {accessMode === 'all' && (
+                  <p style={{ fontSize: 12, color: '#4A5549', margin: 0 }}>Agent can access all marketplace APIs.</p>
+                )}
+                {accessMode !== 'all' && marketplaceApis.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflowY: 'auto', marginBottom: 12 }}>
+                    {marketplaceApis.map(api => {
+                      const list = accessMode === 'allowed' ? allowedEndpoints : blockedEndpoints
+                      const checked = list.includes(api.slug)
+                      return (
+                        <label key={api.slug} style={{
+                          display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '8px 12px', border: checked ? '1px solid rgba(122,242,121,0.2)' : LINE,
+                          borderRadius: 6,
+                          background: checked ? 'rgba(122,242,121,0.04)' : 'transparent',
+                          cursor: 'pointer',
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleEndpoint(api.slug, accessMode)}
+                            style={{ accentColor: '#7AF279', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: 12, color: '#E8F4EE', flex: 1 }}>{api.name}</span>
+                          <span style={{ fontSize: 10, color: '#4A5549', fontFamily: MONO }}>{api.category}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                )}
+                {accessMode !== 'all' && marketplaceApis.length === 0 && (
+                  <p style={{ fontSize: 12, color: '#4A5549', marginBottom: 12 }}>No marketplace APIs found.</p>
+                )}
+                {accessMode !== 'all' && (
+                  <button
+                    onClick={saveEndpointAccess}
+                    disabled={savingAccess}
+                    style={{
+                      padding: '8px 16px', background: '#1A3A2A', border: '1px solid #2A5A3A',
+                      borderRadius: 6, color: '#7AF279', fontSize: 12, fontFamily: MONO,
+                      cursor: savingAccess ? 'not-allowed' : 'pointer', opacity: savingAccess ? 0.6 : 1,
+                    }}
+                  >
+                    {savingAccess ? 'Saving…' : 'Save access rules'}
+                  </button>
+                )}
+              </div>
+
+              {/* Top APIs */}
               {stats?.topEndpoints && stats.topEndpoints.length > 0 && (
                 <div style={{ padding: '20px 32px', borderBottom: LINE }}>
                   <p style={{
                     fontSize: 10, color: '#4A5549', letterSpacing: '0.10em',
                     textTransform: 'uppercase', marginBottom: 14, marginTop: 0,
                   }}>
-                    Top APIs
+                    Top APIs Used
                   </p>
-                  {stats.topEndpoints.map((ep, i) => (
-                    <div key={i} style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '8px 0',
-                      borderBottom: i < stats.topEndpoints.length - 1 ? LINE : 'none',
-                    }}>
-                      <span style={{ fontSize: 12, color: '#7A8C79', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>
-                        {ep.endpoint}
-                      </span>
-                      <div style={{ display: 'flex', gap: 16, fontSize: 12, flexShrink: 0 }}>
-                        <span style={{ color: '#4A5549' }}>{ep._count} calls</span>
-                        <span style={{ fontFamily: MONO, color: '#7AF279' }}>${(ep._sum?.amount ?? 0).toFixed(4)}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {stats.topEndpoints.map((ep, i) => (
+                      <div key={i} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        background: '#111311', border: LINE, borderRadius: 6, padding: '10px 14px',
+                      }}>
+                        <span style={{ fontSize: 12, color: '#7A8C79', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>
+                          {ep.endpoint}
+                        </span>
+                        <div style={{ display: 'flex', gap: 16, fontSize: 12, flexShrink: 0 }}>
+                          <span style={{ color: '#4A5549' }}>{ep._count} calls</span>
+                          <span style={{ fontFamily: MONO, color: '#7AF279' }}>${(ep._sum?.amount ?? 0).toFixed(4)}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
 
