@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '../../../lib/supabase/client'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
 const MEM_TTL = 30_000   // 30s in-memory (matches Redis TTL)
 const SESS_TTL = 120_000 // 2min sessionStorage (stale-while-revalidate)
 const SESS_KEY = (url: string) => `g402_dash_${btoa(url).slice(0, 32)}`

@@ -6,7 +6,7 @@ import axios from 'axios';
 const SERVER_URL = process.env.SERVER_URL ?? 'http://localhost:3001';
 
 const server = new McpServer({
-  name: 'gate402-demo',
+  name: 'metera-demo',
   version: '1.0.0',
 });
 
@@ -49,7 +49,7 @@ server.tool(
         }],
       };
     } catch {
-      return { content: [{ type: 'text' as const, text: 'Error connecting to Gate402 server.' }] };
+      return { content: [{ type: 'text' as const, text: 'Error connecting to Metera server.' }] };
     }
   }
 );
@@ -93,7 +93,7 @@ server.tool(
         }],
       };
     } catch {
-      return { content: [{ type: 'text' as const, text: 'Error connecting to Gate402 server.' }] };
+      return { content: [{ type: 'text' as const, text: 'Error connecting to Metera server.' }] };
     }
   }
 );
@@ -101,7 +101,7 @@ server.tool(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error('Gate402 MCP server running on stdio');
+  console.error('Metera MCP server running on stdio');
 }
 
 main().catch(console.error);

@@ -14,7 +14,7 @@ import Card from '../components/Card'
 import { useUser } from '@/contexts/UserContext'
 import { ProGate } from '../components/ProGate'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
 const MONO = 'var(--font-label)'
 const SANS = 'var(--font-label)'
 
@@ -250,7 +250,7 @@ export default function WalletPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `gate402-transactions-${new Date().toISOString().split('T')[0]}.csv`
+    a.download = `metera-transactions-${new Date().toISOString().split('T')[0]}.csv`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

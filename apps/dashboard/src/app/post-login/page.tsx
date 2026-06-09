@@ -5,7 +5,7 @@ import { createClient } from '../../../lib/supabase/client'
 import { getAuthHeaders } from '../lib/api'
 import { clearUserCacheCompat as clearUserCache } from '@/contexts/UserContext'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
 
 const BG   = '#1B1E1B'
 const TEXT = '#E8F4EE'

@@ -10,7 +10,7 @@ export function Features() {
         {
             icon: <Lock style={{ width: 24, height: 24, flexShrink: 0, color: '#00bc7d' }} />,
             title: 'Non-custodial by design',
-            desc: 'Payments go directly to your Solana wallet. Gate402 never holds your funds. Not even for a second.',
+            desc: 'Payments go directly to your Solana wallet. Metera never holds your funds. Not even for a second.',
         },
         {
             icon: <ShieldCheck style={{ width: 24, height: 24, flexShrink: 0, color: '#00bc7d' }} />,
@@ -57,7 +57,7 @@ export function Features() {
                     <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", fontWeight: 500, lineHeight: 1.15 }}>
                         The infrastructure layer agents were missing.
                     </h2>
-                    <p style={{ fontSize: 16, color: '#898989', lineHeight: 1.65 }}>Gate402 sits between your API and the world. Every request verified. Every payment settled. Every cent tracked.</p>
+                    <p style={{ fontSize: 16, color: '#898989', lineHeight: 1.65 }}>Metera sits between your API and the world. Every request verified. Every payment settled. Every cent tracked.</p>
                 </div>
 
                 {/* Grid — outer border + each cell gets right+bottom border to simulate divide-x divide-y */}

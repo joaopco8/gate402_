@@ -33,9 +33,9 @@ const app = express();
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
 
 const ALLOWED_ORIGINS = [
-  'https://gate402.dev',
-  'https://www.gate402.dev',
-  'https://app.gate402.dev',
+  'https://metera.xyz',
+  'https://www.metera.xyz',
+  'https://app.metera.xyz',
   'http://localhost:3000',
   'http://localhost:3001',
 ];
@@ -191,7 +191,7 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log('[startup] Gate402 running on port', PORT);
+  console.log('[startup] Metera running on port', PORT);
   console.log(`[startup] Receiving payments at: ${walletAddress}`);
   console.log('[startup] Network:', process.env.NODE_ENV);
   console.log('[startup] Redis:', process.env.REDIS_URL ? 'configured' : 'NOT configured (fallback mode)');

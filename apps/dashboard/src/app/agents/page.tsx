@@ -11,7 +11,7 @@ import { EditAgentWalletModal } from '../components/ui/EditAgentWalletModal'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { DepositModal } from '@/components/ui/deposit-modal'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
 const LINE = '1px solid #2A2E2A'
 const SANS = "'Geist Mono', monospace"
 const MONO = "'Geist Mono', monospace"

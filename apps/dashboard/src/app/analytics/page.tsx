@@ -11,7 +11,7 @@ import PageHeader from '../components/PageHeader'
 import Card from '../components/Card'
 import { useUser } from '@/contexts/UserContext'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
 const MONO = 'var(--font-label)'
 const SANS = 'var(--font-label)'
 const GREEN = '#7AF279'

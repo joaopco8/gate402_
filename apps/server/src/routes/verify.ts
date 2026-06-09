@@ -29,7 +29,7 @@ router.post('/verify-payment', async (req, res) => {
     if (!user) {
       return res.status(401).json({
         valid: false,
-        reason: 'Invalid API key. Get yours at gate402.dev/settings',
+        reason: 'Invalid API key. Get yours at metera.xyz/settings',
       })
     }
 

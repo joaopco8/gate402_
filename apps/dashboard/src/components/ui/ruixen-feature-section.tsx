@@ -97,7 +97,7 @@ const integrations = [
   },
   {
     name: "x402 Protocol",
-    desc: "The open standard backed by Google, Cloudflare, Stripe, and Coinbase. Gate402 is production-ready today.",
+    desc: "The open standard backed by Google, Cloudflare, Stripe, and Coinbase. Metera is production-ready today.",
     icon: <Link2Icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#00bc7d]" />,
   },
 ];
@@ -116,7 +116,7 @@ export default function RuixenSection() {
 
           {/* Content */}
           <h3 className="text-lg sm:text-xl lg:text-2xl font-normal text-white leading-relaxed">
-            Real-time Payment Dashboard <span className="text-primary">gate402</span>{" "}
+            Real-time Payment Dashboard <span className="text-primary">Metera</span>{" "}
             <span className="text-sm sm:text-base lg:text-lg" style={{ color: '#888' }}> Every USDC that lands in your wallet appears here the moment it arrives. No refresh. No delay. No intermediary.</span>
           </h3>
         </div>
@@ -126,7 +126,7 @@ export default function RuixenSection() {
           {/* Content */}
           <h3 className="text-lg sm:text-xl lg:text-2xl font-normal text-white mb-4 sm:mb-6 leading-relaxed">
             The x402 ecosystem is already in production.{" "}
-            <span className="text-sm sm:text-base lg:text-lg" style={{ color: '#888' }}> Gate402 connects your API to every agent, framework, and runtime that speaks the x402 protocol.</span>
+            <span className="text-sm sm:text-base lg:text-lg" style={{ color: '#888' }}> Metera connects your API to every agent, framework, and runtime that speaks the x402 protocol.</span>
           </h3>
           <div className="mt-auto w-full">
             {/* Integration List */}
@@ -182,7 +182,7 @@ export default function RuixenSection() {
             <p className="text-sm sm:text-base lg:text-lg leading-relaxed">
               &ldquo;The agentic economy needs a payment layer.<br />
               HTTP 402 has existed since 1991.<br />
-              Gate402 is what finally makes it real.&rdquo;
+              Metera is what finally makes it real.&rdquo;
             </p>
             <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3">
               <cite className="block font-medium text-sm sm:text-base text-white not-italic">

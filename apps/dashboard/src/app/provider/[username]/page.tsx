@@ -7,7 +7,7 @@ import { V2Footer } from '@/components/v2/v2-footer'
 import { APICard } from '@/components/marketplace/APICard'
 import '../../../styles/v2/tokens.css'
 
-const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
 
 const LINE = '1px solid rgba(255,255,255,0.06)'
 const FONT = "'JetBrains Mono', 'Fira Mono', monospace"

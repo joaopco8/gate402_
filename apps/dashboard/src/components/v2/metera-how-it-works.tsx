@@ -7,7 +7,7 @@ const STEPS = [
   {
     number: "01",
     title: "Add your\nendpoint",
-    desc: "Paste any API URL — REST, GraphQL, WebSocket. Gate402 wraps it in seconds. No code changes required on your API.",
+    desc: "Paste any API URL — REST, GraphQL, WebSocket. Metera wraps it in seconds. No code changes required on your API.",
     detail: "Works with any backend",
     code: `gate402 add \\
   --url https://api.yourapp.com \\

@@ -8,7 +8,7 @@ import { useUser } from '@/contexts/UserContext'
 import { createClient } from '../../../lib/supabase/client'
 import { getAuthHeaders } from '../lib/api'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
 
 const cardStyle: React.CSSProperties = {
   background: '#111',
@@ -163,7 +163,7 @@ import { gate402 } from 'gate402'
 app.use(gate402({
   apiKey: '${displayApiKey}',
   walletAddress: '${displayWallet}',
-  serverUrl: 'https://api.gate402.dev',
+  serverUrl: 'https://api.metera.xyz',
   endpoints: {
     '/api/data': 0.001
   }
@@ -176,7 +176,7 @@ app.use(gate402({
         {/* Logo */}
         <div style={{ marginBottom: 40 }}>
           <a href="/" style={{ display: 'inline-block', textDecoration: 'none' }}>
-            <img src="/logo-gate.png" alt="Gate402" style={{ height: 24, width: 'auto' }} />
+            <img src="/logo-gate.png" alt="Metera" style={{ height: 24, width: 'auto' }} />
           </a>
         </div>
 
@@ -186,7 +186,7 @@ app.use(gate402({
         {step === 1 && (
           <>
             <h1 style={{ fontSize: '1.6rem', fontWeight: 600, margin: '0 0 8px', color: '#fff' }}>
-              Welcome to Gate402
+              Welcome to Metera
             </h1>
             <p style={{ color: '#666', fontSize: 14, margin: '0 0 32px' }}>
               Your account is ready. Here's your API key to get started.
@@ -280,7 +280,7 @@ app.use(gate402({
               You're ready
             </h1>
             <p style={{ color: '#666', fontSize: 14, margin: '0 0 32px' }}>
-              Add Gate402 to your Express app with your API key already configured.
+              Add Metera to your Express app with your API key already configured.
             </p>
 
             <div style={cardStyle}>

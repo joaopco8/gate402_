@@ -203,7 +203,7 @@ function RoleCard({ role }: { role: Role }) {
           {/* apply button */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingTop: 8 }}>
             <a
-              href={`mailto:hiring@gate402.dev?subject=Application: ${role.title}`}
+              href={`mailto:hiring@metera.xyz?subject=Application: ${role.title}`}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
                 background: role.accent, color: '#1B1E1B',
@@ -221,7 +221,7 @@ function RoleCard({ role }: { role: Role }) {
                 <path d="M2 6h8M6 2l4 4-4 4" />
               </svg>
             </a>
-            <span style={{ fontSize: 12, color: DIM, fontFamily: MONO }}>hiring@gate402.dev</span>
+            <span style={{ fontSize: 12, color: DIM, fontFamily: MONO }}>hiring@metera.xyz</span>
           </div>
         </div>
       )}
@@ -305,7 +305,7 @@ export default function HiringPage() {
               </p>
             </div>
             <a
-              href="mailto:hiring@gate402.dev?subject=General Application"
+              href="mailto:hiring@metera.xyz?subject=General Application"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
                 background: 'transparent', color: TEXT,

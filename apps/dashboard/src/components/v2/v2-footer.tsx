@@ -27,7 +27,7 @@ const COLUMNS = [
       { label: 'Documentation', href: '/v2/docs' },
       { label: 'Quick Start',   href: '/v2/docs#how-it-works' },
       { label: 'API Reference', href: '/v2/docs#x402-flow' },
-      { label: 'GitHub',        href: 'https://github.com/joaopco8/gate402_', external: true },
+      { label: 'GitHub',        href: 'https://github.com/metera-dev/metera', external: true },
     ],
   },
   {
@@ -60,7 +60,7 @@ const XIcon = () => (
 )
 
 const SOCIAL = [
-  { Icon: GithubIcon, href: 'https://github.com/joaopco8/gate402_', label: 'GitHub' },
+  { Icon: GithubIcon, href: 'https://github.com/metera-dev/metera', label: 'GitHub' },
   { Icon: XIcon,      href: 'https://x.com',                        label: 'Twitter' },
 ]
 

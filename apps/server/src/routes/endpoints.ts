@@ -119,7 +119,7 @@ router.post('/endpoints', async (req, res) => {
         error: 'Endpoint limit reached',
         code: 'UPGRADE_REQUIRED',
         message: 'Free plan allows up to 3 endpoints. Upgrade to Pro for unlimited.',
-        upgradeUrl: 'https://gate402.dev/billing',
+        upgradeUrl: 'https://metera.xyz/billing',
         currentCount: endpointCount,
         limit: 3,
       })

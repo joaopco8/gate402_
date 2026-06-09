@@ -77,7 +77,7 @@ export function useUser() {
 
   useEffect(() => {
     const supabase = createClient()
-    const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+    const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
 
     async function syncUser() {
       try {

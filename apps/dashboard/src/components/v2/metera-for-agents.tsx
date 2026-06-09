@@ -3,7 +3,7 @@
 import { useState } from "react"
 
 const LINE = "1px solid #2A2E2A"
-const SKILL_URL = "https://gate402.dev/skill/your-key"
+const SKILL_URL = "https://metera.xyz/skill/your-key"
 
 export function MeteraForAgents() {
   const [copied, setCopied] = useState(false)

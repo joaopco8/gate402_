@@ -80,7 +80,7 @@ router.get('/:agentKey', async (req, res) => {
     if (wallet.blockedEndpoints.length > 0)
       restrictionLines.push(`- Blocked endpoints: ${wallet.blockedEndpoints.join(', ')}`)
 
-    const BASE = process.env.API_BASE_URL || 'https://api.gate402.dev'
+    const BASE = process.env.API_BASE_URL || 'https://api.metera.xyz'
 
     const marketplaceApis = await prisma.proxyEndpoint.findMany({
       where: { isPublic: true, isActive: true },
@@ -98,7 +98,7 @@ router.get('/:agentKey', async (req, res) => {
 name: gate402-agent
 version: 1.0.0
 description: Pay for APIs automatically using USDC on Solana. No crypto knowledge needed.
-homepage: https://gate402.dev
+homepage: https://metera.xyz
 metadata:
   x402:
     supported: true
@@ -108,9 +108,9 @@ metadata:
     endpoint: "${BASE}/agent/${wallet.agentKey}/fetch"
 ---
 
-# Gate402 Agent
+# Metera Agent
 
-You are connected to Gate402 — billing infrastructure for AI agents.
+You are connected to Metera — billing infrastructure for AI agents.
 This wallet lets you pay for APIs automatically using USDC on Solana.
 
 ---
@@ -118,7 +118,7 @@ This wallet lets you pay for APIs automatically using USDC on Solana.
 ## TL;DR — Quick Reference
 
 **Your wallet is ready.** Use the fetch proxy below to call any x402-compatible API.
-Gate402 detects the 402 payment request, signs it, and retries automatically.
+Metera detects the 402 payment request, signs it, and retries automatically.
 
 Check balance before making paid calls.
 Spending limits are enforced — calls are blocked if caps are exceeded.
@@ -147,7 +147,7 @@ ${restrictionLines.length > 0 ? '\n**Endpoint restrictions:**\n' + restrictionLi
 
 ## How to Pay for APIs — One Step
 
-POST your target URL to the Gate402 fetch proxy.
+POST your target URL to the Metera fetch proxy.
 It detects the 402, pays automatically, and returns the real response.
 
 \`\`\`bash
@@ -190,7 +190,7 @@ curl "${BASE}/agent/${wallet.agentKey}/balance"
 |------|----------|-------|-------------|
 ${marketplaceLines}
 
-Browse all: https://gate402.dev/marketplace
+Browse all: https://metera.xyz/marketplace
 
 ---
 
@@ -202,7 +202,7 @@ Browse all: https://gate402.dev/marketplace
 | \`MAX_PER_DAY_EXCEEDED\` | Daily spending cap reached |
 | \`MAX_PER_HOUR_EXCEEDED\` | Hourly spending cap reached |
 | \`ENDPOINT_BLOCKED\` | This endpoint is blocked for your wallet |
-| \`INSUFFICIENT_BALANCE\` | Deposit more USDC at gate402.dev/agents |
+| \`INSUFFICIENT_BALANCE\` | Deposit more USDC at metera.xyz/agents |
 | \`WALLET_INACTIVE\` | Wallet has been deactivated |
 
 ---
@@ -214,14 +214,14 @@ Browse all: https://gate402.dev/marketplace
 - Anti-replay protection prevents duplicate payments
 - Spending limits cannot be exceeded
 
-**Deposit USDC:** https://gate402.dev/agents
-**View activity:** https://gate402.dev/agents
-**Docs:** https://gate402.dev/docs
+**Deposit USDC:** https://metera.xyz/agents
+**View activity:** https://metera.xyz/agents
+**Docs:** https://metera.xyz/docs
 
 ---
 
-*Powered by Gate402 — HTTP 402, finally works.*
-*gate402.dev · Solana · x402 protocol*
+*Powered by Metera — HTTP 402, finally works.*
+*metera.xyz · Solana · x402 protocol*
 `
 
     if (redis) redis.setex(cacheKey, 60, skillMd).catch(() => {})

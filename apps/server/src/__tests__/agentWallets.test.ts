@@ -12,7 +12,7 @@ jest.mock('../lib/privy', () => ({
   },
 }))
 
-const BASE_URL = process.env.TEST_BASE_URL || 'https://api.gate402.dev'
+const BASE_URL = process.env.TEST_BASE_URL || 'https://api.metera.xyz'
 const PRO_API_KEY = process.env.TEST_PRO_API_KEY || 'test-api-key-placeholder'
 
 async function get(path: string, apiKey?: string) {

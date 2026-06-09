@@ -82,7 +82,7 @@ export default function ProxyPage() {
   const [error, setError] = useState('')
 
   const publicUrl = (slug: string) =>
-    `${SERVER_URL.replace('localhost:3001', 'api.gate402.dev')}/p/${slug}`
+    `${SERVER_URL.replace('localhost:3001', 'api.metera.xyz')}/p/${slug}`
 
   useEffect(() => {
     if (!authLoading && accessToken) fetchEndpoints()
@@ -581,7 +581,7 @@ export default function ProxyPage() {
               <input style={inputStyle} placeholder="https://your-api.com/endpoint" value={form.targetUrl}
                 onChange={(e) => setForm({ ...form, targetUrl: e.target.value })} />
               <p style={{ fontSize: 11, color: '#4A5549', marginTop: 4, fontFamily: SANS }}>
-                Gate402 proxies requests to this URL
+                Metera proxies requests to this URL
               </p>
             </div>
 
@@ -822,7 +822,7 @@ export default function ProxyPage() {
                 margin: '0 0 32px',
               }}
             >
-              Register any API URL and Gate402 handles billing automatically. No code needed.
+              Register any API URL and Metera handles billing automatically. No code needed.
             </p>
             <button
               onClick={() => setCreateOpen(true)}

@@ -152,7 +152,7 @@ function RoleCard({ role }: { role: Role }) {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingTop: 8 }}>
-            <a href={`mailto:hiring@gate402.dev?subject=Application: ${role.title}`}
+            <a href={`mailto:hiring@metera.xyz?subject=Application: ${role.title}`}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: role.accent, color: '#1B1E1B', border: 'none', borderRadius: 6, padding: '10px 22px', fontSize: 13, fontFamily: SANS, fontWeight: 500, textDecoration: 'none', transition: 'opacity 0.15s ease' }}
               onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
               onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
@@ -162,7 +162,7 @@ function RoleCard({ role }: { role: Role }) {
                 <path d="M2 6h8M6 2l4 4-4 4" />
               </svg>
             </a>
-            <span style={{ fontSize: 12, color: DIM, fontFamily: MONO }}>hiring@gate402.dev</span>
+            <span style={{ fontSize: 12, color: DIM, fontFamily: MONO }}>hiring@metera.xyz</span>
           </div>
         </div>
       )}
@@ -206,7 +206,7 @@ export default function HiringPage() {
               <p style={{ fontSize: 15, color: TEXT, fontWeight: 300, fontFamily: SANS, margin: '0 0 6px' }}>Don't see a role that fits?</p>
               <p style={{ fontSize: 13, color: MUTED, fontFamily: SANS, fontWeight: 300, margin: 0 }}>We're always open to strong engineers and builders. Send us your background.</p>
             </div>
-            <a href="mailto:hiring@gate402.dev?subject=General Application"
+            <a href="mailto:hiring@metera.xyz?subject=General Application"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', color: TEXT, border: LINE, borderRadius: 6, padding: '10px 22px', fontSize: 13, fontFamily: SANS, fontWeight: 400, textDecoration: 'none', flexShrink: 0, transition: 'border-color 0.15s ease, color 0.15s ease' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = '#4A5549'; e.currentTarget.style.color = GREEN }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = '#2A2E2A'; e.currentTarget.style.color = TEXT }}

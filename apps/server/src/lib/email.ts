@@ -22,7 +22,7 @@ export async function sendPaymentAlert(data: PaymentEmailData) {
 
   try {
     await resend.emails.send({
-      from: 'Gate402 <payments@gate402.dev>',
+      from: 'Metera <payments@metera.xyz>',
       to,
       subject: `Payment received — $${amount.toFixed(4)} USDC`,
       html: `
@@ -37,7 +37,7 @@ export async function sendPaymentAlert(data: PaymentEmailData) {
 
     <!-- Header -->
     <div style="margin-bottom:32px;">
-      <span style="color:#00ff88;font-size:18px;font-weight:600;letter-spacing:-0.02em;">gate402</span>
+      <span style="color:#00ff88;font-size:18px;font-weight:600;letter-spacing:-0.02em;">metera</span>
       <span style="color:#333;font-size:12px;margin-left:8px;">payment alert</span>
     </div>
 
@@ -76,7 +76,7 @@ export async function sendPaymentAlert(data: PaymentEmailData) {
 
     <!-- CTA -->
     <div style="text-align:center;margin-bottom:32px;">
-      <a href="https://gate402.dev/dashboard"
+      <a href="https://metera.xyz/dashboard"
          style="display:inline-block;background:#00ff88;color:#000;padding:12px 32px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">
         View Dashboard &rarr;
       </a>
@@ -93,7 +93,7 @@ export async function sendPaymentAlert(data: PaymentEmailData) {
     <!-- Footer -->
     <div style="border-top:1px solid #1a1a1a;padding-top:24px;text-align:center;">
       <p style="color:#333;font-size:11px;margin:0;">
-        gate402.dev &middot; Billing infrastructure for AI agents
+        metera.xyz &middot; Billing infrastructure for AI agents
       </p>
       <p style="color:#1a1a1a;font-size:10px;margin:8px 0 0;">
         You're receiving this because you have email alerts enabled.

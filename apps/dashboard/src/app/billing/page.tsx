@@ -6,7 +6,7 @@ import { createClient } from '../../../lib/supabase/client'
 import { useUser } from '@/contexts/UserContext'
 import DashboardLayout from '../components/DashboardLayout'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
 const LINE = '1px solid #2A2E2A'
 
 const FREE_FEATURES = [
@@ -70,7 +70,7 @@ const FAQ = [
   },
   {
     q: 'Do you offer refunds?',
-    a: 'We offer a 7-day refund if you are not satisfied. Contact hello@metera.dev.',
+    a: 'We offer a 7-day refund if you are not satisfied. Contact hello@metera.xyz.',
   },
 ]
 
@@ -143,7 +143,7 @@ export default function BillingPage() {
       })
       const data = await res.json()
       if (data.manualPlan) {
-        setError('Your plan was activated manually. To cancel, contact hello@metera.dev')
+        setError('Your plan was activated manually. To cancel, contact hello@metera.xyz')
       } else if (data.url) {
         window.location.href = data.url
       } else {
@@ -382,7 +382,7 @@ export default function BillingPage() {
             tag={currentPlan === 'enterprise' ? planTag('// active', '#BC86FF') : undefined}
             borderRight={false}
             cta={
-              <a href="mailto:hello@metera.dev"
+              <a href="mailto:hello@metera.xyz"
                 style={{ ...btnStyle('#BC86FF', '#1B1E1B', false), cursor: 'pointer' }}
                 onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
                 onMouseLeave={e => (e.currentTarget.style.opacity = '1')}

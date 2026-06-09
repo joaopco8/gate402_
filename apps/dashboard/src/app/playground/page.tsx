@@ -9,7 +9,7 @@ import DashboardLayout from '../components/DashboardLayout'
 import PageHeader from '../components/PageHeader'
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'
 
-const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? 'https://api.gate402.dev'
+const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? 'https://api.metera.xyz'
 const MONO = 'var(--font-label)'
 const SANS = 'var(--font-label)'
 

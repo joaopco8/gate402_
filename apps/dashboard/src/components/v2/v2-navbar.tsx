@@ -14,7 +14,7 @@ const BG    = '#1B1E1B'
 
 /* ── nav data ── */
 const PRODUCT_ITEMS = [
-  { label: 'Gate402 SDK',       desc: 'x402 payment middleware',        href: '/docs' },
+  { label: 'Metera SDK',       desc: 'x402 payment middleware',        href: '/docs' },
   { label: 'Dashboard',         desc: 'Analytics and revenue tracking',  href: '/dashboard' },
   { label: 'Metering Engine',   desc: 'Per-call pricing control',        href: '/docs#metering' },
   { label: 'Wallet Management', desc: 'USDC settlement on Solana',       href: '/docs#wallet' },
@@ -24,7 +24,7 @@ const DEV_ITEMS = [
   { label: 'Documentation', desc: 'Full SDK reference and guides', href: '/v2/docs' },
   { label: 'Quick Start',   desc: '5 minutes to first paid call',  href: '/v2/docs#how-it-works' },
   { label: 'API Reference', desc: 'All server endpoints',          href: '/v2/docs#x402-flow' },
-  { label: 'GitHub',        desc: 'MIT licensed — open source',    href: 'https://github.com/joaopco8/gate402_', external: true },
+  { label: 'GitHub',        desc: 'MIT licensed — open source',    href: 'https://github.com/metera-dev/metera', external: true },
   { label: 'Changelog',     desc: "What's new",                    href: '/v2/docs' },
 ]
 

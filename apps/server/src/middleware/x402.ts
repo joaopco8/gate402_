@@ -52,7 +52,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
           error: 'Invalid API key',
           code: 'INVALID_API_KEY',
           message: 'The x-api-key header contains an invalid key.',
-          docs: 'https://gate402.dev/docs',
+          docs: 'https://metera.xyz/docs',
         });
         return;
       }
@@ -117,7 +117,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
         quickstart: {
           agent_sdk: {
             install: 'npm install gate402-agent',
-            docs: 'https://gate402.dev/docs#installation-agent',
+            docs: 'https://metera.xyz/docs#installation-agent',
             example: [
               "import { Gate402Agent } from 'gate402-agent'",
               '',
@@ -136,7 +136,7 @@ export async function x402Middleware(req: Request, res: Response, next: NextFunc
             step3: 'Retry with header: X-Payment-Payload: <txHash>',
             explorer: 'https://explorer.solana.com',
           },
-          learn_more: 'https://gate402.dev/docs',
+          learn_more: 'https://metera.xyz/docs',
         },
       });
       return;

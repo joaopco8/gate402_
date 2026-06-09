@@ -1,4 +1,4 @@
-# Gate402 MCP Demo
+# Metera MCP Demo
 
 MCP server that exposes paywalled API tools via the x402 protocol on Solana devnet.
 
@@ -24,7 +24,7 @@ npm run build
 
 ## Test in terminal
 
-Make sure the Gate402 server is running first:
+Make sure the Metera server is running first:
 ```bash
 # In apps/server:
 npm run dev
@@ -70,7 +70,7 @@ Copy the contents of `claude-desktop-config.json` into your Claude Desktop confi
 ```json
 {
   "mcpServers": {
-    "gate402-demo": {
+    "metera-demo": {
       "command": "node",
       "args": ["C:\\Users\\Pichau\\Desktop\\gate402\\apps\\mcp-demo\\dist\\index.js"],
       "env": {
@@ -85,7 +85,7 @@ Copy the contents of `claude-desktop-config.json` into your Claude Desktop confi
 ```json
 {
   "mcpServers": {
-    "gate402-demo": {
+    "metera-demo": {
       "command": "node",
       "args": ["/Users/<YourUser>/Desktop/gate402/apps/mcp-demo/dist/index.js"],
       "env": {
@@ -100,7 +100,7 @@ Copy the contents of `claude-desktop-config.json` into your Claude Desktop confi
 
 After saving the config, fully quit and reopen Claude Desktop. The tools `get_weather` and `get_news` will appear in the tool selector.
 
-### 5. Make sure the Gate402 server is running
+### 5. Make sure the Metera server is running
 
 ```bash
 # In apps/server:

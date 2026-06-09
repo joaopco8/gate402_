@@ -71,7 +71,7 @@ const itemsSample: BentoItem[] = [
     {
         title: "CLI Generator",
         meta: "npx create-gate402-mcp",
-        description: "Scaffold a complete MCP server with Gate402 pre-configured. Per-tool pricing, devnet ready, deploy in minutes.",
+        description: "Scaffold a complete MCP server with Metera pre-configured. Per-tool pricing, devnet ready, deploy in minutes.",
         icon: <Terminal style={{ width: 16, height: 16, color: '#38bdf8' }} />,
         status: "Stable",
         tags: ["cli", "mcp", "scaffold"],

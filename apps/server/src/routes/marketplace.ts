@@ -98,8 +98,8 @@ router.get('/', async (req, res) => {
         categories: categoryCounts.map((c) => ({ name: c.category, count: c._count })),
       },
       meta: {
-        description: 'Gate402 Marketplace — APIs that accept x402 payments',
-        docs: 'https://gate402.dev/docs',
+        description: 'Metera Marketplace — APIs that accept x402 payments',
+        docs: 'https://metera.xyz/docs',
         protocol: 'x402',
         chain: 'solana',
       },
@@ -149,7 +149,7 @@ router.get('/:slug', async (req, res) => {
       _avg: { latencyMs: true },
     })
 
-    const BASE = process.env.API_BASE_URL || 'https://api.gate402.dev'
+    const BASE = process.env.API_BASE_URL || 'https://api.metera.xyz'
 
     const result = {
       ...endpoint,

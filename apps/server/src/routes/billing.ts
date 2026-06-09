@@ -41,7 +41,7 @@ router.post('/billing/checkout', async (req, res) => {
     const priceId = PRICE_IDS[plan]
     if (!priceId) {
       return res.status(400).json({
-        error: 'Price not configured for this plan. Contact hello@metera.dev.',
+        error: 'Price not configured for this plan. Contact hello@metera.xyz.',
         code: 'PRICE_NOT_CONFIGURED',
       })
     }
@@ -56,8 +56,8 @@ router.post('/billing/checkout', async (req, res) => {
       client_reference_id: supabaseId,
       customer_email: user.email || undefined,
       metadata: { supabaseId, plan },
-      success_url: 'https://gate402.dev/dashboard?upgraded=true',
-      cancel_url: 'https://gate402.dev/pricing?cancelled=true',
+      success_url: 'https://metera.xyz/dashboard?upgraded=true',
+      cancel_url: 'https://metera.xyz/pricing?cancelled=true',
     })
 
     return res.json({ url: session.url, sessionId: session.id })
@@ -174,7 +174,7 @@ router.post('/billing/portal', async (req, res) => {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
-      return_url: 'https://gate402.dev/dashboard/billing',
+      return_url: 'https://metera.xyz/dashboard/billing',
     })
 
     return res.json({ url: session.url })

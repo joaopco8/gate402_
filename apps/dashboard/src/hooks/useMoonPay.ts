@@ -56,7 +56,7 @@ export function useMoonPay() {
 
     let signature = ''
     try {
-      const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+      const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
       const res = await fetch(`${API_URL}/api/moonpay/sign-url`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

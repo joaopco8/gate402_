@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "gate402-demo": {
+    "metera-demo": {
       "command": "node",
       "args": ["C:\\Users\\Pichau\\Desktop\\gate402\\apps\\mcp-demo\\dist\\index.js"],
       "env": {

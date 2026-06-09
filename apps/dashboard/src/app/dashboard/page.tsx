@@ -16,7 +16,7 @@ import { useDashboardData } from '../hooks/useDashboardData'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { calcChange } from '@/lib/metrics'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 

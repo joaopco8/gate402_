@@ -73,7 +73,7 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -179,7 +179,7 @@ export default function SettingsPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
       const res = await fetch(`${SERVER_URL}/api/users/network`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...await getAuthHeaders() },
@@ -209,7 +209,7 @@ export default function SettingsPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
       const res = await fetch(`${SERVER_URL}/api/users/email-alerts`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...await getAuthHeaders() },
@@ -230,7 +230,7 @@ export default function SettingsPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
       await fetch(`${SERVER_URL}/api/users/wallet`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...await getAuthHeaders() },
@@ -250,7 +250,7 @@ export default function SettingsPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+      const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
       await fetch(`${SERVER_URL}/api/users/rotate-key`, {
         method: 'POST',
         headers: { ...await getAuthHeaders() },
@@ -492,7 +492,7 @@ export default function SettingsPage() {
         {/* Public Profile */}
         <Card style={{ marginBottom: 16 }}>
           <div style={{ fontFamily: 'var(--font-label)', fontSize: 12, fontWeight: 500, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: 6 }}>Public Profile</div>
-          <div style={{ ...subtextStyle, marginBottom: 16 }}>Visible at <span style={{ color: '#7AF279' }}>gate402.dev/provider/{profile.username || 'your-username'}</span></div>
+          <div style={{ ...subtextStyle, marginBottom: 16 }}>Visible at <span style={{ color: '#7AF279' }}>metera.xyz/provider/{profile.username || 'your-username'}</span></div>
 
           {/* Avatar */}
           <div style={{ marginBottom: 16 }}>
@@ -635,7 +635,7 @@ export default function SettingsPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
               <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 2 }}>Make profile public</div>
-              <div style={subtextStyle}>Visible at gate402.dev/provider/{profile.username || '...'}</div>
+              <div style={subtextStyle}>Visible at metera.xyz/provider/{profile.username || '...'}</div>
             </div>
             <button
               onClick={() => setProfile(p => ({ ...p, isPublicProfile: !p.isPublicProfile }))}

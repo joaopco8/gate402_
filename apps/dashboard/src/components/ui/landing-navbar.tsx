@@ -33,7 +33,7 @@ const DEVELOPERS_SECTIONS: DropdownSection[] = [
     items: [
       { label: 'Quick Start',    desc: '5 minutes to first paid call',   href: '/docs#quick-start' },
       { label: 'API Reference',  desc: 'All server endpoints',           href: '/docs#api-reference' },
-      { label: 'GitHub',         desc: 'MIT licensed — open source',     href: 'https://github.com/joaopco8/gate402_', target: '_blank' },
+      { label: 'GitHub',         desc: 'MIT licensed — open source',     href: 'https://github.com/metera-dev/metera', target: '_blank' },
       { label: 'Changelog',      desc: "What's new",                     href: '/changelog' },
     ],
   },
@@ -49,8 +49,8 @@ const DEVELOPERS_SECTIONS: DropdownSection[] = [
 const COMPANY_SECTIONS: DropdownSection[] = [
   {
     items: [
-      { label: 'Twitter/X', desc: '@gate402',               href: 'https://x.com/gate402dev', target: '_blank' },
-      { label: 'GitHub',    desc: 'joaopco8/gate402_',      href: 'https://github.com/joaopco8/gate402_', target: '_blank' },
+      { label: 'Twitter/X', desc: '@meteraxyz',               href: 'https://x.com/meteraxyz', target: '_blank' },
+      { label: 'GitHub',    desc: 'metera-dev/metera',      href: 'https://github.com/metera-dev/metera', target: '_blank' },
     ],
   },
 ];
@@ -203,10 +203,10 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
               { label: 'Documentation', href: '/docs' },
               { label: 'Quick Start', href: '/docs#quick-start' },
               { label: 'API Reference', href: '/docs#api-reference' },
-              { label: 'GitHub', href: 'https://github.com/joaopco8/gate402_', target: '_blank' },
+              { label: 'GitHub', href: 'https://github.com/metera-dev/metera', target: '_blank' },
             ]} />
             <MobileSection label="Company" items={[
-              { label: 'Twitter/X', href: 'https://x.com/gate402dev', target: '_blank' },
+              { label: 'Twitter/X', href: 'https://x.com/meteraxyz', target: '_blank' },
             ]} />
             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 12 }}>
               <a href="/pricing" onClick={onClose} style={{ display: 'block', fontSize: 14, color: '#d1d5db', textDecoration: 'none', padding: '5px 0' }}>Pricing</a>
@@ -252,7 +252,7 @@ export function LandingNavbar({ activePage }: { activePage?: string }) {
 
         {/* Logo */}
         <a href="/" style={{ flexShrink: 0, textDecoration: 'none' }}>
-          <img src="/logo-gate.png" alt="Gate402" style={{ height: 24, width: 'auto', display: 'block' }} />
+          <img src="/logo-gate.png" alt="Metera" style={{ height: 24, width: 'auto', display: 'block' }} />
         </a>
 
         {/* Desktop center nav */}

@@ -16,7 +16,7 @@ export async function requirePro(req: Request, res: Response, next: NextFunction
   if (!user) {
     return res.status(401).json({
       error: 'Unauthorized',
-      message: 'Valid API key required. Get yours at gate402.dev/settings',
+      message: 'Valid API key required. Get yours at metera.xyz/settings',
     })
   }
 
@@ -26,7 +26,7 @@ export async function requirePro(req: Request, res: Response, next: NextFunction
       code: 'UPGRADE_REQUIRED',
       message: 'This feature requires a Pro plan.',
       currentPlan: user.plan,
-      upgradeUrl: 'https://gate402.dev/billing',
+      upgradeUrl: 'https://metera.xyz/billing',
     })
   }
 
@@ -69,7 +69,7 @@ export async function requireAccount(req: Request, res: Response, next: NextFunc
   if (!user) {
     return res.status(401).json({
       error: 'Unauthorized',
-      message: 'Valid API key required. Get yours at gate402.dev',
+      message: 'Valid API key required. Get yours at metera.xyz',
     })
   }
 

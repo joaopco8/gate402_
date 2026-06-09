@@ -21,7 +21,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://www.gate402.dev/sitemap.xml',
-    host: 'https://www.gate402.dev',
+    sitemap: 'https://metera.xyz/sitemap.xml',
+    host: 'https://metera.xyz',
   }
 }

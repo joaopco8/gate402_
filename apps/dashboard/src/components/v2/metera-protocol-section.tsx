@@ -269,7 +269,7 @@ export function MeteraProtocolSection() {
             <TextPanel
               badge="provider"
               heading="Monetize your API in 3 lines."
-              accentWord="Gate402 handles 402 responses, payment verification, and settlement — zero infrastructure changes required."
+              accentWord="Metera handles 402 responses, payment verification, and settlement — zero infrastructure changes required."
               body="Add one middleware to your Express, Next.js, or Fastify app. Agents pay your endpoints automatically in USDC on Solana."
               tags={['x402 protocol', 'USDC on Solana', 'Any framework', '< 5min setup']}
               accent={GREEN}

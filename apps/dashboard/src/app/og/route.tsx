@@ -23,7 +23,7 @@ export async function GET() {
           color: '#ffffff',
           letterSpacing: '-2px',
         }}>
-          gate<span style={{ color: '#00bc7d' }}>402</span>
+          Metera
         </div>
         <div style={{
           fontSize: 28,

@@ -51,7 +51,7 @@ const GROUPS: FAQGroup[] = [
       },
       {
         q: "How does the agent know which APIs are available?",
-        a: "Two ways:\n\n1. Marketplace: gate402.dev/marketplace\n   Public list with prices and descriptions\n\n2. skill.md: gate402.dev/skill/{agentKey}\n   Claude reads it and already knows everything automatically",
+        a: "Two ways:\n\n1. Marketplace: metera.xyz/marketplace\n   Public list with prices and descriptions\n\n2. skill.md: metera.xyz/skill/{agentKey}\n   Claude reads it and already knows everything automatically",
       },
       {
         q: "Can the agent spend more than I want?",
@@ -67,7 +67,7 @@ const GROUPS: FAQGroup[] = [
       },
       {
         q: "What is the skill.md?",
-        a: "A file that teaches Claude Code, Cursor or any MCP agent\nhow to use Gate402 automatically.\n\nYou paste one line:\n\"Read https://gate402.dev/skill/your-key\"\n\nThe agent reads it, understands, already knows how to pay.\nNo npm. No install. No config.",
+        a: "A file that teaches Claude Code, Cursor or any MCP agent\nhow to use Gate402 automatically.\n\nYou paste one line:\n\"Read https://metera.xyz/skill/your-key\"\n\nThe agent reads it, understands, already knows how to pay.\nNo npm. No install. No config.",
       },
       {
         q: "Does unused balance expire?",

@@ -510,7 +510,7 @@ router.get('/analytics/export', async (req, res) => {
     ].join('\n');
 
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename="gate402-transactions.csv"');
+    res.setHeader('Content-Disposition', 'attachment; filename="metera-transactions.csv"');
     return res.send(csv);
   } catch (err) {
     console.error('[analytics/export]', err);

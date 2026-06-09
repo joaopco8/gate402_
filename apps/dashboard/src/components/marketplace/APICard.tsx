@@ -35,7 +35,7 @@ const BADGE_COLORS: Record<string, { bg: string; color: string; label: string }>
 
 const LINE = '1px solid #2A2E2A'
 const MONO = "'Geist Mono', monospace"
-const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.gate402.dev'
+const API_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://api.metera.xyz'
 
 function slugToProvider(slug: string): string {
   const parts = slug.split('-')
