@@ -703,7 +703,9 @@ export default function ProxyPage() {
                   cursor: 'pointer', textAlign: 'left',
                 }}
               >
-                <span style={{ fontSize: 20 }}>🌐</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={form.isPublic ? '#7AF279' : '#4A5549'} strokeWidth="1.5" style={{ flexShrink: 0 }}>
+                  <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: 13, color: form.isPublic ? '#7AF279' : '#E8F4EE', fontWeight: 500, margin: '0 0 2px' }}>Public</p>
                   <p style={{ fontSize: 11, color: '#4A5549', margin: 0 }}>Listed in marketplace. Any agent can discover and pay.</p>
@@ -720,7 +722,9 @@ export default function ProxyPage() {
                   cursor: 'pointer', textAlign: 'left',
                 }}
               >
-                <span style={{ fontSize: 20 }}>🔒</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={!form.isPublic ? '#BC86FF' : '#4A5549'} strokeWidth="1.5" style={{ flexShrink: 0 }}>
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: 13, color: !form.isPublic ? '#BC86FF' : '#E8F4EE', fontWeight: 500, margin: '0 0 2px' }}>Private</p>
                   <p style={{ fontSize: 11, color: '#4A5549', margin: 0 }}>Hidden from marketplace. Only accessible via direct URL. Share the endpoint URL with specific agents only.</p>
@@ -920,7 +924,12 @@ export default function ProxyPage() {
                       background: ep.isPublic ? 'rgba(122,242,121,0.05)' : 'rgba(188,134,255,0.05)',
                       letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: MONO,
                     }}>
-                      {ep.isPublic ? '🌐 public' : '🔒 private'}
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        {ep.isPublic
+                          ? <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>public</>
+                          : <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>private</>
+                        }
+                      </span>
                     </span>
                     <span
                       style={{
@@ -942,7 +951,8 @@ export default function ProxyPage() {
                   )}
                   {!ep.isPublic && (
                     <p style={{ fontSize: 11, color: '#4A5549', margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      🔒 Not visible in marketplace. Share this URL directly with your agents.
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      Not visible in marketplace. Share this URL directly with your agents.
                     </p>
                   )}
                 </div>
@@ -956,7 +966,10 @@ export default function ProxyPage() {
                       display: 'flex', alignItems: 'center', gap: 4, fontFamily: MONO,
                     }}
                   >
-                    {ep.isPublic ? '🔒 Make private' : '🌐 Make public'}
+                    {ep.isPublic
+                      ? <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Make private</>
+                      : <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Make public</>
+                    }
                   </button>
                   <a
                     href={publicUrl(ep.slug)}
