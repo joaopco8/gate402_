@@ -38,14 +38,6 @@ const IconEndpoints = () => (
   </svg>
 )
 
-const IconPlayground = () => (
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="1" y="2" width="13" height="11" rx="1.5"/>
-    <path d="M1 5h13"/>
-    <path d="M4 8.5l2 1.5-2 1.5"/>
-    <path d="M8.5 11h2.5"/>
-  </svg>
-)
 
 const IconDocs = () => (
   <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -91,7 +83,6 @@ const NAV_ITEMS = [
   { label: 'Wallet',        href: '/wallet',     Icon: IconWallet },
   { label: 'Endpoints',     href: '/endpoints',  Icon: IconEndpoints },
   { label: 'Agent Wallets', href: '/agents',     Icon: IconBot },
-  { label: 'Playground',    href: '/playground', Icon: IconPlayground },
   { label: 'Docs',          href: '/docs',       Icon: IconDocs },
   { label: 'Billing',       href: '/billing',    Icon: IconBilling },
   { label: 'Settings',      href: '/settings',   Icon: IconSettings },
