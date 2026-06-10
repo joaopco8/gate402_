@@ -24,7 +24,7 @@ export default function LoginPage() {
       color: '#fff',
     }}>
       <div style={{ textAlign: 'center', marginBottom: 48 }}>
-        <img src="/logo-gate.png" alt="Gate402" style={{ height: 52, width: 'auto', marginBottom: 16 }} />
+        <img src="/logo-gate.png" alt="Metera" style={{ height: 52, width: 'auto', marginBottom: 16 }} />
         <p style={{ color: '#888', fontSize: 14, margin: 0 }}>
           Billing infrastructure for AI agents
         </p>

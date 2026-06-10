@@ -13,23 +13,23 @@ const GROUPS: FAQGroup[] = [
     label: "For providers — monetizing APIs",
     items: [
       {
-        q: "Do I need to know how to code to use Gate402?",
+        q: "Do I need to know how to code to use Metera?",
         a: "No. Paste your API URL in the dashboard, set a price, done.\nIf your API already exists, you're live in 2 minutes.",
       },
       {
         q: "Does my API need to be in a specific language?",
-        a: "No. Any HTTP API works.\nNode.js, Python, Ruby, Go, PHP — doesn't matter.\nIf it responds to an HTTP request, Gate402 works.",
+        a: "No. Any HTTP API works.\nNode.js, Python, Ruby, Go, PHP — doesn't matter.\nIf it responds to an HTTP request, Metera works.",
       },
       {
-        q: "Does Gate402 sit in the middle of all my requests?",
-        a: "Depends on how you integrate.\n\nHosted mode (no code):\n→ Yes, Gate402 acts as a proxy\n→ You register the URL, it intercepts and charges\n\nMiddleware mode (npm):\n→ No, runs inside your server\n→ More control, less latency",
+        q: "Does Metera sit in the middle of all my requests?",
+        a: "Depends on how you integrate.\n\nHosted mode (no code):\n→ Yes, Metera acts as a proxy\n→ You register the URL, it intercepts and charges\n\nMiddleware mode (npm):\n→ No, runs inside your server\n→ More control, less latency",
       },
       {
         q: "How long does it take for USDC to reach my wallet?",
-        a: "400ms after the call is verified on-chain.\nMoney goes directly to your Solana wallet.\nGate402 never custodies your funds.",
+        a: "400ms after the call is verified on-chain.\nMoney goes directly to your Solana wallet.\nMetera never custodies your funds.",
       },
       {
-        q: "Does Gate402 take a percentage?",
+        q: "Does Metera take a percentage?",
         a: "Free: 0% — you keep everything\nPro: $99/mo — you keep everything\nEnterprise: 0.5% of volume\n\nDuring early access — fee is zero.",
       },
       {
@@ -47,7 +47,7 @@ const GROUPS: FAQGroup[] = [
     items: [
       {
         q: "Can the agent only consume APIs from the marketplace?",
-        a: "No. The agent can call any API that implements the x402 protocol —\ninside or outside the Gate402 marketplace.\n\nThe marketplace is a discovery directory.\nPayment works on any compatible API.",
+        a: "No. The agent can call any API that implements the x402 protocol —\ninside or outside the Metera marketplace.\n\nThe marketplace is a discovery directory.\nPayment works on any compatible API.",
       },
       {
         q: "How does the agent know which APIs are available?",
@@ -67,7 +67,7 @@ const GROUPS: FAQGroup[] = [
       },
       {
         q: "What is the skill.md?",
-        a: "A file that teaches Claude Code, Cursor or any MCP agent\nhow to use Gate402 automatically.\n\nYou paste one line:\n\"Read https://metera.xyz/skill/your-key\"\n\nThe agent reads it, understands, already knows how to pay.\nNo npm. No install. No config.",
+        a: "A file that teaches Claude Code, Cursor or any MCP agent\nhow to use Metera automatically.\n\nYou paste one line:\n\"Read https://metera.xyz/skill/your-key\"\n\nThe agent reads it, understands, already knows how to pay.\nNo npm. No install. No config.",
       },
       {
         q: "Does unused balance expire?",
@@ -80,19 +80,19 @@ const GROUPS: FAQGroup[] = [
     items: [
       {
         q: "What is the x402 protocol?",
-        a: "An HTTP standard created in 1991 specifically for web payments.\nLeft without implementation for 33 years.\n\nThe x402 Foundation — with Google, Microsoft, Stripe, Coinbase\nand Cloudflare — standardized how it should work\nfor machine-to-machine payments.\n\nGate402 is the production-ready implementation of that protocol.",
+        a: "An HTTP standard created in 1991 specifically for web payments.\nLeft without implementation for 33 years.\n\nThe x402 Foundation — with Google, Microsoft, Stripe, Coinbase\nand Cloudflare — standardized how it should work\nfor machine-to-machine payments.\n\nMetera is the production-ready implementation of that protocol.",
       },
       {
-        q: "Can Gate402 be hacked and drain my wallet?",
-        a: "No. Three reasons:\n\n1. Spending limits — the agent never spends\n   more than you configured\n\n2. Anti-replay — each txHash can only\n   be used once\n\n3. Zero custody — Gate402 never\n   has access to your funds.\n   Money goes directly on-chain.",
+        q: "Can Metera be hacked and drain my wallet?",
+        a: "No. Three reasons:\n\n1. Spending limits — the agent never spends\n   more than you configured\n\n2. Anti-replay — each txHash can only\n   be used once\n\n3. Zero custody — Metera never\n   has access to your funds.\n   Money goes directly on-chain.",
       },
       {
         q: "What if the x402 protocol changes?",
-        a: "Gate402 is chain-agnostic by design.\nGovernance of x402 is under the Linux Foundation\nbacked by Google, Stripe and Cloudflare.\n\nProtocols with that level of support don't die — they evolve.\nAnd Gate402 evolves with them.",
+        a: "Metera is chain-agnostic by design.\nGovernance of x402 is under the Linux Foundation\nbacked by Google, Stripe and Cloudflare.\n\nProtocols with that level of support don't die — they evolve.\nAnd Metera evolves with them.",
       },
       {
         q: "Is my API data exposed?",
-        a: "Hosted mode: Gate402 acts as a proxy\nand sees requests passing through.\nWe do not store response content.\n\nMiddleware mode (npm): Gate402\nruns inside your server.\nNo data leaves your infrastructure.",
+        a: "Hosted mode: Metera acts as a proxy\nand sees requests passing through.\nWe do not store response content.\n\nMiddleware mode (npm): Metera\nruns inside your server.\nNo data leaves your infrastructure.",
       },
     ],
   },

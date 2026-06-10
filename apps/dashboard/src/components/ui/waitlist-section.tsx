@@ -96,7 +96,7 @@ export function WaitlistSection() {
             Join the waitlist
           </h2>
           <p style={{ fontSize: 15, color: '#6b7280', lineHeight: 1.65, maxWidth: 400 }}>
-            Gate402 is rolling out access in waves. Get in early — be the first to monetize your API for AI agents.
+            Metera is rolling out access in waves. Get in early — be the first to monetize your API for AI agents.
           </p>
         </div>
 

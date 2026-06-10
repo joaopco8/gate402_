@@ -27,7 +27,7 @@ export function Features() {
                                 }} />
                                 <Image
                                     src="/preview-dash.png"
-                                    alt="Gate402 real-time payment dashboard"
+                                    alt="Metera real-time payment dashboard"
                                     width={1920}
                                     height={1080}
                                     loading="lazy"

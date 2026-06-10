@@ -101,7 +101,7 @@ export function MeteraDashboardPreview() {
         }}>
           <img
             src="/preview-dash.png"
-            alt="Gate402 Dashboard"
+            alt="Metera Dashboard"
             style={{ display: 'block', width: '100%', height: 'auto' }}
           />
 

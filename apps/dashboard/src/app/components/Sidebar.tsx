@@ -176,8 +176,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
       }}>
         <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
           {collapsed
-            ? <img src="/icon-logo.png" alt="Gate402" style={{ height: 28, width: 28, display: 'block', flexShrink: 0, objectFit: 'contain' }} />
-            : <img src="/logo-gate.png" alt="Gate402" style={{ height: 22, width: 'auto', display: 'block', flexShrink: 0 }} />
+            ? <img src="/icon-logo.png" alt="Metera" style={{ height: 28, width: 28, display: 'block', flexShrink: 0, objectFit: 'contain' }} />
+            : <img src="/logo-gate.png" alt="Metera" style={{ height: 22, width: 'auto', display: 'block', flexShrink: 0 }} />
           }
         </a>
       </div>

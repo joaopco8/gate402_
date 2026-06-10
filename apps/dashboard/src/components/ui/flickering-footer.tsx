@@ -598,13 +598,13 @@ export const Component = () => {
         {/* Left */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 280, flexShrink: 0 }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-            <img src="/logo-gate.png" alt="Gate402" style={{ height: 28, width: 'auto', display: 'block' }} />
+            <img src="/logo-gate.png" alt="Metera" style={{ height: 28, width: 'auto', display: 'block' }} />
           </Link>
           <p style={{ fontSize: 14, color: '#555', lineHeight: 1.6, margin: 0 }}>
             {siteConfig.hero.description}
           </p>
           <a
-            href="https://x.com/gate402dev"
+            href="https://x.com/meteraxyz"
             target="_blank"
             rel="noopener noreferrer"
             style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, border: '1px solid #222', color: '#555', transition: 'color 150ms, border-color 150ms' }}
