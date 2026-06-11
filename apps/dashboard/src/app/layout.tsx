@@ -90,7 +90,7 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/logos/favicon-metera.png',
+    icon: '/logos/favicon-metera-white.png',
   },
 };
 
