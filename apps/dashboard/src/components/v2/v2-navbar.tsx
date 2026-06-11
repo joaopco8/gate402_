@@ -164,7 +164,7 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
       overflowY: 'auto',
     }}>
       <div style={{ borderBottom: LINE, paddingBottom: 16, marginBottom: 24 }}>
-        {[{ label: 'Marketplace', href: '/marketplace' }, { label: 'Pricing', href: '/v2/pricing' }, { label: 'Docs', href: '/v2/docs' }].map(item => (
+        {[{ label: 'MARKETPLACE', href: '/marketplace' }, { label: 'PRICING', href: '/v2/pricing' }, { label: 'DOCS', href: '/v2/docs' }].map(item => (
           <a key={item.label} href={item.href} onClick={onClose}
             style={{ display: 'block', padding: '8px 0', fontSize: 14, color: TEXT, textDecoration: 'none', fontFamily: SANS }}>
             {item.label}
@@ -174,7 +174,7 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <a href="/auth/login" onClick={onClose}
           style={{ fontSize: 14, color: MUTED, textDecoration: 'none', textAlign: 'center', padding: 12, border: LINE, borderRadius: 6, fontFamily: SANS }}>
-          Sign in
+          SIGN IN
         </a>
         <a href="/auth/login" onClick={onClose}
           style={{ fontSize: 14, fontWeight: 500, color: '#1B1E1B', background: GREEN, textDecoration: 'none', textAlign: 'center', padding: 12, borderRadius: 6, fontFamily: SANS }}>
@@ -241,9 +241,9 @@ export function V2Navbar({ activePage }: { activePage?: string }) {
 
           {/* desktop nav */}
           <nav className="v2nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 28, flex: 1, padding: '0 32px' }}>
-            <NavLink label="Marketplace" href="/marketplace" active={activePage === 'marketplace'} />
-            <NavLink label="Pricing" href="/v2/pricing" active={activePage === 'pricing'} />
-            <NavLink label="Docs"    href="/v2/docs" />
+            <NavLink label="MARKETPLACE" href="/marketplace" active={activePage === 'marketplace'} />
+            <NavLink label="PRICING" href="/v2/pricing" active={activePage === 'pricing'} />
+            <NavLink label="DOCS"    href="/v2/docs" />
           </nav>
 
           {/* desktop right */}
@@ -253,7 +253,7 @@ export function V2Navbar({ activePage }: { activePage?: string }) {
             padding: '0 32px',
             borderLeft: LINE,
           }}>
-            <NavLink label="Sign in" href="/auth/login" />
+            <NavLink label="SIGN IN" href="/auth/login" />
             <a
               href="/auth/login"
               style={{
@@ -271,7 +271,7 @@ export function V2Navbar({ activePage }: { activePage?: string }) {
               onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
               onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
             >
-              <MatrixText text="Get started →" />
+              <MatrixText text="GET STARTED →" />
             </a>
           </div>
 

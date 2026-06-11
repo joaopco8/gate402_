@@ -14,6 +14,7 @@ import { MeteraHighlightsSection } from '../components/v2/metera-highlights-sect
 import { MeteraOneLineSection } from '../components/v2/metera-one-line-section'
 import { FadeIn } from '../components/v2/animations'
 import { MatrixText } from '../components/ui/matrix-text'
+import { ScannerCardStream } from '../components/ui/scanner-card-stream'
 
 const LINE = '1px solid #2A2E2A'
 const MAX_WIDTH = '1200px'
@@ -70,7 +71,7 @@ export default function HomePage() {
           backgroundImage: "url('/BG-DESKTOP-OFC.jpg')",
           backgroundSize: '100% 100%',
           backgroundRepeat: 'no-repeat',
-          opacity: 0.8,
+          opacity: 1,
         }} />
         {/* mobile bg */}
         <div className="hero-bg-mobile" style={{
@@ -79,7 +80,7 @@ export default function HomePage() {
           backgroundImage: 'url(/mobile-bg.jpg)',
           backgroundSize: '100% 100%',
           backgroundRepeat: 'no-repeat',
-          opacity: 0.8,
+          opacity: 1,
         }} />
 
         <div style={{

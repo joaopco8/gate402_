@@ -239,6 +239,19 @@ input[type=number] {
 .animate-spin  { animation: spin 1s linear infinite }
 .animate-fade  { animation: fadeIn 0.2s ease-out }
 
+@keyframes glitch {
+  0%, 16%, 50%, 100% { opacity: 1; }
+  15%, 99% { opacity: 0.9; }
+  49% { opacity: 0.8; }
+}
+.animate-glitch { animation: glitch 0.1s infinite linear alternate-reverse; }
+
+@keyframes scanPulse {
+  0% { opacity: 0.75; transform: translate(-50%, -50%) scaleY(1); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scaleY(1.03); }
+}
+.animate-scan-pulse { animation: scanPulse 1.5s infinite alternate ease-in-out; }
+
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
