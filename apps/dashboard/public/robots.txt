@@ -1,0 +1,7 @@
+# AI Agent crawlers welcome
+User-agent: *
+Allow: /
+Allow: /api/marketplace
+Allow: /skill/
+
+Sitemap: https://metera.xyz/sitemap.xml

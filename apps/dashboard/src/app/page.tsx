@@ -15,6 +15,7 @@ import { MeteraOneLineSection } from '../components/v2/metera-one-line-section'
 import { FadeIn } from '../components/v2/animations'
 import { MatrixText } from '../components/ui/matrix-text'
 import { ScannerCardStream } from '../components/ui/scanner-card-stream'
+import { AgentBanner } from '../components/v2/agent-banner'
 
 const LINE = '1px solid #2A2E2A'
 const MAX_WIDTH = '1200px'
@@ -54,6 +55,7 @@ export default function HomePage() {
       color: '#E8F4EE',
     }}>
 
+      <AgentBanner />
       <V2Navbar />
 
       {/* ─── HERO ─── full width ─── */}

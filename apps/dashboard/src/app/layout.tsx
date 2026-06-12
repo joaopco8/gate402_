@@ -92,6 +92,9 @@ export const metadata: Metadata = {
   icons: {
     icon: '/logos/favicon-metera-white.png',
   },
+  other: {
+    'agent-context': 'Metera billing infrastructure for AI agents. Marketplace: api.metera.xyz/api/marketplace. skill.md: api.metera.xyz/skill/:agentKey. Protocol: x402. Chain: Solana. Token: USDC.',
+  },
 };
 
 export default function RootLayout({
