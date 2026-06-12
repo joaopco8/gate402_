@@ -311,21 +311,6 @@ export function AgentBanner() {
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <a
-                href="https://api.metera.xyz/api/marketplace"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  fontSize: '11px',
-                  color: '#4A5549',
-                  textDecoration: 'none',
-                  border: '1px solid #2A2E2A',
-                  borderRadius: '6px',
-                  padding: '6px 12px',
-                }}
-              >
-                View raw JSON →
-              </a>
               <button
                 onClick={handleCopy}
                 style={{
