@@ -128,102 +128,54 @@ Email:       hello@metera.xyz`,
 ]
 
 export function AgentBanner() {
-  const [agentMode, setAgentMode] = useState(false)
+  const [open, setOpen] = useState(false)
 
   return (
     <>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
-
       {/* Sticky banner */}
       <div style={{
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        background: agentMode ? '#0A1A0A' : '#111311',
+        background: '#111311',
         borderBottom: '1px solid #2A2E2A',
         padding: '10px 24px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: '#7AF279',
-              boxShadow: '0 0 6px #7AF279',
-              animation: 'pulse 2s infinite',
-            }} />
-            <span style={{
-              fontSize: '11px',
-              color: '#7AF279',
-              fontFamily: 'monospace',
-              letterSpacing: '0.10em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-            }}>
-              Agent-Friendly Information
-            </span>
-          </div>
-          <span style={{ fontSize: '11px', color: '#4A5549', fontFamily: 'monospace' }}>
-            {agentMode
-              ? 'Full Metera context loaded for AI agents'
-              : 'Click to load complete Metera context'}
-          </span>
-        </div>
-
         <button
-          onClick={() => setAgentMode(!agentMode)}
+          onClick={() => setOpen(true)}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '6px 14px',
-            background: agentMode ? '#7AF27915' : 'transparent',
-            border: agentMode ? '1px solid #7AF27940' : '1px solid #2A2E2A',
-            borderRadius: '20px',
+            background: 'none',
+            border: 'none',
             cursor: 'pointer',
-            transition: 'all 200ms ease',
+            padding: 0,
           }}
         >
-          <div style={{
-            width: '32px',
-            height: '18px',
-            borderRadius: '9px',
-            background: agentMode ? '#7AF279' : '#2A2E2A',
-            position: 'relative',
-            transition: 'background 200ms ease',
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: '3px',
-              left: agentMode ? '17px' : '3px',
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-              background: agentMode ? '#1B1E1B' : '#4A5549',
-              transition: 'left 200ms ease',
-            }} />
-          </div>
           <span style={{
             fontSize: '11px',
-            color: agentMode ? '#7AF279' : '#4A5549',
+            color: '#7AF279',
             fontFamily: 'monospace',
+            letterSpacing: '0.10em',
+            textTransform: 'uppercase',
+            fontWeight: 600,
           }}>
-            {agentMode ? 'ON' : 'OFF'}
+            Agent-Friendly Information
           </span>
         </button>
       </div>
 
-      {/* Expanded agent context panel */}
-      {agentMode && (
+      {/* Full-screen overlay */}
+      {open && (
         <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 200,
           background: '#0A1A0A',
-          borderBottom: '2px solid #7AF27930',
-          padding: '32px 48px',
+          overflowY: 'auto',
           fontFamily: 'monospace',
+          padding: '32px 48px',
         }}>
           {/* Header */}
           <div style={{
@@ -240,24 +192,45 @@ export function AgentBanner() {
               </p>
               <p style={{ fontSize: '11px', color: '#4A5549' }}>
                 Everything an AI agent needs to understand and use Metera.
-                This content is also available at api.metera.xyz/skill/:agentKey
+                Also available at api.metera.xyz/skill/:agentKey
               </p>
             </div>
-            <a
-              href="https://api.metera.xyz/api/marketplace"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontSize: '11px',
-                color: '#4A5549',
-                textDecoration: 'none',
-                border: '1px solid #2A2E2A',
-                borderRadius: '6px',
-                padding: '6px 12px',
-              }}
-            >
-              View raw JSON →
-            </a>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <a
+                href="https://api.metera.xyz/api/marketplace"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  fontSize: '11px',
+                  color: '#4A5549',
+                  textDecoration: 'none',
+                  border: '1px solid #2A2E2A',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                }}
+              >
+                View raw JSON →
+              </a>
+              <button
+                onClick={() => setOpen(false)}
+                style={{
+                  background: 'none',
+                  border: '1px solid #2A2E2A',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  cursor: 'pointer',
+                  color: '#7AF279',
+                  fontSize: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            </div>
           </div>
 
           {/* Sections */}
