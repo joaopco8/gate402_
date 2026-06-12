@@ -205,29 +205,17 @@ export function APICard({
         </div>
       </div>
 
-      {/* Footer: URL + RUN */}
-      <div style={{ padding: '16px 20px', display: 'flex', gap: 8 }}>
+      {/* Footer: VIEW API */}
+      <div style={{ padding: '16px 20px' }}>
         <button
-          onClick={copyUrl}
+          onClick={goToDetail}
           style={{
-            flex: 1, background: '#151815', border: LINE,
-            padding: '10px 12px', fontFamily: MONO, fontSize: 11,
-            color: copied ? '#7AF279' : '#4A5549',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            cursor: 'pointer', textAlign: 'left', transition: 'color 150ms',
-          }}
-        >
-          {copied ? '✓ copied' : `/p/${slug}`}
-        </button>
-        <button
-          onClick={stopProp}
-          style={{
-            background: '#E8F4EE', border: 'none', padding: '10px 20px',
+            width: '100%', background: '#E8F4EE', border: 'none', padding: '10px 20px',
             fontFamily: MONO, fontSize: 12, fontWeight: 600, letterSpacing: '0.14em',
             color: '#0A0C0A', cursor: 'pointer', whiteSpace: 'nowrap',
           }}
         >
-          RUN
+          VIEW API
         </button>
       </div>
     </div>
